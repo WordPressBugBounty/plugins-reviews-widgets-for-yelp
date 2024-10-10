@@ -416,6 +416,7 @@ return [
 'notifications',
 'top-rated-type',
 'top-rated-date',
+'show-review-replies',
 'cdn-version-control',
 'version-control',
 'preview',
@@ -475,6 +476,7 @@ case 'widget-setted-up':
 case 'disable-font':
 case 'footer-filter-text':
 case 'floating-mobile-open':
+case 'show-review-replies':
 $default = 0;
 break;
 case 'align':
@@ -781,7 +783,7 @@ $className = 'TrustindexPlugin_' . $forcePlatform;
 if (!class_exists($className)) {
 return $this->error_box_for_admins(ucfirst($forcePlatform) . ' plugin is not active or not found!');
 }
-$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-12.2", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
+$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-12.3", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
 $chosedPlatform->setNotificationParam('not-using-no-widget', 'active', false);
 if (!$chosedPlatform->is_noreg_linked()) {
 return $this->error_box_for_admins(sprintf(__('You have to connect your business (%s)!', 'trustindex-plugin'), $forcePlatform));
@@ -876,7 +878,7 @@ throw new ErrorException($err_msg, 0, $err_severity, $err_file, $err_line);
 add_filter('filesystem_method', array($this, 'filter_filesystem_method'));
 WP_Filesystem();
 try {
-$success = $wp_filesystem->put_contents($this->getCssFile(), $css, 0777);
+$success = $wp_filesystem->put_contents($this->getCssFile(), $css, 0644);
 }
 catch (Exception $e) {
 if (strpos($e->getMessage(), 'Permission denied') !== FALSE) {
@@ -6065,6 +6067,58 @@ public static $widget_top_rated_titles = array (
  'zh' => '评分最高的 <br /> 网店 %date%',
  ),
 );
+public static $widget_reply_by_texts = array (
+ 'en' => 'Owner\'s reply',
+ 'af' => 'Antwoord deur eienaar',
+ 'ar' => 'الرد من قبل المالك',
+ 'az' => 'Sahibi tərəfindən cavab',
+ 'bg' => 'Отговор от собственика',
+ 'bn' => 'মালিক দ্বারা উত্তর',
+ 'bs' => 'Odgovor vlasnika',
+ 'cs' => 'Odpověď majitele',
+ 'cy' => 'Ateb gan y perchennog',
+ 'da' => 'Svar fra ejer',
+ 'de' => 'Antwort des Eigentümers',
+ 'el' => 'Απάντηση από τον ιδιοκτήτη',
+ 'es' => 'Respuesta del propietario',
+ 'et' => 'Vastus omanikult',
+ 'fa' => 'پاسخ توسط مالک',
+ 'fi' => 'Vastaus omistajalta',
+ 'fr' => 'Réponse du propriétaire',
+ 'gd' => 'Freagairt leis an t-sealbhadair',
+ 'gl' => 'Resposta do propietario',
+ 'he' => 'תשובה מאת הבעלים',
+ 'hi' => 'स्वामी द्वारा उत्तर',
+ 'hr' => 'Odgovor vlasnika',
+ 'hu' => 'Válasz a tulajdonostól',
+ 'hy' => 'Պատասխանել սեփականատիրոջ կողմից',
+ 'id' => 'Balasan dari pemilik',
+ 'is' => 'Svar frá eiganda',
+ 'it' => 'Rispondi dal proprietario',
+ 'ja' => 'オーナーからの返信',
+ 'ka' => 'პასუხი მფლობელის მიერ',
+ 'kk' => 'Иесінің жауабы',
+ 'ko' => '소유자의 답변',
+ 'lt' => 'Atsakymas iš savininko',
+ 'mk' => 'Одговор од сопственикот',
+ 'ms' => 'Balas oleh pemilik',
+ 'nl' => 'Antwoord van eigenaar',
+ 'no' => 'Svar fra eier',
+ 'pl' => 'Odpowiedź właściciela',
+ 'pt' => 'Resposta do proprietário',
+ 'ro' => 'Răspunsul proprietarului',
+ 'ru' => 'Ответ владельца',
+ 'sk' => 'Odpoveď od vlastníka',
+ 'sl' => 'Odgovor lastnika',
+ 'sq' => 'Përgjigje nga pronari',
+ 'sr' => 'Одговор власника',
+ 'sv' => 'Svar från ägaren',
+ 'th' => 'ตอบโดยเจ้าของ',
+ 'tr' => 'Sahibinden cevap',
+ 'uk' => 'Відповідь власника',
+ 'vi' => 'Trả lời của chủ sở hữu',
+ 'zh' => '版主回覆',
+);
 private static $page_urls = array (
  'facebook' => 'https://www.facebook.com/pg/%page_id%',
  'google' => 'https://www.google.com/maps/search/?api=1&query=Google&query_place_id=%page_id%',
@@ -6112,7 +6166,7 @@ public function getReviewHtml($review)
 {
 $html = $review->text;
 if ($review->text) {
-$html = preg_replace('/\r\n|\r|\n/', "\n", html_entity_decode($review->text, ENT_HTML5 | ENT_QUOTES));
+$html = $this->parseReviewText($review->text);
 }
 if (isset($review->highlight) && $review->highlight) {
 $tmp = explode(',', $review->highlight);
@@ -6132,6 +6186,10 @@ $html = str_replace($matches[0], '<mark class="ti-highlight">' . $replaced_conte
 }
 }
 return $html;
+}
+private function parseReviewText($text)
+{
+return preg_replace('/\r\n|\r|\n/', "\n", trim(html_entity_decode($text, ENT_HTML5 | ENT_QUOTES)));
 }
 
 private $previewContent = null;
@@ -6239,24 +6297,10 @@ $align = $this->getWidgetOption('align', false, $onlyPreview);
 $reviewTextMode = $this->getWidgetOption('review-text-mode', false, $onlyPreview);
 $floatingDesktopOpen = $this->getWidgetOption('floating-desktop-open', false, $onlyPreview);
 $floatingMobileOpen = $this->getWidgetOption('floating-mobile-open', false, $onlyPreview);
+$showReviewReplies = $this->getWidgetOption('show-review-replies', false, $onlyPreview);
 $scriptName = 'trustindex-js';
 if (!wp_script_is($scriptName, 'enqueued')) {
 wp_enqueue_script($scriptName, 'https://cdn.trustindex.io/loader.js', [], false, true);
-}
-$scripts = wp_scripts();
-if (isset($scripts->registered[ $scriptName ]) && !isset($scripts->registered[ $scriptName ]->extra['after'])) {
-wp_add_inline_script($scriptName, '
-(function trustindexWidgetInit() {
-if (typeof Trustindex === "undefined") {
-return setTimeout(trustindexWidgetInit, 100);
-}
-if (typeof Trustindex.pager_inited !== "undefined") {
-return false;
-}
-setTimeout(() => Trustindex.init_pager(document.querySelectorAll(".ti-widget")), 200);
-})();
-document.querySelectorAll("pre.ti-widget").forEach(item => item.replaceWith(item.firstChild));
-');
 }
 if ($content === false || empty($content) || (strpos($content, '<!-- R-LIST -->') === false && $needToParse)) {
 if (!$this->templateCache) {
@@ -6293,6 +6337,7 @@ $content = $this->parse_noreg_list_reviews([
 'reviews-load-more' => $reviewsLoadMore,
 'top-rated-type' => $topRatedType,
 'top-rated-date' => $topRatedDate,
+'show-review-replies' => $showReviewReplies,
 ]);
 $this->previewContent = [
 'id' => $styleId,
@@ -6390,11 +6435,15 @@ $verifiedIconTooltipText = str_replace('%platform%', 'PLATFORM_NAME', self::$wid
 $ratingContent .= '<span class="'.$verifiedIconClass.'"><span class="ti-verified-tooltip">'.$verifiedIconTooltipText.'</span></span>';
 }
 if (!$array['show-reviewers-photo']) {
-$matches[1] = str_replace('<div class="ti-profile-img"> <img src="%reviewer_photo%" loading="lazy" alt="%reviewer_name%" /> </div>', '', $matches[1]);
+$matches[1] = preg_replace('/<div class="ti-profile-img">.+<\/div>/U', '', $matches[1]);
 }
 $imageUrl = $r->user_photo;
 $image2xUrl = $imageUrl;
 
+$text = $this->getReviewHtml($r);
+if ($array['show-review-replies'] && $r->reply) {
+$text .= '<br /><br /><strong class="ti-reply-by-owner-title">'.self::$widget_reply_by_texts[$array['language']].'</strong><br />'.$this->parseReviewText($r->reply);
+}
 $reviewContent .= str_replace(
 [
 '%platform%',
@@ -6413,7 +6462,7 @@ $image2xUrl.' 2x',
 $imageUrl,
 $r->user,
 $date,
-$this->getReviewHtml($r),
+$text,
 $ratingContent,
 round($r->original_rating),
 $customAttributes . ' class="ti-review-item'

@@ -34,7 +34,7 @@ URL: <?php echo esc_url(get_option('siteurl')) ."\n"; ?>
 MySQL Version: <?php echo esc_html($wpdb->db_version()) ."\n"; ?>
 WP Table Prefix: <?php echo esc_html($wpdb->prefix) ."\n"; ?>
 WP Version: <?php echo esc_html($wp_version) ."\n"; ?>
-Server Name: <?php echo esc_html(sanitize_text_field($_SERVER['SERVER_NAME'])) ."\n"; ?>
+<?php if (isset($_SERVER['SERVER_NAME'])): ?>Server Name: <?php echo esc_html(sanitize_text_field(wp_unslash($_SERVER['SERVER_NAME']))) ."\n"; ?><?php endif; ?>
 Cookie Domain: <?php $cookieDomain = wp_parse_url(strtolower(get_bloginfo('wpurl'))); echo esc_html($cookieDomain['host']) ."\n"; ?>
 CURL Library Present: <?php echo esc_html(function_exists('curl_init') ? 'Yes' : 'No') ."\n"; ?>
 <?php if (method_exists($pluginManagerInstance, 'getCssFile')): ?>CSS path: <?php echo esc_html($pluginManagerInstance->getCssFile()) ."\n"; ?><?php endif; ?>

@@ -134,6 +134,7 @@ delete_option($pluginManagerInstance->get_option_name('show-reviewers-photo'));
 delete_option($pluginManagerInstance->get_option_name('floating-desktop-open'));
 delete_option($pluginManagerInstance->get_option_name('floating-mobile-open'));
 delete_option($pluginManagerInstance->get_option_name('widget-setted-up'));
+delete_option($pluginManagerInstance->get_option_name('show-review-replies'));
 }
 $wpdb->query('TRUNCATE `'. $pluginManagerInstance->get_tablename('reviews') .'`');
 $pluginManagerInstance->setNotificationParam('not-using-no-connection', 'active', true);
@@ -164,6 +165,7 @@ $optionsToDelete = [
 'dateformat',
 'floating-desktop-open',
 'floating-mobile-open',
+'show-review-replies',
 ];
 foreach ($optionsToDelete as $name) {
 delete_option($pluginManagerInstance->get_option_name($name));
@@ -313,6 +315,11 @@ if (isset($_POST['floating-mobile-open'])) {
 $r = sanitize_text_field($_POST['floating-mobile-open']);
 }
 update_option($pluginManagerInstance->get_option_name('floating-mobile-open'), $r, false);
+$r = 0;
+if (isset($_POST['show-review-replies'])) {
+$r = sanitize_text_field($_POST['show-review-replies']);
+}
+update_option($pluginManagerInstance->get_option_name('show-review-replies'), $r, false);
 $filter = $pluginManagerInstance->getWidgetOption('filter');
 $filter['only-ratings'] = isset($_POST['only-ratings']) ? (bool)$_POST['only-ratings'] : $pluginManagerInstance->getWidgetOption('filter', false, true)['only-ratings'];
 update_option($pluginManagerInstance->get_option_name('filter'), $filter, false);
@@ -859,6 +866,12 @@ break;
 <span class="ti-checkbox ti-checkbox-row">
 <input type="checkbox" name="footer-filter-text" value="1"<?php if ($pluginManagerInstance->getWidgetOption('footer-filter-text')): ?> checked<?php endif; ?> />
 <label><?php echo __('Show minimum review filter condition', 'trustindex-plugin'); ?></label>
+</span>
+<?php endif; ?>
+<?php if ($widgetHasReviews): ?>
+<span class="ti-checkbox ti-checkbox-row">
+<input type="checkbox" name="show-review-replies" value="1"<?php if ($pluginManagerInstance->getWidgetOption('show-review-replies')): ?> checked<?php endif; ?> />
+<label><?php echo __('Show review reply', 'trustindex-plugin'); ?></label>
 </span>
 <?php endif; ?>
 <?php if (in_array($styleId, [ 8, 10, 13 ])): ?>

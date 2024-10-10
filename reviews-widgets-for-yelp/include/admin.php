@@ -6,13 +6,21 @@ die('The account you are logged in to does not have permission to access this pa
 if (isset($_GET['test_proxy'])) {
 check_admin_referer('ti-test-proxy');
 delete_option($pluginManagerInstance->get_option_name('proxy-check'));
-header('Location: admin.php?page=' . sanitize_text_field($_GET['page']) .'&tab=' . sanitize_text_field($_GET['tab']));
+$params = [];
+if (isset($_GET['page'])) {
+$params['page'] = sanitize_text_field(wp_unslash($_GET['page']));
+}
+if (isset($_GET['tab'])) {
+$params['tab'] = sanitize_text_field(wp_unslash($_GET['tab']));
+}
+header('Location: admin.php?' . build_query($params));
 exit;
 }
 if (isset($_GET['notification'])) {
-$type = sanitize_text_field($_GET['notification']);
+$type = sanitize_text_field(wp_unslash($_GET['notification']));
 $options = $pluginManagerInstance->getNotificationOptions($type);
-switch (sanitize_text_field($_GET['action'])) {
+if (isset($_GET['action'])) {
+switch (sanitize_text_field(wp_unslash($_GET['action']))) {
 case 'later':
 $pluginManagerInstance->setNotificationParam($type, 'timestamp', time() + (14 * 86400));
 break;
@@ -32,19 +40,20 @@ exit;
 break;
 case 'hide':
 $pluginManagerInstance->setNotificationParam($type, 'hidden', true);
-header('Location: admin.php?page=' . sanitize_text_field($_GET['page']) .'&tab=advanced');
+header('Location: admin.php?page=' . sanitize_text_field(wp_unslash($_GET['page'])) .'&tab=advanced');
 break;
 case 'unhide':
 $pluginManagerInstance->setNotificationParam($type, 'hidden', false);
-header('Location: admin.php?page=' . sanitize_text_field($_GET['page']) .'&tab=advanced');
+header('Location: admin.php?page=' . sanitize_text_field(wp_unslash($_GET['page'])) .'&tab=advanced');
 break;
+}
 }
 exit;
 }
 if (isset($_REQUEST['command']) && $_REQUEST['command'] === 'rate-us-feedback') {
 check_admin_referer('ti-rate-us');
-$text = isset($_POST['text']) ? trim(wp_kses_post(stripslashes($_POST['text']))) : "";
-$email = isset($_POST['email']) ? trim(sanitize_text_field($_POST['email'])) : "";
+$text = isset($_POST['text']) ? trim(wp_kses_post(sanitize_text_field(wp_unslash($_POST['text'])))) : "";
+$email = isset($_POST['email']) ? trim(sanitize_text_field(wp_unslash($_POST['email']))) : "";
 $star = isset($_REQUEST['star']) ? (int)$_REQUEST['star'] : 1;
 update_option($pluginManagerInstance->get_option_name('rate-us-feedback'), $star, false);
 if ($star > 3) {
@@ -90,7 +99,7 @@ $proxyCheck = $dbData;
 }
 }
 $tabs = $pluginManagerInstance->getPluginTabs();
-$selectedTab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : null;
+$selectedTab = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : null;
 if (!$selectedTab || !in_array($selectedTab, array_column($tabs, 'slug'))) {
 $selectedTab = $tabs[0]['slug'];
 }
@@ -191,7 +200,7 @@ wp_add_inline_script($jsKey, $jsContent);
 <?php foreach ($tabs as $tab): ?>
 <a
 class="ti-nav-item<?php if ($selectedTab === $tab['slug']): ?> ti-active<?php endif; ?><?php if ($tab['place'] === 'right'): ?> ti-right<?php endif; ?>"
-href="<?php echo esc_url(admin_url('admin.php?page='. esc_attr(sanitize_text_field($_GET['page'])) .'&tab='. esc_attr($tab['slug']))); ?>"
+href="<?php echo esc_url(admin_url('admin.php?page='. esc_attr(sanitize_text_field(wp_unslash($_GET['page']))) .'&tab='. esc_attr($tab['slug']))); ?>"
 >
 <?php echo esc_html($tab['name']); ?>
 <?php if (isset($newBadgeTabs) && in_array($tab['slug'], $newBadgeTabs)): ?>
@@ -220,7 +229,7 @@ href="<?php echo esc_url(admin_url('admin.php?page='. esc_attr(sanitize_text_fie
 <strong><?php echo wp_kses_post($proxyCheck); ?></strong><br /><br />
 <?php echo esc_html(__('Therefore, our plugin might not work properly. Please, contact your hosting support, they can resolve this easily.', 'trustindex-plugin')); ?>
 </p>
-<a href="<?php echo esc_url(wp_nonce_url('?page='. esc_attr(sanitize_text_field($_GET['page'])) .'&tab='. esc_attr(sanitize_text_field($_GET['tab'])) .'&test_proxy', 'ti-test-proxy')); ?>" class="ti-btn ti-btn-loading-on-click"><?php echo esc_html(__('Test again', 'trustindex-plugin')); ?></a>
+<a href="<?php echo esc_url(wp_nonce_url('?page='. esc_attr(sanitize_text_field(wp_unslash($_GET['page']))) .'&tab='. esc_attr(sanitize_text_field(wp_unslash($_GET['tab']))) .'&test_proxy', 'ti-test-proxy')); ?>" class="ti-btn ti-btn-loading-on-click"><?php echo esc_html(__('Test again', 'trustindex-plugin')); ?></a>
 </div>
 <?php endif; ?>
 <?php if (!isset($noContainerElementTabs) || !in_array($selectedTab, $noContainerElementTabs)): ?>

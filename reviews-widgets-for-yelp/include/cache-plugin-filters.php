@@ -1,7 +1,7 @@
 <?php
 defined('ABSPATH') or die('No script kiddies please!');
-if (!function_exists('ti_exclude_js')) {
-function ti_exclude_js($list) {
+if (!function_exists('trustindex_exclude_js')) {
+function trustindex_exclude_js($list) {
 $list []= 'trustindex.io';
 $list []= 'https://cdn.trustindex.io/';
 $list []= 'https://cdn.trustindex.io/loader.js';
@@ -10,13 +10,9 @@ $list []= 'https://cdn.trustindex.io/loader-feed.js';
 return $list;
 }
 }
-add_filter('rocket_exclude_js', 'ti_exclude_js');
-add_filter('litespeed_optimize_js_excludes', 'ti_exclude_js');
-add_filter('sgo_javascript_combine_excluded_external_paths', 'ti_exclude_js');
-add_filter('rocket_excluded_inline_js_content', function($list) {
-$list []= 'Trustindex.init_pager';
-return $list;
-});
+add_filter('rocket_exclude_js', 'trustindex_exclude_js');
+add_filter('litespeed_optimize_js_excludes', 'trustindex_exclude_js');
+add_filter('sgo_javascript_combine_excluded_external_paths', 'trustindex_exclude_js');
 add_filter('sgo_css_combine_exclude', function($list) {
 foreach (array (
  0 => 'facebook',
