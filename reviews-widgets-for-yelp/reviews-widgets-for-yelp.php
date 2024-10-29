@@ -9,7 +9,7 @@ Author: Trustindex.io <support@trustindex.io>
 Author URI: https://www.trustindex.io/
 Contributors: trustindex
 License: GPLv2 or later
-Version: 12.3
+Version: 12.4
 Text Domain: reviews-widgets-for-yelp
 Domain Path: /languages
 Donate link: https://www.trustindex.io/prices/
@@ -20,7 +20,7 @@ Copyright 2019 Trustindex Kft (email: support@trustindex.io)
 defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
 require_once plugin_dir_path(__FILE__) . 'include' . DIRECTORY_SEPARATOR . 'cache-plugin-filters.php';
 require_once plugin_dir_path(__FILE__) . 'trustindex-plugin.class.php';
-$trustindex_pm_yelp = new TrustindexPlugin_yelp("yelp", __FILE__, "12.3", "Widgets for Yelp Reviews", "Yelp");
+$trustindex_pm_yelp = new TrustindexPlugin_yelp("yelp", __FILE__, "12.4", "Widgets for Yelp Reviews", "Yelp");
 $pluginManagerInstance = $trustindex_pm_yelp;
 register_activation_hook(__FILE__, [ $pluginManagerInstance, 'activate' ]);
 register_deactivation_hook(__FILE__, [ $pluginManagerInstance, 'deactivate' ]);
@@ -31,15 +31,6 @@ add_filter('plugin_row_meta', [ $pluginManagerInstance, 'add_plugin_meta_links' 
 if (!function_exists('register_block_type')) {
 add_action('widgets_init', [ $pluginManagerInstance, 'init_widget' ]);
 add_action('widgets_init', [ $pluginManagerInstance, 'register_widget' ]);
-}
-if (is_file($pluginManagerInstance->getCssFile())) {
-add_action('init', function() use ($pluginManagerInstance) {
-$path = wp_upload_dir()['baseurl'] .'/'. $pluginManagerInstance->getCssFile(true);
-if (is_ssl()) {
-$path = str_replace('http://', 'https://', $path);
-}
-wp_register_style('ti-widget-css-'. $pluginManagerInstance->getShortName(), $path, [], filemtime($pluginManagerInstance->getCssFile()));
-});
 }
 add_action('init', [ $pluginManagerInstance, 'init_shortcode' ]);
 add_filter('script_loader_tag', function($tag, $handle) {
@@ -80,6 +71,8 @@ return;
 }
 add_action('admin_notices', 'ti_woocommerce_notice');
 }
+add_action('wp_ajax_'.$pluginManagerInstance->frontendWidgetAction(true), [$pluginManagerInstance, 'frontendWidgetAction']);
+add_action('wp_ajax_nopriv_'.$pluginManagerInstance->frontendWidgetAction(true), [$pluginManagerInstance, 'frontendWidgetAction']);
 
 
 add_action('wp_ajax_nopriv_'. $pluginManagerInstance->getWebhookAction(), function() use ($pluginManagerInstance) {

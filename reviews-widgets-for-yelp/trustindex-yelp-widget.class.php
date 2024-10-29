@@ -38,17 +38,14 @@ break;
 }
 }
 if (!$wasError && $instance['ti-widget-ID']) {
-echo $trustindex_pm_yelp->get_trustindex_widget($instance['ti-widget-ID']);
-}
-else if ($trustindex_pm_yelp->is_noreg_linked()) {
-echo $trustindex_pm_yelp->get_noreg_list_reviews();
-}
-else {
-echo $trustindex_pm_yelp->error_box_for_admins(sprintf(__("Please fill out <strong>all the required fields</strong> in the <a href='%s'>widget settings</a> page", 'trustindex-plugin'), admin_url('admin.php?page='.$trustindex_pm_yelp->get_plugin_slug().'/settings.php')));
+echo $trustindex_pm_yelp->renderWidgetFrontend($instance['ti-widget-ID']);
+} else if ($trustindex_pm_yelp->is_noreg_linked()) {
+echo $trustindex_pm_yelp->renderWidgetFrontend();
+} else {
+echo $trustindex_pm_yelp->frontEndErrorForAdmins(sprintf(__("Please fill out <strong>all the required fields</strong> in the <a href='%s'>widget settings</a> page", 'trustindex-plugin'), admin_url('admin.php?page='.$trustindex_pm_yelp->get_plugin_slug().'/settings.php')));
 }
 echo $after_widget;
-}
-else {
+} else {
 }
 }
 function form($instance)

@@ -417,16 +417,21 @@ return [
 'top-rated-type',
 'top-rated-date',
 'show-review-replies',
+'verified-by-trustindex',
 'cdn-version-control',
 'version-control',
 'preview',
 ];
 }
 private $widgetOptions = [];
+private $widgetOptionDefaultOverride = [];
 public function getWidgetOption($name, $forceDatabaseValue = false, $returnDefault = false)
 {
 if (isset($this->widgetOptions[$name]) && !$forceDatabaseValue && !$returnDefault) {
 return $this->widgetOptions[$name];
+}
+if ($returnDefault && isset($this->widgetOptionDefaultOverride[$name])) {
+return $this->widgetOptionDefaultOverride[$name];
 }
 global $wpdb;
 if (!in_array($name, ['style-id', 'scss-set'])) {
@@ -499,6 +504,9 @@ $default = 'Service';
 break;
 case 'top-rated-date':
 $default = in_array($styleId, [98, 100, 102, 104]) ? 'hide' : '';
+break;
+case 'verified-by-trustindex':
+$default = 0;
 break;
 }
 }
@@ -738,12 +746,6 @@ return '<div style="margin:20px 0px; padding:10px; '. $types[ $type ]['css'] .' 
 }
 
 
-public function get_trustindex_widget($ti_id)
-{
-wp_enqueue_script('trustindex-js', 'https://cdn.trustindex.io/loader.js', [], false, true);
-$ti_id = preg_replace('/[^a-zA-Z0-9]/', '', $ti_id);
-return '<div data-src="https://cdn.trustindex.io/loader.js?'. $ti_id .'"></div>';
-}
 public function get_shortcode_name()
 {
 return 'trustindex';
@@ -767,7 +769,7 @@ public function shortcode_func($atts)
 {
 $atts = shortcode_atts([ 'data-widget-id' => null, 'no-registration' => null ], $atts);
 if (isset($atts['data-widget-id']) && $atts['data-widget-id']) {
-return $this->get_trustindex_widget($atts['data-widget-id']);
+return $chosedPlatform->renderWidgetFrontend($atts['data-widget-id']);
 }
 else if (isset($atts['no-registration']) && $atts['no-registration']) {
 $forcePlatform = $atts['no-registration'];
@@ -781,23 +783,27 @@ $filePath = preg_replace('/[^\/\\\\]+([\\\\\/]trustindex-plugin\.class\.php)/', 
 }
 $className = 'TrustindexPlugin_' . $forcePlatform;
 if (!class_exists($className)) {
-return $this->error_box_for_admins(ucfirst($forcePlatform) . ' plugin is not active or not found!');
+return $this->frontEndErrorForAdmins(ucfirst($forcePlatform) . ' plugin is not active or not found!');
 }
-$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-12.3", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
+$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-12.4", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
 $chosedPlatform->setNotificationParam('not-using-no-widget', 'active', false);
 if (!$chosedPlatform->is_noreg_linked()) {
-return $this->error_box_for_admins(sprintf(__('You have to connect your business (%s)!', 'trustindex-plugin'), $forcePlatform));
+return $this->frontEndErrorForAdmins(sprintf(__('You have to connect your business (%s)!', 'trustindex-plugin'), $forcePlatform));
 } else if (!$chosedPlatform->getWidgetOption('widget-setted-up')) {
-return $this->error_box_for_admins('You have to complete your widget setup!');
+return $this->frontEndErrorForAdmins('You have to complete your widget setup!');
 } else {
-return '<pre class="ti-widget" style="display: none">'. $chosedPlatform->get_noreg_list_reviews($forcePlatform) .'</pre>';
+if ($this->isElementorEditing()) {
+return $chosedPlatform->renderWidgetAdmin(true);
+} else {
+return $chosedPlatform->renderWidgetFrontend();
+}
 }
 }
 else {
-return $this->error_box_for_admins(__('Your shortcode is deficient: Trustindex Widget ID is empty! Example: ', 'trustindex-plugin') . '<br /><code>['.$this->get_shortcode_name().' data-widget-id="478dcc2136263f2b3a3726ff"]</code>');
+return $this->frontEndErrorForAdmins(__('Your shortcode is deficient: Trustindex Widget ID is empty! Example: ', 'trustindex-plugin') . '<br /><code>['.$this->get_shortcode_name().' data-widget-id="478dcc2136263f2b3a3726ff"]</code>');
 }
 }
-public function error_box_for_admins($text)
+public function frontEndErrorForAdmins($text)
 {
 if (!current_user_can('manage_options')) {
 return " ";
@@ -811,12 +817,17 @@ public function is_noreg_linked()
 $pageDetails = $this->getPageDetails();
 return $pageDetails && !empty($pageDetails);
 }
+private $pageDetails = null;
 public function getPageDetails()
 {
+if ($this->pageDetails) {
+return $this->pageDetails;
+}
 $pageDetails = get_option($this->get_option_name('page-details'));
 if (isset($pageDetails['name']) && $this->isJson($pageDetails['name'])) {
 $pageDetails['name'] = json_decode($pageDetails['name']);
 }
+$this->pageDetails = $pageDetails;
 return $pageDetails;
 }
 public function noreg_save_css($setChange = false)
@@ -824,9 +835,9 @@ public function noreg_save_css($setChange = false)
 $defaultSet = 'light-background';
 $styleId = (int)get_option($this->get_option_name('style-id'), 4);
 $setId = get_option($this->get_option_name('scss-set'), $defaultSet);
-$response = wp_remote_get('https://cdn.trustindex.io/assets/widget-presetted-css/'.$styleId.'-'.$setId.'.css', [ 'timeout' => 30 ]);
+$response = wp_remote_get('https://cdn.trustindex.io/assets/widget-presetted-css/v2/'.$styleId.'-'.$setId.'.css', [ 'timeout' => 30 ]);
 $cssContent = wp_remote_retrieve_body($response);
-$cssContent = str_replace('../../assets', 'https://cdn.trustindex.io/assets', $cssContent);
+$cssContent = str_replace('../../../assets', 'https://cdn.trustindex.io/assets', $cssContent);
 $cssContent = str_replace(".ti-widget[data-layout-id='$styleId'][data-set-id='$setId']", '.ti-widget.ti-'. substr($this->getShortName(), 0, 4), $cssContent);
 if (is_wp_error($response) || !$cssContent) {
 echo $this->get_alertbox('error', "Trustindex's system is not available at the moment, please try again later.");
@@ -849,6 +860,14 @@ return $file;
 }
 $uploadDir = wp_upload_dir();
 return trailingslashit($uploadDir['basedir']) . $file;
+}
+private function getCssUrl()
+{
+$path = wp_upload_dir()['baseurl'] .'/'. $this->getCssFile(true);
+if (is_ssl()) {
+$path = str_replace('http://', 'https://', $path);
+}
+return $path;
 }
 public function handleCssFile()
 {
@@ -1622,2277 +1641,202 @@ public static $widget_styles = array (
  'light-background' => 
  array (
  'is-active' => true,
- 'id' => 'light-background',
  'name' => 'Light background',
- 'position' => 0,
- 'select-position' => 0,
  'reviewer-photo' => true,
  'hide-logos' => false,
  'hide-stars' => false,
- '_vars' => 
- array (
- 'style_id' => '"light-background"',
- 'bg-color' => '#ffffff',
- 'text-color' => '#000000',
- 'outside-text-color' => '#000000',
- 'profile-color' => '#000000',
- 'profile-font-size' => '14px',
- 'review-font-size' => '15px',
- 'rating-text' => '15px',
- 'company-font-size' => '15px',
- 'review-lines' => '4',
- 'box-background-color' => '#f4f4f4',
- 'box-border-color' => '#f4f4f4',
- 'box-border-radius' => '4px',
- 'box-padding' => '20px',
- 'scroll-color' => '#555555',
- 'arrow-color' => '#cccccc',
- 'float-widget-align' => 'left',
- 'nav' => 'desktop',
- 'hover-anim' => 'true',
- 'review-italic' => 'false',
- 'enable-font' => 'true',
- 'align-mini' => 'center',
- 'popup-background' => '#ffffff',
- 'popup-company-color' => '#333333',
- 'popup-company-size' => '16px',
- 'popup-profile-color' => '#333333',
- 'popup-profile-size' => '15px',
- 'popup-review-color' => '#333333',
- 'popup-review-size' => '14px',
- 'popup-separator-color' => '#dedede',
- 'popup-separator-width' => '1px',
- 'box-shadow' => 'false',
- 'box-shadow-color' => '#000000',
- 'box-shadow-opacity' => '0.15',
- 'box-border-top-width' => '0px',
- 'box-border-bottom-width' => '0px',
- 'box-border-left-width' => '0px',
- 'box-border-right-width' => '0px',
- 'box-background-opacity' => '1',
- 'box-backdrop-blur' => '0px',
- 'highlight-color' => '#fbe049',
- 'highlight-size' => '19px',
- 'review-title' => 'normal',
- 'content-align' => 'center',
- 'text-align' => 'left',
- 'star-color' => '#f6bb06',
- 'review-text-mode' => 'readmore',
- 'aggregate-rating-text-size' => '24px',
- 'nav-line' => 'mobile',
- 'header-background-color' => '#f4f4f4',
- 'header-border-color' => '#f4f4f4',
- 'header-border-top-width' => '1px',
- 'header-border-bottom-width' => '1px',
- 'header-border-left-width' => '1px',
- 'header-border-right-width' => '1px',
- 'header-border-radius' => '4px',
- 'header-padding' => '20px',
- 'header-color' => '#000000',
- 'header-shadow' => 'false',
- 'header-shadow-color' => '#000000',
- 'header-shadow-opacity' => '0.15',
- 'header-background-opacity' => '1',
- 'header-backdrop-blur' => '0px',
- 'header-btn-background-color' => '#4285f4',
- 'header-btn-border-color' => '#4285f4',
- 'header-btn-border-top-width' => '1px',
- 'header-btn-border-bottom-width' => '1px',
- 'header-btn-border-left-width' => '1px',
- 'header-btn-border-right-width' => '1px',
- 'header-btn-border-radius' => '4px',
- 'header-btn-padding' => '7px',
- 'header-btn-color' => '#ffffff',
- 'header-btn-size' => '13px',
- 'review-gap' => '16px',
- 'button-widget-font-size' => '14px',
- 'ai-summary-background' => 'false',
- 'original-rating-text' => '15px',
- ),
  ),
  'light-background-large' => 
  array (
  'is-active' => false,
- 'id' => 'light-background-large',
  'name' => 'Light background - large',
- 'position' => 0,
- 'select-position' => 0,
  'reviewer-photo' => true,
  'hide-logos' => false,
  'hide-stars' => false,
- '_vars' => 
- array (
- 'style_id' => '"light-background-large"',
- 'bg-color' => '#ffffff',
- 'text-color' => '#000000',
- 'outside-text-color' => '#000000',
- 'profile-color' => '#000000',
- 'profile-font-size' => '15px',
- 'review-font-size' => '16px',
- 'rating-text' => '15px',
- 'company-font-size' => '15px',
- 'review-lines' => '5',
- 'box-background-color' => '#f4f4f4',
- 'box-border-color' => '#f4f4f4',
- 'box-border-radius' => '10px',
- 'box-padding' => '25px',
- 'scroll-color' => '#c3c3c3',
- 'arrow-color' => '#cccccc',
- 'float-widget-align' => 'left',
- 'nav' => 'desktop',
- 'hover-anim' => 'true',
- 'review-italic' => 'false',
- 'enable-font' => 'true',
- 'align-mini' => 'center',
- 'popup-background' => '#ffffff',
- 'popup-company-color' => '#333333',
- 'popup-company-size' => '16px',
- 'popup-profile-color' => '#333333',
- 'popup-profile-size' => '15px',
- 'popup-review-color' => '#333333',
- 'popup-review-size' => '14px',
- 'popup-separator-color' => '#dedede',
- 'popup-separator-width' => '1px',
- 'box-shadow' => 'false',
- 'box-shadow-color' => '#000000',
- 'box-shadow-opacity' => '0.15',
- 'box-border-top-width' => '0px',
- 'box-border-bottom-width' => '0px',
- 'box-border-left-width' => '0px',
- 'box-border-right-width' => '0px',
- 'box-background-opacity' => '1',
- 'box-backdrop-blur' => '0px',
- 'highlight-color' => '#fbe049',
- 'highlight-size' => '19px',
- 'review-title' => 'normal',
- 'content-align' => 'center',
- 'text-align' => 'left',
- 'star-color' => '#f6bb06',
- 'review-text-mode' => 'readmore',
- 'aggregate-rating-text-size' => '24px',
- 'nav-line' => 'mobile',
- 'header-background-color' => '#f8f9f9',
- 'header-border-color' => '#f8f9f9',
- 'header-border-top-width' => '1px',
- 'header-border-bottom-width' => '1px',
- 'header-border-left-width' => '1px',
- 'header-border-right-width' => '1px',
- 'header-border-radius' => '12px',
- 'header-padding' => '30px',
- 'header-color' => '#000000',
- 'header-shadow' => 'false',
- 'header-shadow-color' => '#000000',
- 'header-shadow-opacity' => '0.15',
- 'header-background-opacity' => '1',
- 'header-backdrop-blur' => '0px',
- 'header-btn-background-color' => '#4285f4',
- 'header-btn-border-color' => '#4285f4',
- 'header-btn-border-top-width' => '1px',
- 'header-btn-border-bottom-width' => '1px',
- 'header-btn-border-left-width' => '1px',
- 'header-btn-border-right-width' => '1px',
- 'header-btn-border-radius' => '4px',
- 'header-btn-padding' => '7px',
- 'header-btn-color' => '#ffffff',
- 'header-btn-size' => '13px',
- 'review-gap' => '16px',
- 'button-widget-font-size' => '14px',
- 'ai-summary-background' => 'false',
- 'original-rating-text' => '15px',
- ),
  ),
  'ligth-border' => 
  array (
  'is-active' => true,
- 'id' => 'ligth-border',
  'name' => 'Light border',
- 'position' => 0,
- 'select-position' => 1,
  'reviewer-photo' => true,
  'hide-logos' => false,
  'hide-stars' => false,
- '_vars' => 
- array (
- 'style_id' => '"light-border"',
- 'bg-color' => '#ffffff',
- 'text-color' => '#000000',
- 'outside-text-color' => '#000000',
- 'profile-color' => '#000000',
- 'profile-font-size' => '14px',
- 'review-font-size' => '15px',
- 'rating-text' => '15px',
- 'company-font-size' => '15px',
- 'review-lines' => '4',
- 'box-background-color' => '#ffffff',
- 'box-border-color' => '#dbdde1',
- 'box-border-radius' => '4px',
- 'box-padding' => '20px',
- 'scroll-color' => '#555555',
- 'arrow-color' => '#cccccc',
- 'float-widget-align' => 'left',
- 'nav' => 'desktop',
- 'hover-anim' => 'true',
- 'review-italic' => 'false',
- 'enable-font' => 'true',
- 'align-mini' => 'center',
- 'popup-background' => '#ffffff',
- 'popup-company-color' => '#333333',
- 'popup-company-size' => '16px',
- 'popup-profile-color' => '#333333',
- 'popup-profile-size' => '15px',
- 'popup-review-color' => '#333333',
- 'popup-review-size' => '14px',
- 'popup-separator-color' => '#dedede',
- 'popup-separator-width' => '1px',
- 'box-shadow' => 'false',
- 'box-shadow-color' => '#000000',
- 'box-shadow-opacity' => '0.15',
- 'box-border-top-width' => '1px',
- 'box-border-bottom-width' => '1px',
- 'box-border-left-width' => '1px',
- 'box-border-right-width' => '1px',
- 'box-background-opacity' => '1',
- 'box-backdrop-blur' => '0px',
- 'highlight-color' => '#fbe049',
- 'highlight-size' => '19px',
- 'review-title' => 'normal',
- 'content-align' => 'center',
- 'text-align' => 'left',
- 'star-color' => '#f6bb06',
- 'review-text-mode' => 'readmore',
- 'aggregate-rating-text-size' => '24px',
- 'nav-line' => 'mobile',
- 'header-background-color' => '#ffffff',
- 'header-border-color' => '#dbdde1',
- 'header-border-top-width' => '1px',
- 'header-border-bottom-width' => '1px',
- 'header-border-left-width' => '1px',
- 'header-border-right-width' => '1px',
- 'header-border-radius' => '4px',
- 'header-padding' => '20px',
- 'header-color' => '#000000',
- 'header-shadow' => 'false',
- 'header-shadow-color' => '#000000',
- 'header-shadow-opacity' => '0.15',
- 'header-background-opacity' => '1',
- 'header-backdrop-blur' => '0px',
- 'header-btn-background-color' => '#4285f4',
- 'header-btn-border-color' => '#4285f4',
- 'header-btn-border-top-width' => '1px',
- 'header-btn-border-bottom-width' => '1px',
- 'header-btn-border-left-width' => '1px',
- 'header-btn-border-right-width' => '1px',
- 'header-btn-border-radius' => '4px',
- 'header-btn-padding' => '7px',
- 'header-btn-color' => '#ffffff',
- 'header-btn-size' => '13px',
- 'review-gap' => '16px',
- 'button-widget-font-size' => '14px',
- 'ai-summary-background' => 'false',
- 'original-rating-text' => '15px',
- ),
  ),
  'ligth-border-3d-large' => 
  array (
  'is-active' => false,
- 'id' => 'ligth-border-3d-large',
  'name' => 'Light border - 3D - large',
- 'position' => 0,
- 'select-position' => 1,
  'reviewer-photo' => true,
  'hide-logos' => false,
  'hide-stars' => false,
- '_vars' => 
- array (
- 'style_id' => '"light-border-3d-large"',
- 'bg-color' => '#ffffff',
- 'text-color' => '#000000',
- 'outside-text-color' => '#000000',
- 'profile-color' => '#000000',
- 'profile-font-size' => '15px',
- 'review-font-size' => '16px',
- 'rating-text' => '14px',
- 'company-font-size' => '16px',
- 'review-lines' => '5',
- 'box-background-color' => '#ffffff',
- 'box-border-color' => '#efefef',
- 'box-border-radius' => '10px',
- 'box-padding' => '25px',
- 'scroll-color' => '#b4b4b4',
- 'arrow-color' => '#cccccc',
- 'float-widget-align' => 'left',
- 'nav' => 'desktop',
- 'hover-anim' => 'true',
- 'review-italic' => 'false',
- 'enable-font' => 'true',
- 'align-mini' => 'center',
- 'popup-background' => '#ffffff',
- 'popup-company-color' => '#333333',
- 'popup-company-size' => '16px',
- 'popup-profile-color' => '#333333',
- 'popup-profile-size' => '15px',
- 'popup-review-color' => '#333333',
- 'popup-review-size' => '14px',
- 'popup-separator-color' => '#dedede',
- 'popup-separator-width' => '1px',
- 'box-shadow' => 'false',
- 'box-shadow-color' => '#000000',
- 'box-shadow-opacity' => '0.15',
- 'box-border-top-width' => '1px',
- 'box-border-bottom-width' => '4px',
- 'box-border-left-width' => '1px',
- 'box-border-right-width' => '4px',
- 'box-background-opacity' => '1',
- 'box-backdrop-blur' => '0px',
- 'highlight-color' => '#fbe049',
- 'highlight-size' => '19px',
- 'review-title' => 'normal',
- 'content-align' => 'center',
- 'text-align' => 'left',
- 'star-color' => '#f6bb06',
- 'review-text-mode' => 'readmore',
- 'aggregate-rating-text-size' => '24px',
- 'nav-line' => 'mobile',
- 'header-background-color' => '#ffffff',
- 'header-border-color' => '#efefef',
- 'header-border-top-width' => '1px',
- 'header-border-bottom-width' => '4px',
- 'header-border-left-width' => '1px',
- 'header-border-right-width' => '4px',
- 'header-border-radius' => '10px',
- 'header-padding' => '30px',
- 'header-color' => '#000000',
- 'header-shadow' => 'false',
- 'header-shadow-color' => '#000000',
- 'header-shadow-opacity' => '0.15',
- 'header-background-opacity' => '1',
- 'header-backdrop-blur' => '0px',
- 'header-btn-background-color' => '#4285f4',
- 'header-btn-border-color' => '#4285f4',
- 'header-btn-border-top-width' => '1px',
- 'header-btn-border-bottom-width' => '1px',
- 'header-btn-border-left-width' => '1px',
- 'header-btn-border-right-width' => '1px',
- 'header-btn-border-radius' => '4px',
- 'header-btn-padding' => '7px',
- 'header-btn-color' => '#ffffff',
- 'header-btn-size' => '13px',
- 'review-gap' => '16px',
- 'button-widget-font-size' => '14px',
- 'ai-summary-background' => 'false',
- 'original-rating-text' => '14px',
- ),
  ),
  'ligth-border-large' => 
  array (
  'is-active' => false,
- 'id' => 'ligth-border-large',
  'name' => 'Light border - large',
- 'position' => 0,
- 'select-position' => 1,
  'reviewer-photo' => true,
  'hide-logos' => false,
  'hide-stars' => false,
- '_vars' => 
- array (
- 'style_id' => '"light-border-large"',
- 'bg-color' => '#ffffff',
- 'text-color' => '#000000',
- 'outside-text-color' => '#000000',
- 'profile-color' => '#000000',
- 'profile-font-size' => '15px',
- 'review-font-size' => '16px',
- 'rating-text' => '15px',
- 'company-font-size' => '16px',
- 'review-lines' => '5',
- 'box-background-color' => '#ffffff',
- 'box-border-color' => '#e2e2e2',
- 'box-border-radius' => '10px',
- 'box-padding' => '25px',
- 'scroll-color' => '#cccccc',
- 'arrow-color' => '#cccccc',
- 'float-widget-align' => 'left',
- 'nav' => 'desktop',
- 'hover-anim' => 'true',
- 'review-italic' => 'false',
- 'enable-font' => 'true',
- 'align-mini' => 'center',
- 'popup-background' => '#ffffff',
- 'popup-company-color' => '#333333',
- 'popup-company-size' => '16px',
- 'popup-profile-color' => '#333333',
- 'popup-profile-size' => '15px',
- 'popup-review-color' => '#333333',
- 'popup-review-size' => '14px',
- 'popup-separator-color' => '#dedede',
- 'popup-separator-width' => '1px',
- 'box-shadow' => 'false',
- 'box-shadow-color' => '#000000',
- 'box-shadow-opacity' => '0.15',
- 'box-border-top-width' => '1px',
- 'box-border-bottom-width' => '1px',
- 'box-border-left-width' => '1px',
- 'box-border-right-width' => '1px',
- 'box-background-opacity' => '1',
- 'box-backdrop-blur' => '0px',
- 'highlight-color' => '#fbe049',
- 'highlight-size' => '19px',
- 'review-title' => 'normal',
- 'content-align' => 'center',
- 'text-align' => 'left',
- 'star-color' => '#f6bb06',
- 'review-text-mode' => 'readmore',
- 'aggregate-rating-text-size' => '24px',
- 'nav-line' => 'mobile',
- 'header-background-color' => '#ffffff',
- 'header-border-color' => '#e2e2e2',
- 'header-border-top-width' => '1px',
- 'header-border-bottom-width' => '1px',
- 'header-border-left-width' => '1px',
- 'header-border-right-width' => '1px',
- 'header-border-radius' => '4px',
- 'header-padding' => '30px',
- 'header-color' => '#000000',
- 'header-shadow' => 'false',
- 'header-shadow-color' => '#000000',
- 'header-shadow-opacity' => '0.15',
- 'header-background-opacity' => '1',
- 'header-backdrop-blur' => '0px',
- 'header-btn-background-color' => '#4285f4',
- 'header-btn-border-color' => '#4285f4',
- 'header-btn-border-top-width' => '1px',
- 'header-btn-border-bottom-width' => '1px',
- 'header-btn-border-left-width' => '1px',
- 'header-btn-border-right-width' => '1px',
- 'header-btn-border-radius' => '4px',
- 'header-btn-padding' => '7px',
- 'header-btn-color' => '#ffffff',
- 'header-btn-size' => '13px',
- 'review-gap' => '16px',
- 'button-widget-font-size' => '14px',
- 'ai-summary-background' => 'false',
- 'original-rating-text' => '15px',
- ),
  ),
  'ligth-border-large-red' => 
  array (
  'is-active' => false,
- 'id' => 'ligth-border-large-red',
  'name' => 'Light border - large - red',
- 'position' => 0,
- 'select-position' => 1,
  'reviewer-photo' => true,
  'hide-logos' => false,
  'hide-stars' => false,
- '_vars' => 
- array (
- 'style_id' => '"light-border-large-red"',
- 'bg-color' => '#ffffff',
- 'text-color' => '#000000',
- 'outside-text-color' => '#000000',
- 'profile-color' => '#000000',
- 'profile-font-size' => '15px',
- 'review-font-size' => '16px',
- 'rating-text' => '14px',
- 'company-font-size' => '16px',
- 'review-lines' => '5',
- 'box-background-color' => '#ffffff',
- 'box-border-color' => '#d93623',
- 'box-border-radius' => '0px',
- 'box-padding' => '25px',
- 'scroll-color' => '#8d8d8d',
- 'arrow-color' => '#8d8d8d',
- 'float-widget-align' => 'left',
- 'nav' => 'desktop',
- 'hover-anim' => 'true',
- 'review-italic' => 'false',
- 'enable-font' => 'true',
- 'align-mini' => 'center',
- 'popup-background' => '#ffffff',
- 'popup-company-color' => '#333333',
- 'popup-company-size' => '16px',
- 'popup-profile-color' => '#333333',
- 'popup-profile-size' => '15px',
- 'popup-review-color' => '#333333',
- 'popup-review-size' => '14px',
- 'popup-separator-color' => '#dedede',
- 'popup-separator-width' => '1px',
- 'box-shadow' => 'false',
- 'box-shadow-color' => '#000000',
- 'box-shadow-opacity' => '0.15',
- 'box-border-top-width' => '3px',
- 'box-border-bottom-width' => '3px',
- 'box-border-left-width' => '3px',
- 'box-border-right-width' => '3px',
- 'box-background-opacity' => '1',
- 'box-backdrop-blur' => '0px',
- 'highlight-color' => '#fbe049',
- 'highlight-size' => '19px',
- 'review-title' => 'normal',
- 'content-align' => 'center',
- 'text-align' => 'left',
- 'star-color' => '#f6bb06',
- 'review-text-mode' => 'readmore',
- 'aggregate-rating-text-size' => '24px',
- 'nav-line' => 'mobile',
- 'header-background-color' => '#ffffff',
- 'header-border-color' => '#d93623',
- 'header-border-top-width' => '3px',
- 'header-border-bottom-width' => '3px',
- 'header-border-left-width' => '3px',
- 'header-border-right-width' => '3px',
- 'header-border-radius' => '0px',
- 'header-padding' => '30px',
- 'header-color' => '#000000',
- 'header-shadow' => 'false',
- 'header-shadow-color' => '#000000',
- 'header-shadow-opacity' => '0.15',
- 'header-background-opacity' => '1',
- 'header-backdrop-blur' => '0px',
- 'header-btn-background-color' => '#4285f4',
- 'header-btn-border-color' => '#4285f4',
- 'header-btn-border-top-width' => '1px',
- 'header-btn-border-bottom-width' => '1px',
- 'header-btn-border-left-width' => '1px',
- 'header-btn-border-right-width' => '1px',
- 'header-btn-border-radius' => '4px',
- 'header-btn-padding' => '7px',
- 'header-btn-color' => '#ffffff',
- 'header-btn-size' => '13px',
- 'review-gap' => '16px',
- 'button-widget-font-size' => '14px',
- 'ai-summary-background' => 'false',
- 'original-rating-text' => '14px',
- ),
  ),
  'drop-shadow' => 
  array (
  'is-active' => true,
- 'id' => 'drop-shadow',
  'name' => 'Drop shadow',
- 'position' => 0,
- 'select-position' => 2,
  'reviewer-photo' => true,
  'hide-logos' => false,
  'hide-stars' => false,
- '_vars' => 
- array (
- 'style_id' => '"drop-shadow"',
- 'bg-color' => '#ffffff',
- 'text-color' => '#000000',
- 'outside-text-color' => '#000000',
- 'profile-color' => '#000000',
- 'profile-font-size' => '14px',
- 'review-font-size' => '15px',
- 'rating-text' => '15px',
- 'company-font-size' => '15px',
- 'review-lines' => '4',
- 'box-background-color' => '#ffffff',
- 'box-border-color' => '#ffffff',
- 'box-border-radius' => '4px',
- 'box-padding' => '20px',
- 'scroll-color' => '#555555',
- 'arrow-color' => '#cccccc',
- 'float-widget-align' => 'right',
- 'nav' => 'desktop',
- 'hover-anim' => 'false',
- 'review-italic' => 'false',
- 'enable-font' => 'true',
- 'align-mini' => 'center',
- 'popup-background' => '#ffffff',
- 'popup-company-color' => '#333333',
- 'popup-company-size' => '16px',
- 'popup-profile-color' => '#333333',
- 'popup-profile-size' => '15px',
- 'popup-review-color' => '#333333',
- 'popup-review-size' => '14px',
- 'popup-separator-color' => '#dedede',
- 'popup-separator-width' => '1px',
- 'box-shadow' => 'true',
- 'box-shadow-color' => '#000000',
- 'box-shadow-opacity' => '0.13',
- 'box-border-top-width' => '0px',
- 'box-border-bottom-width' => '0px',
- 'box-border-left-width' => '0px',
- 'box-border-right-width' => '0px',
- 'box-background-opacity' => '1',
- 'box-backdrop-blur' => '0px',
- 'highlight-color' => '#fbe049',
- 'highlight-size' => '19px',
- 'review-title' => 'normal',
- 'content-align' => 'center',
- 'text-align' => 'left',
- 'star-color' => '#f6bb06',
- 'review-text-mode' => 'readmore',
- 'aggregate-rating-text-size' => '24px',
- 'nav-line' => 'mobile',
- 'header-background-color' => '#ffffff',
- 'header-border-color' => '#ffffff',
- 'header-border-top-width' => '0px',
- 'header-border-bottom-width' => '0px',
- 'header-border-left-width' => '0px',
- 'header-border-right-width' => '0px',
- 'header-border-radius' => '5px',
- 'header-padding' => '20px',
- 'header-color' => '#000000',
- 'header-shadow' => 'true',
- 'header-shadow-color' => '#000000',
- 'header-shadow-opacity' => '0.1',
- 'header-background-opacity' => '1',
- 'header-backdrop-blur' => '0px',
- 'header-btn-background-color' => '#4285f4',
- 'header-btn-border-color' => '#4285f4',
- 'header-btn-border-top-width' => '1px',
- 'header-btn-border-bottom-width' => '1px',
- 'header-btn-border-left-width' => '1px',
- 'header-btn-border-right-width' => '1px',
- 'header-btn-border-radius' => '4px',
- 'header-btn-padding' => '7px',
- 'header-btn-color' => '#ffffff',
- 'header-btn-size' => '13px',
- 'review-gap' => '16px',
- 'button-widget-font-size' => '14px',
- 'ai-summary-background' => 'false',
- 'original-rating-text' => '15px',
- ),
  ),
  'drop-shadow-large' => 
  array (
  'is-active' => false,
- 'id' => 'drop-shadow-large',
  'name' => 'Drop shadow - large',
- 'position' => 0,
- 'select-position' => 2,
  'reviewer-photo' => true,
  'hide-logos' => false,
  'hide-stars' => false,
- '_vars' => 
- array (
- 'style_id' => '"drop-shadow-large"',
- 'bg-color' => '#ffffff',
- 'text-color' => '#000000',
- 'outside-text-color' => '#000000',
- 'profile-color' => '#000000',
- 'profile-font-size' => '15px',
- 'review-font-size' => '16px',
- 'rating-text' => '15px',
- 'company-font-size' => '15px',
- 'review-lines' => '5',
- 'box-background-color' => '#ffffff',
- 'box-border-color' => '#ffffff',
- 'box-border-radius' => '10px',
- 'box-padding' => '25px',
- 'scroll-color' => '#939393',
- 'arrow-color' => '#cccccc',
- 'float-widget-align' => 'right',
- 'nav' => 'desktop',
- 'hover-anim' => 'true',
- 'review-italic' => 'false',
- 'enable-font' => 'true',
- 'align-mini' => 'center',
- 'popup-background' => '#ffffff',
- 'popup-company-color' => '#333333',
- 'popup-company-size' => '16px',
- 'popup-profile-color' => '#333333',
- 'popup-profile-size' => '15px',
- 'popup-review-color' => '#333333',
- 'popup-review-size' => '14px',
- 'popup-separator-color' => '#dedede',
- 'popup-separator-width' => '1px',
- 'box-shadow' => 'true',
- 'box-shadow-color' => '#000000',
- 'box-shadow-opacity' => '0.13',
- 'box-border-top-width' => '0px',
- 'box-border-bottom-width' => '0px',
- 'box-border-left-width' => '0px',
- 'box-border-right-width' => '0px',
- 'box-background-opacity' => '1',
- 'box-backdrop-blur' => '0px',
- 'highlight-color' => '#fbe049',
- 'highlight-size' => '19px',
- 'review-title' => 'normal',
- 'content-align' => 'center',
- 'text-align' => 'left',
- 'star-color' => '#f6bb06',
- 'review-text-mode' => 'readmore',
- 'aggregate-rating-text-size' => '24px',
- 'nav-line' => 'mobile',
- 'header-background-color' => '#ffffff',
- 'header-border-color' => '#ffffff',
- 'header-border-top-width' => '0px',
- 'header-border-bottom-width' => '0px',
- 'header-border-left-width' => '0px',
- 'header-border-right-width' => '0px',
- 'header-border-radius' => '12px',
- 'header-padding' => '30px',
- 'header-color' => '#000000',
- 'header-shadow' => 'true',
- 'header-shadow-color' => '#000000',
- 'header-shadow-opacity' => '0.1',
- 'header-background-opacity' => '1',
- 'header-backdrop-blur' => '0px',
- 'header-btn-background-color' => '#4285f4',
- 'header-btn-border-color' => '#4285f4',
- 'header-btn-border-top-width' => '1px',
- 'header-btn-border-bottom-width' => '1px',
- 'header-btn-border-left-width' => '1px',
- 'header-btn-border-right-width' => '1px',
- 'header-btn-border-radius' => '4px',
- 'header-btn-padding' => '7px',
- 'header-btn-color' => '#ffffff',
- 'header-btn-size' => '13px',
- 'review-gap' => '16px',
- 'button-widget-font-size' => '14px',
- 'ai-summary-background' => 'false',
- 'original-rating-text' => '15px',
- ),
  ),
  'light-minimal' => 
  array (
  'is-active' => true,
- 'id' => 'light-minimal',
  'name' => 'Minimal',
- 'position' => 0,
- 'select-position' => 3,
  'reviewer-photo' => true,
  'hide-logos' => false,
  'hide-stars' => false,
- '_vars' => 
- array (
- 'style_id' => '"light-minimal"',
- 'bg-color' => '#ffffff',
- 'text-color' => '#000000',
- 'outside-text-color' => '#000000',
- 'profile-color' => '#000000',
- 'profile-font-size' => '14px',
- 'review-font-size' => '15px',
- 'rating-text' => '15px',
- 'company-font-size' => '15px',
- 'review-lines' => '4',
- 'box-background-color' => '#f4f4f4',
- 'box-border-color' => '#f4f4f4',
- 'box-border-radius' => '4px',
- 'box-padding' => '20px',
- 'scroll-color' => '#555555',
- 'arrow-color' => '#cccccc',
- 'float-widget-align' => 'right',
- 'nav' => 'desktop',
- 'hover-anim' => 'true',
- 'review-italic' => 'false',
- 'enable-font' => 'true',
- 'align-mini' => 'center',
- 'popup-background' => '#ffffff',
- 'popup-company-color' => '#333333',
- 'popup-company-size' => '16px',
- 'popup-profile-color' => '#333333',
- 'popup-profile-size' => '15px',
- 'popup-review-color' => '#333333',
- 'popup-review-size' => '14px',
- 'popup-separator-color' => '#dedede',
- 'popup-separator-width' => '1px',
- 'box-shadow' => 'false',
- 'box-shadow-color' => '#000000',
- 'box-shadow-opacity' => '0.15',
- 'box-border-top-width' => '0px',
- 'box-border-bottom-width' => '0px',
- 'box-border-left-width' => '0px',
- 'box-border-right-width' => '0px',
- 'box-background-opacity' => '0',
- 'box-backdrop-blur' => '0px',
- 'highlight-color' => '#fbe049',
- 'highlight-size' => '19px',
- 'review-title' => 'normal',
- 'content-align' => 'center',
- 'text-align' => 'left',
- 'star-color' => '#f6bb06',
- 'review-text-mode' => 'readmore',
- 'aggregate-rating-text-size' => '24px',
- 'nav-line' => 'mobile',
- 'header-background-color' => '#ffffff',
- 'header-border-color' => '#e5e5e5',
- 'header-border-top-width' => '0px',
- 'header-border-bottom-width' => '1px',
- 'header-border-left-width' => '0px',
- 'header-border-right-width' => '0px',
- 'header-border-radius' => '0px',
- 'header-padding' => '20px',
- 'header-color' => '#000000',
- 'header-shadow' => 'false',
- 'header-shadow-color' => '#000000',
- 'header-shadow-opacity' => '0.15',
- 'header-background-opacity' => '1',
- 'header-backdrop-blur' => '0px',
- 'header-btn-background-color' => '#4285f4',
- 'header-btn-border-color' => '#4285f4',
- 'header-btn-border-top-width' => '1px',
- 'header-btn-border-bottom-width' => '1px',
- 'header-btn-border-left-width' => '1px',
- 'header-btn-border-right-width' => '1px',
- 'header-btn-border-radius' => '4px',
- 'header-btn-padding' => '7px',
- 'header-btn-color' => '#ffffff',
- 'header-btn-size' => '13px',
- 'review-gap' => '16px',
- 'button-widget-font-size' => '14px',
- 'ai-summary-background' => 'false',
- 'original-rating-text' => '15px',
- ),
  ),
  'light-minimal-large' => 
  array (
  'is-active' => false,
- 'id' => 'light-minimal-large',
  'name' => 'Minimal - large',
- 'position' => 0,
- 'select-position' => 3,
  'reviewer-photo' => true,
  'hide-logos' => false,
  'hide-stars' => false,
- '_vars' => 
- array (
- 'style_id' => '"light-minimal-large"',
- 'bg-color' => '#ffffff',
- 'text-color' => '#000000',
- 'outside-text-color' => '#000000',
- 'profile-color' => '#000000',
- 'profile-font-size' => '15px',
- 'review-font-size' => '16px',
- 'rating-text' => '15px',
- 'company-font-size' => '15px',
- 'review-lines' => '5',
- 'box-background-color' => '#ffffff',
- 'box-border-color' => '#ffffff',
- 'box-border-radius' => '10px',
- 'box-padding' => '15px',
- 'scroll-color' => '#555555',
- 'arrow-color' => '#cccccc',
- 'float-widget-align' => 'right',
- 'nav' => 'desktop',
- 'hover-anim' => 'true',
- 'review-italic' => 'false',
- 'enable-font' => 'true',
- 'align-mini' => 'center',
- 'popup-background' => '#ffffff',
- 'popup-company-color' => '#333333',
- 'popup-company-size' => '16px',
- 'popup-profile-color' => '#333333',
- 'popup-profile-size' => '15px',
- 'popup-review-color' => '#333333',
- 'popup-review-size' => '14px',
- 'popup-separator-color' => '#dedede',
- 'popup-separator-width' => '1px',
- 'box-shadow' => 'false',
- 'box-shadow-color' => '#000000',
- 'box-shadow-opacity' => '0.15',
- 'box-border-top-width' => '0px',
- 'box-border-bottom-width' => '0px',
- 'box-border-left-width' => '0px',
- 'box-border-right-width' => '0px',
- 'box-background-opacity' => '0',
- 'box-backdrop-blur' => '0px',
- 'highlight-color' => '#fbe049',
- 'highlight-size' => '19px',
- 'review-title' => 'normal',
- 'content-align' => 'center',
- 'text-align' => 'left',
- 'star-color' => '#f6bb06',
- 'review-text-mode' => 'readmore',
- 'aggregate-rating-text-size' => '24px',
- 'nav-line' => 'mobile',
- 'header-background-color' => '#ffffff',
- 'header-border-color' => '#ffffff',
- 'header-border-top-width' => '0px',
- 'header-border-bottom-width' => '0px',
- 'header-border-left-width' => '0px',
- 'header-border-right-width' => '0px',
- 'header-border-radius' => '0px',
- 'header-padding' => '30px',
- 'header-color' => '#000000',
- 'header-shadow' => 'false',
- 'header-shadow-color' => '#000000',
- 'header-shadow-opacity' => '0.15',
- 'header-background-opacity' => '1',
- 'header-backdrop-blur' => '0px',
- 'header-btn-background-color' => '#4285f4',
- 'header-btn-border-color' => '#4285f4',
- 'header-btn-border-top-width' => '1px',
- 'header-btn-border-bottom-width' => '1px',
- 'header-btn-border-left-width' => '1px',
- 'header-btn-border-right-width' => '1px',
- 'header-btn-border-radius' => '4px',
- 'header-btn-padding' => '7px',
- 'header-btn-color' => '#ffffff',
- 'header-btn-size' => '13px',
- 'review-gap' => '16px',
- 'button-widget-font-size' => '14px',
- 'ai-summary-background' => 'false',
- 'original-rating-text' => '15px',
- ),
  ),
  'soft' => 
  array (
  'is-active' => true,
- 'id' => 'soft',
  'name' => 'Soft',
- 'position' => 1,
- 'select-position' => 4,
  'reviewer-photo' => true,
  'hide-logos' => false,
  'hide-stars' => false,
- '_vars' => 
- array (
- 'style_id' => '"soft"',
- 'bg-color' => '#f6f6f9',
- 'text-color' => '#000000',
- 'outside-text-color' => '#000000',
- 'profile-color' => '#000000',
- 'profile-font-size' => '14px',
- 'review-font-size' => '15px',
- 'rating-text' => '15px',
- 'company-font-size' => '15px',
- 'review-lines' => '4',
- 'box-background-color' => '#ffffff',
- 'box-border-color' => '#ffffff',
- 'box-border-radius' => '4px',
- 'box-padding' => '20px',
- 'scroll-color' => '#555555',
- 'arrow-color' => '#b7b7b7',
- 'float-widget-align' => 'left',
- 'nav' => 'desktop',
- 'hover-anim' => 'true',
- 'review-italic' => 'false',
- 'enable-font' => 'true',
- 'align-mini' => 'center',
- 'popup-background' => '#ffffff',
- 'popup-company-color' => '#333333',
- 'popup-company-size' => '16px',
- 'popup-profile-color' => '#333333',
- 'popup-profile-size' => '15px',
- 'popup-review-color' => '#333333',
- 'popup-review-size' => '14px',
- 'popup-separator-color' => '#dedede',
- 'popup-separator-width' => '1px',
- 'box-shadow' => 'false',
- 'box-shadow-color' => '#000000',
- 'box-shadow-opacity' => '0.15',
- 'box-border-top-width' => '2px',
- 'box-border-bottom-width' => '2px',
- 'box-border-left-width' => '2px',
- 'box-border-right-width' => '2px',
- 'box-background-opacity' => '1',
- 'box-backdrop-blur' => '0px',
- 'highlight-color' => '#fbe049',
- 'highlight-size' => '19px',
- 'review-title' => 'normal',
- 'content-align' => 'center',
- 'text-align' => 'left',
- 'star-color' => '#f6bb06',
- 'review-text-mode' => 'readmore',
- 'aggregate-rating-text-size' => '24px',
- 'nav-line' => 'mobile',
- 'header-background-color' => '#ffffff',
- 'header-border-color' => '#ffffff',
- 'header-border-top-width' => '1px',
- 'header-border-bottom-width' => '1px',
- 'header-border-left-width' => '1px',
- 'header-border-right-width' => '1px',
- 'header-border-radius' => '4px',
- 'header-padding' => '20px',
- 'header-color' => '#000000',
- 'header-shadow' => 'false',
- 'header-shadow-color' => '#000000',
- 'header-shadow-opacity' => '0.15',
- 'header-background-opacity' => '1',
- 'header-backdrop-blur' => '0px',
- 'header-btn-background-color' => '#4285f4',
- 'header-btn-border-color' => '#4285f4',
- 'header-btn-border-top-width' => '1px',
- 'header-btn-border-bottom-width' => '1px',
- 'header-btn-border-left-width' => '1px',
- 'header-btn-border-right-width' => '1px',
- 'header-btn-border-radius' => '4px',
- 'header-btn-padding' => '7px',
- 'header-btn-color' => '#ffffff',
- 'header-btn-size' => '13px',
- 'review-gap' => '16px',
- 'button-widget-font-size' => '14px',
- 'ai-summary-background' => 'false',
- 'original-rating-text' => '15px',
- ),
  ),
  'light-clean' => 
  array (
  'is-active' => false,
- 'id' => 'light-clean',
  'name' => 'Light clean',
- 'position' => 0,
- 'select-position' => 5,
  'reviewer-photo' => true,
  'hide-logos' => false,
  'hide-stars' => false,
- '_vars' => 
- array (
- 'style_id' => '"light-clean"',
- 'bg-color' => '#ffffff',
- 'text-color' => '#000000',
- 'outside-text-color' => '#000000',
- 'profile-color' => '#000000',
- 'profile-font-size' => '14px',
- 'review-font-size' => '13px',
- 'rating-text' => '15px',
- 'company-font-size' => '15px',
- 'review-lines' => '4',
- 'box-background-color' => '#ffffff',
- 'box-border-color' => '#dddddd',
- 'box-border-radius' => '0px',
- 'box-padding' => '15px',
- 'scroll-color' => '#555555',
- 'arrow-color' => '#cccccc',
- 'float-widget-align' => 'right',
- 'nav' => 'desktop',
- 'hover-anim' => 'true',
- 'review-italic' => 'false',
- 'enable-font' => 'true',
- 'align-mini' => 'center',
- 'popup-background' => '#ffffff',
- 'popup-company-color' => '#333333',
- 'popup-company-size' => '16px',
- 'popup-profile-color' => '#333333',
- 'popup-profile-size' => '15px',
- 'popup-review-color' => '#333333',
- 'popup-review-size' => '14px',
- 'popup-separator-color' => '#dedede',
- 'popup-separator-width' => '1px',
- 'box-shadow' => 'false',
- 'box-shadow-color' => '#000000',
- 'box-shadow-opacity' => '0.15',
- 'box-border-top-width' => '1px',
- 'box-border-bottom-width' => '1px',
- 'box-border-left-width' => '1px',
- 'box-border-right-width' => '1px',
- 'box-background-opacity' => '1',
- 'box-backdrop-blur' => '0px',
- 'highlight-color' => '#fbe049',
- 'highlight-size' => '19px',
- 'review-title' => 'normal',
- 'content-align' => 'center',
- 'text-align' => 'left',
- 'star-color' => '#f6bb06',
- 'review-text-mode' => 'readmore',
- 'aggregate-rating-text-size' => '24px',
- 'nav-line' => 'mobile',
- 'header-background-color' => '#ffffff',
- 'header-border-color' => '#dddddd',
- 'header-border-top-width' => '1px',
- 'header-border-bottom-width' => '1px',
- 'header-border-left-width' => '1px',
- 'header-border-right-width' => '1px',
- 'header-border-radius' => '0px',
- 'header-padding' => '20px',
- 'header-color' => '#000000',
- 'header-shadow' => 'false',
- 'header-shadow-color' => '#000000',
- 'header-shadow-opacity' => '0.15',
- 'header-background-opacity' => '1',
- 'header-backdrop-blur' => '0px',
- 'header-btn-background-color' => '#4285f4',
- 'header-btn-border-color' => '#4285f4',
- 'header-btn-border-top-width' => '1px',
- 'header-btn-border-bottom-width' => '1px',
- 'header-btn-border-left-width' => '1px',
- 'header-btn-border-right-width' => '1px',
- 'header-btn-border-radius' => '4px',
- 'header-btn-padding' => '7px',
- 'header-btn-color' => '#ffffff',
- 'header-btn-size' => '13px',
- 'review-gap' => '16px',
- 'button-widget-font-size' => '14px',
- 'ai-summary-background' => 'false',
- 'original-rating-text' => '15px',
- ),
  ),
  'light-square' => 
  array (
  'is-active' => false,
- 'id' => 'light-square',
  'name' => 'Light square',
- 'position' => 0,
- 'select-position' => 6,
  'reviewer-photo' => true,
  'hide-logos' => false,
  'hide-stars' => false,
- '_vars' => 
- array (
- 'style_id' => '"light-square"',
- 'bg-color' => '#ffffff',
- 'text-color' => '#000000',
- 'outside-text-color' => '#000000',
- 'profile-color' => '#000000',
- 'profile-font-size' => '14px',
- 'review-font-size' => '14px',
- 'rating-text' => '14px',
- 'company-font-size' => '15px',
- 'review-lines' => '4',
- 'box-background-color' => '#f3f3f3',
- 'box-border-color' => '#dddddd',
- 'box-border-radius' => '0px',
- 'box-padding' => '15px',
- 'scroll-color' => '#555555',
- 'arrow-color' => '#cccccc',
- 'float-widget-align' => 'right',
- 'nav' => 'desktop',
- 'hover-anim' => 'true',
- 'review-italic' => 'false',
- 'enable-font' => 'true',
- 'align-mini' => 'center',
- 'popup-background' => '#ffffff',
- 'popup-company-color' => '#333333',
- 'popup-company-size' => '16px',
- 'popup-profile-color' => '#333333',
- 'popup-profile-size' => '15px',
- 'popup-review-color' => '#333333',
- 'popup-review-size' => '14px',
- 'popup-separator-color' => '#dedede',
- 'popup-separator-width' => '1px',
- 'box-shadow' => 'false',
- 'box-shadow-color' => '#000000',
- 'box-shadow-opacity' => '0.15',
- 'box-border-top-width' => '0px',
- 'box-border-bottom-width' => '3px',
- 'box-border-left-width' => '0px',
- 'box-border-right-width' => '0px',
- 'box-background-opacity' => '1',
- 'box-backdrop-blur' => '0px',
- 'highlight-color' => '#fbe049',
- 'highlight-size' => '19px',
- 'review-title' => 'normal',
- 'content-align' => 'center',
- 'text-align' => 'left',
- 'star-color' => '#f6bb06',
- 'review-text-mode' => 'readmore',
- 'aggregate-rating-text-size' => '24px',
- 'nav-line' => 'mobile',
- 'header-background-color' => '#f3f3f3',
- 'header-border-color' => '#dddddd',
- 'header-border-top-width' => '0px',
- 'header-border-bottom-width' => '3px',
- 'header-border-left-width' => '0px',
- 'header-border-right-width' => '0px',
- 'header-border-radius' => '0px',
- 'header-padding' => '20px',
- 'header-color' => '#000000',
- 'header-shadow' => 'false',
- 'header-shadow-color' => '#000000',
- 'header-shadow-opacity' => '0.15',
- 'header-background-opacity' => '1',
- 'header-backdrop-blur' => '0px',
- 'header-btn-background-color' => '#4285f4',
- 'header-btn-border-color' => '#4285f4',
- 'header-btn-border-top-width' => '1px',
- 'header-btn-border-bottom-width' => '1px',
- 'header-btn-border-left-width' => '1px',
- 'header-btn-border-right-width' => '1px',
- 'header-btn-border-radius' => '4px',
- 'header-btn-padding' => '7px',
- 'header-btn-color' => '#ffffff',
- 'header-btn-size' => '13px',
- 'review-gap' => '16px',
- 'button-widget-font-size' => '14px',
- 'ai-summary-background' => 'false',
- 'original-rating-text' => '14px',
- ),
  ),
  'light-background-border' => 
  array (
  'is-active' => false,
- 'id' => 'light-background-border',
  'name' => 'Light background border',
- 'position' => 0,
- 'select-position' => 7,
  'reviewer-photo' => true,
  'hide-logos' => false,
  'hide-stars' => false,
- '_vars' => 
- array (
- 'style_id' => '"light-background-border"',
- 'bg-color' => '#ffffff',
- 'text-color' => '#000000',
- 'outside-text-color' => '#000000',
- 'profile-color' => '#000000',
- 'profile-font-size' => '15px',
- 'review-font-size' => '14px',
- 'rating-text' => '14px',
- 'company-font-size' => '16px',
- 'review-lines' => '4',
- 'box-background-color' => '#efefef',
- 'box-border-color' => '#cccccc',
- 'box-border-radius' => '4px',
- 'box-padding' => '15px',
- 'scroll-color' => '#555555',
- 'arrow-color' => '#cccccc',
- 'float-widget-align' => 'left',
- 'nav' => 'desktop',
- 'hover-anim' => 'true',
- 'review-italic' => 'false',
- 'enable-font' => 'true',
- 'align-mini' => 'center',
- 'popup-background' => '#ffffff',
- 'popup-company-color' => '#333333',
- 'popup-company-size' => '16px',
- 'popup-profile-color' => '#333333',
- 'popup-profile-size' => '15px',
- 'popup-review-color' => '#333333',
- 'popup-review-size' => '14px',
- 'popup-separator-color' => '#dedede',
- 'popup-separator-width' => '1px',
- 'box-shadow' => 'false',
- 'box-shadow-color' => '#000000',
- 'box-shadow-opacity' => '0.15',
- 'box-border-top-width' => '2px',
- 'box-border-bottom-width' => '2px',
- 'box-border-left-width' => '2px',
- 'box-border-right-width' => '2px',
- 'box-background-opacity' => '1',
- 'box-backdrop-blur' => '0px',
- 'highlight-color' => '#fbe049',
- 'highlight-size' => '19px',
- 'review-title' => 'normal',
- 'content-align' => 'center',
- 'text-align' => 'left',
- 'star-color' => '#f6bb06',
- 'review-text-mode' => 'readmore',
- 'aggregate-rating-text-size' => '24px',
- 'nav-line' => 'mobile',
- 'header-background-color' => '#efefef',
- 'header-border-color' => '#cccccc',
- 'header-border-top-width' => '2px',
- 'header-border-bottom-width' => '2px',
- 'header-border-left-width' => '2px',
- 'header-border-right-width' => '2px',
- 'header-border-radius' => '4px',
- 'header-padding' => '20px',
- 'header-color' => '#000000',
- 'header-shadow' => 'false',
- 'header-shadow-color' => '#000000',
- 'header-shadow-opacity' => '0.15',
- 'header-background-opacity' => '1',
- 'header-backdrop-blur' => '0px',
- 'header-btn-background-color' => '#4285f4',
- 'header-btn-border-color' => '#4285f4',
- 'header-btn-border-top-width' => '1px',
- 'header-btn-border-bottom-width' => '1px',
- 'header-btn-border-left-width' => '1px',
- 'header-btn-border-right-width' => '1px',
- 'header-btn-border-radius' => '4px',
- 'header-btn-padding' => '7px',
- 'header-btn-color' => '#ffffff',
- 'header-btn-size' => '13px',
- 'review-gap' => '16px',
- 'button-widget-font-size' => '14px',
- 'ai-summary-background' => 'false',
- 'original-rating-text' => '14px',
- ),
  ),
  'blue' => 
  array (
  'is-active' => false,
- 'id' => 'blue',
  'name' => 'Blue',
- 'position' => 0,
- 'select-position' => 8,
  'reviewer-photo' => true,
  'hide-logos' => false,
  'hide-stars' => false,
- '_vars' => 
- array (
- 'style_id' => '"blue"',
- 'bg-color' => '#ffffff',
- 'text-color' => '#000000',
- 'outside-text-color' => '#000000',
- 'profile-color' => '#365899',
- 'profile-font-size' => '14px',
- 'review-font-size' => '14px',
- 'rating-text' => '14px',
- 'company-font-size' => '15px',
- 'review-lines' => '4',
- 'box-background-color' => '#ffffff',
- 'box-border-color' => '#dddfe2',
- 'box-border-radius' => '4px',
- 'box-padding' => '15px',
- 'scroll-color' => '#555555',
- 'arrow-color' => '#cccccc',
- 'float-widget-align' => 'left',
- 'nav' => 'desktop',
- 'hover-anim' => 'true',
- 'review-italic' => 'false',
- 'enable-font' => 'true',
- 'align-mini' => 'center',
- 'popup-background' => '#ffffff',
- 'popup-company-color' => '#333333',
- 'popup-company-size' => '16px',
- 'popup-profile-color' => '#333333',
- 'popup-profile-size' => '15px',
- 'popup-review-color' => '#333333',
- 'popup-review-size' => '14px',
- 'popup-separator-color' => '#dedede',
- 'popup-separator-width' => '1px',
- 'box-shadow' => 'false',
- 'box-shadow-color' => '#000000',
- 'box-shadow-opacity' => '0.15',
- 'box-border-top-width' => '1px',
- 'box-border-bottom-width' => '1px',
- 'box-border-left-width' => '1px',
- 'box-border-right-width' => '1px',
- 'box-background-opacity' => '1',
- 'box-backdrop-blur' => '0px',
- 'highlight-color' => '#fbe049',
- 'highlight-size' => '19px',
- 'review-title' => 'normal',
- 'content-align' => 'center',
- 'text-align' => 'left',
- 'star-color' => '#f6bb06',
- 'review-text-mode' => 'readmore',
- 'aggregate-rating-text-size' => '24px',
- 'nav-line' => 'mobile',
- 'header-background-color' => '#ffffff',
- 'header-border-color' => '#dddfe2',
- 'header-border-top-width' => '1px',
- 'header-border-bottom-width' => '1px',
- 'header-border-left-width' => '1px',
- 'header-border-right-width' => '1px',
- 'header-border-radius' => '4px',
- 'header-padding' => '20px',
- 'header-color' => '#000000',
- 'header-shadow' => 'false',
- 'header-shadow-color' => '#000000',
- 'header-shadow-opacity' => '0.15',
- 'header-background-opacity' => '1',
- 'header-backdrop-blur' => '0px',
- 'header-btn-background-color' => '#4285f4',
- 'header-btn-border-color' => '#4285f4',
- 'header-btn-border-top-width' => '1px',
- 'header-btn-border-bottom-width' => '1px',
- 'header-btn-border-left-width' => '1px',
- 'header-btn-border-right-width' => '1px',
- 'header-btn-border-radius' => '4px',
- 'header-btn-padding' => '7px',
- 'header-btn-color' => '#ffffff',
- 'header-btn-size' => '13px',
- 'review-gap' => '16px',
- 'button-widget-font-size' => '14px',
- 'ai-summary-background' => 'false',
- 'original-rating-text' => '14px',
- ),
  ),
  'light-background-large-purple' => 
  array (
  'is-active' => false,
- 'id' => 'light-background-large-purple',
  'name' => 'Light background - large - purple',
- 'position' => 0,
- 'select-position' => 9,
  'reviewer-photo' => true,
  'hide-logos' => false,
  'hide-stars' => false,
- '_vars' => 
- array (
- 'style_id' => '"light-background-large-purple"',
- 'bg-color' => '#ffffff',
- 'text-color' => '#593072',
- 'outside-text-color' => '#593072',
- 'profile-color' => '#593072',
- 'profile-font-size' => '15px',
- 'review-font-size' => '16px',
- 'rating-text' => '14px',
- 'company-font-size' => '16px',
- 'review-lines' => '5',
- 'box-background-color' => '#f6f1f9',
- 'box-border-color' => '#fbf9fc',
- 'box-border-radius' => '15px',
- 'box-padding' => '25px',
- 'scroll-color' => '#593072',
- 'arrow-color' => '#593072',
- 'float-widget-align' => 'left',
- 'nav' => 'desktop',
- 'hover-anim' => 'true',
- 'review-italic' => 'false',
- 'enable-font' => 'true',
- 'align-mini' => 'center',
- 'popup-background' => '#ffffff',
- 'popup-company-color' => '#333333',
- 'popup-company-size' => '16px',
- 'popup-profile-color' => '#333333',
- 'popup-profile-size' => '15px',
- 'popup-review-color' => '#333333',
- 'popup-review-size' => '14px',
- 'popup-separator-color' => '#dedede',
- 'popup-separator-width' => '1px',
- 'box-shadow' => 'false',
- 'box-shadow-color' => '#000000',
- 'box-shadow-opacity' => '0.15',
- 'box-border-top-width' => '5px',
- 'box-border-bottom-width' => '5px',
- 'box-border-left-width' => '5px',
- 'box-border-right-width' => '5px',
- 'box-background-opacity' => '1',
- 'box-backdrop-blur' => '0px',
- 'highlight-color' => '#fbe049',
- 'highlight-size' => '19px',
- 'review-title' => 'normal',
- 'content-align' => 'center',
- 'text-align' => 'left',
- 'star-color' => '#f6bb06',
- 'review-text-mode' => 'readmore',
- 'aggregate-rating-text-size' => '24px',
- 'nav-line' => 'mobile',
- 'header-background-color' => '#f6f1f9',
- 'header-border-color' => '#fbf9fc',
- 'header-border-top-width' => '5px',
- 'header-border-bottom-width' => '5px',
- 'header-border-left-width' => '5px',
- 'header-border-right-width' => '5px',
- 'header-border-radius' => '15px',
- 'header-padding' => '30px',
- 'header-color' => '#000000',
- 'header-shadow' => 'false',
- 'header-shadow-color' => '#000000',
- 'header-shadow-opacity' => '0.15',
- 'header-background-opacity' => '1',
- 'header-backdrop-blur' => '0px',
- 'header-btn-background-color' => '#4285f4',
- 'header-btn-border-color' => '#4285f4',
- 'header-btn-border-top-width' => '1px',
- 'header-btn-border-bottom-width' => '1px',
- 'header-btn-border-left-width' => '1px',
- 'header-btn-border-right-width' => '1px',
- 'header-btn-border-radius' => '4px',
- 'header-btn-padding' => '7px',
- 'header-btn-color' => '#ffffff',
- 'header-btn-size' => '13px',
- 'review-gap' => '16px',
- 'button-widget-font-size' => '14px',
- 'ai-summary-background' => 'false',
- 'original-rating-text' => '14px',
- ),
  ),
  'light-background-image' => 
  array (
  'is-active' => false,
- 'id' => 'light-background-image',
  'name' => 'Light background image',
- 'position' => 0,
- 'select-position' => 9,
  'reviewer-photo' => true,
  'hide-logos' => false,
  'hide-stars' => false,
- '_vars' => 
- array (
- 'style_id' => '"light-background-image"',
- 'bg-color' => '#ffffff',
- 'text-color' => '#000000',
- 'outside-text-color' => '#000000',
- 'profile-color' => '#000000',
- 'profile-font-size' => '14px',
- 'review-font-size' => '14px',
- 'rating-text' => '15px',
- 'company-font-size' => '18px',
- 'review-lines' => '4',
- 'box-background-color' => '#ffffff',
- 'box-border-color' => '#ffffff',
- 'box-border-radius' => '8px',
- 'box-padding' => '15px',
- 'scroll-color' => '#555555',
- 'arrow-color' => '#999999',
- 'float-widget-align' => 'right',
- 'nav' => 'desktop',
- 'hover-anim' => 'false',
- 'review-italic' => 'false',
- 'enable-font' => 'true',
- 'align-mini' => 'center',
- 'popup-background' => '#ffffff',
- 'popup-company-color' => '#333333',
- 'popup-company-size' => '16px',
- 'popup-profile-color' => '#333333',
- 'popup-profile-size' => '15px',
- 'popup-review-color' => '#333333',
- 'popup-review-size' => '14px',
- 'popup-separator-color' => '#dedede',
- 'popup-separator-width' => '1px',
- 'box-shadow' => 'true',
- 'box-shadow-color' => '#000000',
- 'box-shadow-opacity' => '0.05',
- 'box-border-top-width' => '0px',
- 'box-border-bottom-width' => '0px',
- 'box-border-left-width' => '0px',
- 'box-border-right-width' => '0px',
- 'box-background-opacity' => '0.3',
- 'box-backdrop-blur' => '5px',
- 'highlight-color' => '#fbe049',
- 'highlight-size' => '19px',
- 'review-title' => 'normal',
- 'content-align' => 'center',
- 'text-align' => 'left',
- 'star-color' => '#f6bb06',
- 'review-text-mode' => 'readmore',
- 'aggregate-rating-text-size' => '24px',
- 'nav-line' => 'mobile',
- 'header-background-color' => '#ffffff',
- 'header-border-color' => '#ffffff',
- 'header-border-top-width' => '0px',
- 'header-border-bottom-width' => '0px',
- 'header-border-left-width' => '0px',
- 'header-border-right-width' => '0px',
- 'header-border-radius' => '4px',
- 'header-padding' => '20px',
- 'header-color' => '#000000',
- 'header-shadow' => 'false',
- 'header-shadow-color' => '#000000',
- 'header-shadow-opacity' => '0.15',
- 'header-background-opacity' => '0.3',
- 'header-backdrop-blur' => '5px',
- 'header-btn-background-color' => '#4285f4',
- 'header-btn-border-color' => '#4285f4',
- 'header-btn-border-top-width' => '1px',
- 'header-btn-border-bottom-width' => '1px',
- 'header-btn-border-left-width' => '1px',
- 'header-btn-border-right-width' => '1px',
- 'header-btn-border-radius' => '4px',
- 'header-btn-padding' => '7px',
- 'header-btn-color' => '#ffffff',
- 'header-btn-size' => '13px',
- 'review-gap' => '16px',
- 'button-widget-font-size' => '14px',
- 'ai-summary-background' => 'false',
- 'original-rating-text' => '15px',
- ),
  ),
  'light-contrast' => 
  array (
  'is-active' => true,
- 'id' => 'light-contrast',
  'name' => 'Light contrast',
- 'position' => 0,
- 'select-position' => 10,
  'reviewer-photo' => true,
  'hide-logos' => false,
  'hide-stars' => false,
- '_vars' => 
- array (
- 'style_id' => '"light-contrast"',
- 'bg-color' => '#ffffff',
- 'text-color' => '#ffffff',
- 'outside-text-color' => '#000000',
- 'profile-color' => '#ffffff',
- 'profile-font-size' => '14px',
- 'review-font-size' => '15px',
- 'rating-text' => '15px',
- 'company-font-size' => '15px',
- 'review-lines' => '4',
- 'box-background-color' => '#333333',
- 'box-border-color' => '#333333',
- 'box-border-radius' => '4px',
- 'box-padding' => '20px',
- 'scroll-color' => '#555555',
- 'arrow-color' => '#555555',
- 'float-widget-align' => 'left',
- 'nav' => 'desktop',
- 'hover-anim' => 'true',
- 'review-italic' => 'false',
- 'enable-font' => 'true',
- 'align-mini' => 'center',
- 'popup-background' => '#ffffff',
- 'popup-company-color' => '#333333',
- 'popup-company-size' => '16px',
- 'popup-profile-color' => '#333333',
- 'popup-profile-size' => '15px',
- 'popup-review-color' => '#333333',
- 'popup-review-size' => '14px',
- 'popup-separator-color' => '#dedede',
- 'popup-separator-width' => '1px',
- 'box-shadow' => 'false',
- 'box-shadow-color' => '#000000',
- 'box-shadow-opacity' => '0.15',
- 'box-border-top-width' => '2px',
- 'box-border-bottom-width' => '2px',
- 'box-border-left-width' => '2px',
- 'box-border-right-width' => '2px',
- 'box-background-opacity' => '1',
- 'box-backdrop-blur' => '0px',
- 'highlight-color' => '#fbe049',
- 'highlight-size' => '19px',
- 'review-title' => 'normal',
- 'content-align' => 'center',
- 'text-align' => 'left',
- 'star-color' => '#f6bb06',
- 'review-text-mode' => 'readmore',
- 'aggregate-rating-text-size' => '24px',
- 'nav-line' => 'mobile',
- 'header-background-color' => '#333333',
- 'header-border-color' => '#333333',
- 'header-border-top-width' => '1px',
- 'header-border-bottom-width' => '1px',
- 'header-border-left-width' => '1px',
- 'header-border-right-width' => '1px',
- 'header-border-radius' => '4px',
- 'header-padding' => '20px',
- 'header-color' => '#ffffff',
- 'header-shadow' => 'false',
- 'header-shadow-color' => '#000000',
- 'header-shadow-opacity' => '0.15',
- 'header-background-opacity' => '1',
- 'header-backdrop-blur' => '0px',
- 'header-btn-background-color' => '#4285f4',
- 'header-btn-border-color' => '#4285f4',
- 'header-btn-border-top-width' => '1px',
- 'header-btn-border-bottom-width' => '1px',
- 'header-btn-border-left-width' => '1px',
- 'header-btn-border-right-width' => '1px',
- 'header-btn-border-radius' => '4px',
- 'header-btn-padding' => '7px',
- 'header-btn-color' => '#ffffff',
- 'header-btn-size' => '13px',
- 'review-gap' => '16px',
- 'button-widget-font-size' => '14px',
- 'ai-summary-background' => 'false',
- 'original-rating-text' => '15px',
- ),
  ),
  'light-contrast-large' => 
  array (
  'is-active' => false,
- 'id' => 'light-contrast-large',
  'name' => 'Light contrast - large',
- 'position' => 0,
- 'select-position' => 10,
  'reviewer-photo' => true,
  'hide-logos' => false,
  'hide-stars' => false,
- '_vars' => 
- array (
- 'style_id' => '"light-contrast-large"',
- 'bg-color' => '#ffffff',
- 'text-color' => '#ffffff',
- 'outside-text-color' => '#252c44',
- 'profile-color' => '#ffffff',
- 'profile-font-size' => '15px',
- 'review-font-size' => '16px',
- 'rating-text' => '14px',
- 'company-font-size' => '16px',
- 'review-lines' => '5',
- 'box-background-color' => '#252c44',
- 'box-border-color' => '#252c44',
- 'box-border-radius' => '0px',
- 'box-padding' => '25px',
- 'scroll-color' => '#ffffff',
- 'arrow-color' => '#252c44',
- 'float-widget-align' => 'left',
- 'nav' => 'desktop',
- 'hover-anim' => 'true',
- 'review-italic' => 'false',
- 'enable-font' => 'true',
- 'align-mini' => 'center',
- 'popup-background' => '#ffffff',
- 'popup-company-color' => '#333333',
- 'popup-company-size' => '16px',
- 'popup-profile-color' => '#333333',
- 'popup-profile-size' => '15px',
- 'popup-review-color' => '#333333',
- 'popup-review-size' => '14px',
- 'popup-separator-color' => '#dedede',
- 'popup-separator-width' => '1px',
- 'box-shadow' => 'true',
- 'box-shadow-color' => '#252c44',
- 'box-shadow-opacity' => '0.45',
- 'box-border-top-width' => '0px',
- 'box-border-bottom-width' => '0px',
- 'box-border-left-width' => '0px',
- 'box-border-right-width' => '0px',
- 'box-background-opacity' => '1',
- 'box-backdrop-blur' => '0px',
- 'highlight-color' => '#fbe049',
- 'highlight-size' => '19px',
- 'review-title' => 'normal',
- 'content-align' => 'center',
- 'text-align' => 'left',
- 'star-color' => '#f6bb06',
- 'review-text-mode' => 'readmore',
- 'aggregate-rating-text-size' => '24px',
- 'nav-line' => 'mobile',
- 'header-background-color' => '#252c44',
- 'header-border-color' => '#252c44',
- 'header-border-top-width' => '1px',
- 'header-border-bottom-width' => '1px',
- 'header-border-left-width' => '1px',
- 'header-border-right-width' => '1px',
- 'header-border-radius' => '0px',
- 'header-padding' => '30px',
- 'header-color' => '#ffffff',
- 'header-shadow' => 'false',
- 'header-shadow-color' => '#000000',
- 'header-shadow-opacity' => '0.15',
- 'header-background-opacity' => '1',
- 'header-backdrop-blur' => '0px',
- 'header-btn-background-color' => '#4285f4',
- 'header-btn-border-color' => '#4285f4',
- 'header-btn-border-top-width' => '1px',
- 'header-btn-border-bottom-width' => '1px',
- 'header-btn-border-left-width' => '1px',
- 'header-btn-border-right-width' => '1px',
- 'header-btn-border-radius' => '4px',
- 'header-btn-padding' => '7px',
- 'header-btn-color' => '#ffffff',
- 'header-btn-size' => '13px',
- 'review-gap' => '16px',
- 'button-widget-font-size' => '14px',
- 'ai-summary-background' => 'false',
- 'original-rating-text' => '14px',
- ),
  ),
  'light-contrast-large-blue' => 
  array (
  'is-active' => false,
- 'id' => 'light-contrast-large-blue',
  'name' => 'Light contrast - large - blue',
- 'position' => 0,
- 'select-position' => 10,
  'reviewer-photo' => true,
  'hide-logos' => false,
  'hide-stars' => false,
- '_vars' => 
- array (
- 'style_id' => '"light-contrast-large-blue"',
- 'bg-color' => '#ffffff',
- 'text-color' => '#ffffff',
- 'outside-text-color' => '#252c44',
- 'profile-color' => '#ffffff',
- 'profile-font-size' => '15px',
- 'review-font-size' => '16px',
- 'rating-text' => '14px',
- 'company-font-size' => '16px',
- 'review-lines' => '5',
- 'box-background-color' => '#242f62',
- 'box-border-color' => '#2aa8d7',
- 'box-border-radius' => '0px',
- 'box-padding' => '25px',
- 'scroll-color' => '#ffffff',
- 'arrow-color' => '#242f62',
- 'float-widget-align' => 'left',
- 'nav' => 'desktop',
- 'hover-anim' => 'true',
- 'review-italic' => 'false',
- 'enable-font' => 'true',
- 'align-mini' => 'center',
- 'popup-background' => '#ffffff',
- 'popup-company-color' => '#333333',
- 'popup-company-size' => '16px',
- 'popup-profile-color' => '#333333',
- 'popup-profile-size' => '15px',
- 'popup-review-color' => '#333333',
- 'popup-review-size' => '14px',
- 'popup-separator-color' => '#dedede',
- 'popup-separator-width' => '1px',
- 'box-shadow' => 'false',
- 'box-shadow-color' => '#252c44',
- 'box-shadow-opacity' => '0.45',
- 'box-border-top-width' => '0px',
- 'box-border-bottom-width' => '0px',
- 'box-border-left-width' => '10px',
- 'box-border-right-width' => '0px',
- 'box-background-opacity' => '1',
- 'box-backdrop-blur' => '0px',
- 'highlight-color' => '#fbe049',
- 'highlight-size' => '19px',
- 'review-title' => 'normal',
- 'content-align' => 'center',
- 'text-align' => 'left',
- 'star-color' => '#f6bb06',
- 'review-text-mode' => 'readmore',
- 'aggregate-rating-text-size' => '24px',
- 'nav-line' => 'mobile',
- 'header-background-color' => '#242f62',
- 'header-border-color' => '#2aa8d7',
- 'header-border-top-width' => '0px',
- 'header-border-bottom-width' => '0px',
- 'header-border-left-width' => '10px',
- 'header-border-right-width' => '0px',
- 'header-border-radius' => '0px',
- 'header-padding' => '30px',
- 'header-color' => '#ffffff',
- 'header-shadow' => 'false',
- 'header-shadow-color' => '#000000',
- 'header-shadow-opacity' => '0.15',
- 'header-background-opacity' => '1',
- 'header-backdrop-blur' => '0px',
- 'header-btn-background-color' => '#4285f4',
- 'header-btn-border-color' => '#4285f4',
- 'header-btn-border-top-width' => '1px',
- 'header-btn-border-bottom-width' => '1px',
- 'header-btn-border-left-width' => '1px',
- 'header-btn-border-right-width' => '1px',
- 'header-btn-border-radius' => '4px',
- 'header-btn-padding' => '7px',
- 'header-btn-color' => '#ffffff',
- 'header-btn-size' => '13px',
- 'review-gap' => '16px',
- 'button-widget-font-size' => '14px',
- 'ai-summary-background' => 'false',
- 'original-rating-text' => '14px',
- ),
  ),
  'dark-background' => 
  array (
  'is-active' => true,
- 'id' => 'dark-background',
  'name' => 'Dark background',
- 'position' => 1,
- 'select-position' => 11,
  'reviewer-photo' => true,
  'hide-logos' => false,
  'hide-stars' => false,
- '_vars' => 
- array (
- 'style_id' => '"dark-background"',
- 'bg-color' => '#000000',
- 'text-color' => '#ffffff',
- 'outside-text-color' => '#ffffff',
- 'profile-color' => '#ffffff',
- 'profile-font-size' => '14px',
- 'review-font-size' => '15px',
- 'rating-text' => '15px',
- 'company-font-size' => '15px',
- 'review-lines' => '4',
- 'box-background-color' => '#222222',
- 'box-border-color' => '#222222',
- 'box-border-radius' => '4px',
- 'box-padding' => '20px',
- 'scroll-color' => '#555555',
- 'arrow-color' => '#666666',
- 'float-widget-align' => 'left',
- 'nav' => 'desktop',
- 'hover-anim' => 'true',
- 'review-italic' => 'false',
- 'enable-font' => 'true',
- 'align-mini' => 'center',
- 'popup-background' => '#ffffff',
- 'popup-company-color' => '#333333',
- 'popup-company-size' => '16px',
- 'popup-profile-color' => '#333333',
- 'popup-profile-size' => '15px',
- 'popup-review-color' => '#333333',
- 'popup-review-size' => '14px',
- 'popup-separator-color' => '#dedede',
- 'popup-separator-width' => '1px',
- 'box-shadow' => 'false',
- 'box-shadow-color' => '#000000',
- 'box-shadow-opacity' => '0.15',
- 'box-border-top-width' => '0px',
- 'box-border-bottom-width' => '0px',
- 'box-border-left-width' => '0px',
- 'box-border-right-width' => '0px',
- 'box-background-opacity' => '1',
- 'box-backdrop-blur' => '0px',
- 'highlight-color' => '#fbe049',
- 'highlight-size' => '19px',
- 'review-title' => 'normal',
- 'content-align' => 'center',
- 'text-align' => 'left',
- 'star-color' => '#f6bb06',
- 'review-text-mode' => 'readmore',
- 'aggregate-rating-text-size' => '24px',
- 'nav-line' => 'mobile',
- 'header-background-color' => '#222222',
- 'header-border-color' => '#222222',
- 'header-border-top-width' => '1px',
- 'header-border-bottom-width' => '1px',
- 'header-border-left-width' => '1px',
- 'header-border-right-width' => '1px',
- 'header-border-radius' => '4px',
- 'header-padding' => '20px',
- 'header-color' => '#ffffff',
- 'header-shadow' => 'false',
- 'header-shadow-color' => '#000000',
- 'header-shadow-opacity' => '0.15',
- 'header-background-opacity' => '1',
- 'header-backdrop-blur' => '0px',
- 'header-btn-background-color' => '#4285f4',
- 'header-btn-border-color' => '#4285f4',
- 'header-btn-border-top-width' => '1px',
- 'header-btn-border-bottom-width' => '1px',
- 'header-btn-border-left-width' => '1px',
- 'header-btn-border-right-width' => '1px',
- 'header-btn-border-radius' => '4px',
- 'header-btn-padding' => '7px',
- 'header-btn-color' => '#ffffff',
- 'header-btn-size' => '13px',
- 'review-gap' => '16px',
- 'button-widget-font-size' => '14px',
- 'ai-summary-background' => 'false',
- 'original-rating-text' => '15px',
- ),
  ),
  'dark-minimal' => 
  array (
  'is-active' => true,
- 'id' => 'dark-minimal',
  'name' => 'Minimal dark',
- 'position' => 0,
- 'select-position' => 11,
  'reviewer-photo' => true,
  'hide-logos' => false,
  'hide-stars' => false,
- '_vars' => 
- array (
- 'style_id' => '"dark-minimal"',
- 'bg-color' => '#000000',
- 'text-color' => '#ffffff',
- 'outside-text-color' => '#ffffff',
- 'profile-color' => '#ffffff',
- 'profile-font-size' => '14px',
- 'review-font-size' => '15px',
- 'rating-text' => '15px',
- 'company-font-size' => '15px',
- 'review-lines' => '4',
- 'box-background-color' => '#000000',
- 'box-border-color' => '#000000',
- 'box-border-radius' => '0px',
- 'box-padding' => '20px',
- 'scroll-color' => '#555555',
- 'arrow-color' => '#cccccc',
- 'float-widget-align' => 'right',
- 'nav' => 'desktop',
- 'hover-anim' => 'true',
- 'review-italic' => 'false',
- 'enable-font' => 'true',
- 'align-mini' => 'center',
- 'popup-background' => '#ffffff',
- 'popup-company-color' => '#333333',
- 'popup-company-size' => '16px',
- 'popup-profile-color' => '#333333',
- 'popup-profile-size' => '15px',
- 'popup-review-color' => '#333333',
- 'popup-review-size' => '14px',
- 'popup-separator-color' => '#dedede',
- 'popup-separator-width' => '1px',
- 'box-shadow' => 'false',
- 'box-shadow-color' => '#000000',
- 'box-shadow-opacity' => '0.15',
- 'box-border-top-width' => '0px',
- 'box-border-bottom-width' => '0px',
- 'box-border-left-width' => '0px',
- 'box-border-right-width' => '0px',
- 'box-background-opacity' => '0',
- 'box-backdrop-blur' => '0px',
- 'highlight-color' => '#fbe049',
- 'highlight-size' => '19px',
- 'review-title' => 'normal',
- 'content-align' => 'center',
- 'text-align' => 'left',
- 'star-color' => '#f6bb06',
- 'review-text-mode' => 'readmore',
- 'aggregate-rating-text-size' => '24px',
- 'nav-line' => 'mobile',
- 'header-background-color' => 'rgba(#000000, 0)',
- 'header-border-color' => '#191919',
- 'header-border-top-width' => '0px',
- 'header-border-bottom-width' => '1px',
- 'header-border-left-width' => '0px',
- 'header-border-right-width' => '0px',
- 'header-border-radius' => '0px',
- 'header-padding' => '20px',
- 'header-color' => '#fff',
- 'header-shadow' => 'false',
- 'header-shadow-color' => '#000000',
- 'header-shadow-opacity' => '0.15',
- 'header-background-opacity' => '1',
- 'header-backdrop-blur' => '0px',
- 'header-btn-background-color' => '#4285f4',
- 'header-btn-border-color' => '#4285f4',
- 'header-btn-border-top-width' => '1px',
- 'header-btn-border-bottom-width' => '1px',
- 'header-btn-border-left-width' => '1px',
- 'header-btn-border-right-width' => '1px',
- 'header-btn-border-radius' => '4px',
- 'header-btn-padding' => '7px',
- 'header-btn-color' => '#ffffff',
- 'header-btn-size' => '13px',
- 'review-gap' => '16px',
- 'button-widget-font-size' => '14px',
- 'ai-summary-background' => 'false',
- 'original-rating-text' => '15px',
- ),
  ),
  'dark-border' => 
  array (
  'is-active' => false,
- 'id' => 'dark-border',
  'name' => 'Dark border',
- 'position' => 1,
- 'select-position' => 12,
  'reviewer-photo' => true,
  'hide-logos' => false,
  'hide-stars' => false,
- '_vars' => 
- array (
- 'style_id' => '"dark-border"',
- 'bg-color' => '#222222',
- 'text-color' => '#ffffff',
- 'outside-text-color' => '#ffffff',
- 'profile-color' => '#ffffff',
- 'profile-font-size' => '15px',
- 'review-font-size' => '14px',
- 'rating-text' => '14px',
- 'company-font-size' => '16px',
- 'review-lines' => '4',
- 'box-background-color' => '#222222',
- 'box-border-color' => '#444444',
- 'box-border-radius' => '4px',
- 'box-padding' => '15px',
- 'scroll-color' => '#555555',
- 'arrow-color' => '#444444',
- 'float-widget-align' => 'left',
- 'nav' => 'desktop',
- 'hover-anim' => 'true',
- 'review-italic' => 'false',
- 'enable-font' => 'true',
- 'align-mini' => 'center',
- 'popup-background' => '#ffffff',
- 'popup-company-color' => '#333333',
- 'popup-company-size' => '16px',
- 'popup-profile-color' => '#333333',
- 'popup-profile-size' => '15px',
- 'popup-review-color' => '#333333',
- 'popup-review-size' => '14px',
- 'popup-separator-color' => '#dedede',
- 'popup-separator-width' => '1px',
- 'box-shadow' => 'false',
- 'box-shadow-color' => '#000000',
- 'box-shadow-opacity' => '0.15',
- 'box-border-top-width' => '2px',
- 'box-border-bottom-width' => '2px',
- 'box-border-left-width' => '2px',
- 'box-border-right-width' => '2px',
- 'box-background-opacity' => '1',
- 'box-backdrop-blur' => '0px',
- 'highlight-color' => '#fbe049',
- 'highlight-size' => '19px',
- 'review-title' => 'normal',
- 'content-align' => 'center',
- 'text-align' => 'left',
- 'star-color' => '#f6bb06',
- 'review-text-mode' => 'readmore',
- 'aggregate-rating-text-size' => '24px',
- 'nav-line' => 'mobile',
- 'header-background-color' => '#222222',
- 'header-border-color' => '#444444',
- 'header-border-top-width' => '2px',
- 'header-border-bottom-width' => '2px',
- 'header-border-left-width' => '2px',
- 'header-border-right-width' => '2px',
- 'header-border-radius' => '4px',
- 'header-padding' => '20px',
- 'header-color' => '#ffffff',
- 'header-shadow' => 'false',
- 'header-shadow-color' => '#000000',
- 'header-shadow-opacity' => '0.15',
- 'header-background-opacity' => '1',
- 'header-backdrop-blur' => '0px',
- 'header-btn-background-color' => '#4285f4',
- 'header-btn-border-color' => '#4285f4',
- 'header-btn-border-top-width' => '1px',
- 'header-btn-border-bottom-width' => '1px',
- 'header-btn-border-left-width' => '1px',
- 'header-btn-border-right-width' => '1px',
- 'header-btn-border-radius' => '4px',
- 'header-btn-padding' => '7px',
- 'header-btn-color' => '#ffffff',
- 'header-btn-size' => '13px',
- 'review-gap' => '16px',
- 'button-widget-font-size' => '14px',
- 'ai-summary-background' => 'false',
- 'original-rating-text' => '14px',
- ),
  ),
  'dark-contrast' => 
  array (
  'is-active' => false,
- 'id' => 'dark-contrast',
  'name' => 'Dark contrast',
- 'position' => 1,
- 'select-position' => 14,
  'reviewer-photo' => true,
  'hide-logos' => false,
  'hide-stars' => false,
- '_vars' => 
- array (
- 'style_id' => '"dark-contrast"',
- 'bg-color' => '#222222',
- 'text-color' => '#000000',
- 'outside-text-color' => '#ffffff',
- 'profile-color' => '#000000',
- 'profile-font-size' => '15px',
- 'review-font-size' => '14px',
- 'rating-text' => '14px',
- 'company-font-size' => '16px',
- 'review-lines' => '4',
- 'box-background-color' => '#ffffff',
- 'box-border-color' => '#ffffff',
- 'box-border-radius' => '4px',
- 'box-padding' => '15px',
- 'scroll-color' => '#555555',
- 'arrow-color' => '#ffffff',
- 'float-widget-align' => 'left',
- 'nav' => 'desktop',
- 'hover-anim' => 'true',
- 'review-italic' => 'false',
- 'enable-font' => 'true',
- 'align-mini' => 'center',
- 'popup-background' => '#ffffff',
- 'popup-company-color' => '#333333',
- 'popup-company-size' => '16px',
- 'popup-profile-color' => '#333333',
- 'popup-profile-size' => '15px',
- 'popup-review-color' => '#333333',
- 'popup-review-size' => '14px',
- 'popup-separator-color' => '#dedede',
- 'popup-separator-width' => '1px',
- 'box-shadow' => 'false',
- 'box-shadow-color' => '#000000',
- 'box-shadow-opacity' => '0.15',
- 'box-border-top-width' => '2px',
- 'box-border-bottom-width' => '2px',
- 'box-border-left-width' => '2px',
- 'box-border-right-width' => '2px',
- 'box-background-opacity' => '1',
- 'box-backdrop-blur' => '0px',
- 'highlight-color' => '#fbe049',
- 'highlight-size' => '19px',
- 'review-title' => 'normal',
- 'content-align' => 'center',
- 'text-align' => 'left',
- 'star-color' => '#f6bb06',
- 'review-text-mode' => 'readmore',
- 'aggregate-rating-text-size' => '24px',
- 'nav-line' => 'mobile',
- 'header-background-color' => '#ffffff',
- 'header-border-color' => '#ffffff',
- 'header-border-top-width' => '2px',
- 'header-border-bottom-width' => '2px',
- 'header-border-left-width' => '2px',
- 'header-border-right-width' => '2px',
- 'header-border-radius' => '4px',
- 'header-padding' => '20px',
- 'header-color' => '#000000',
- 'header-shadow' => 'false',
- 'header-shadow-color' => '#000000',
- 'header-shadow-opacity' => '0.15',
- 'header-background-opacity' => '1',
- 'header-backdrop-blur' => '0px',
- 'header-btn-background-color' => '#4285f4',
- 'header-btn-border-color' => '#4285f4',
- 'header-btn-border-top-width' => '1px',
- 'header-btn-border-bottom-width' => '1px',
- 'header-btn-border-left-width' => '1px',
- 'header-btn-border-right-width' => '1px',
- 'header-btn-border-radius' => '4px',
- 'header-btn-padding' => '7px',
- 'header-btn-color' => '#ffffff',
- 'header-btn-size' => '13px',
- 'review-gap' => '16px',
- 'button-widget-font-size' => '14px',
- 'ai-summary-background' => 'false',
- 'original-rating-text' => '14px',
- ),
  ),
  'dark-background-image' => 
  array (
  'is-active' => false,
- 'id' => 'dark-background-image',
  'name' => 'Dark background image',
- 'position' => 0,
- 'select-position' => 15,
  'reviewer-photo' => true,
  'hide-logos' => false,
  'hide-stars' => false,
- '_vars' => 
- array (
- 'style_id' => '"dark-background-image"',
- 'bg-color' => '#ffffff',
- 'text-color' => '#ffffff',
- 'outside-text-color' => '#ffffff',
- 'profile-color' => '#ffffff',
- 'profile-font-size' => '15px',
- 'review-font-size' => '15px',
- 'rating-text' => '15px',
- 'company-font-size' => '16px',
- 'review-lines' => '4',
- 'box-background-color' => '#000000',
- 'box-border-color' => '#000000',
- 'box-border-radius' => '5px',
- 'box-padding' => '20px',
- 'scroll-color' => '#555555',
- 'arrow-color' => '#cccccc',
- 'float-widget-align' => 'right',
- 'nav' => 'desktop',
- 'hover-anim' => 'false',
- 'review-italic' => 'false',
- 'enable-font' => 'true',
- 'align-mini' => 'center',
- 'popup-background' => '#ffffff',
- 'popup-company-color' => '#333333',
- 'popup-company-size' => '16px',
- 'popup-profile-color' => '#333333',
- 'popup-profile-size' => '15px',
- 'popup-review-color' => '#333333',
- 'popup-review-size' => '14px',
- 'popup-separator-color' => '#dedede',
- 'popup-separator-width' => '1px',
- 'box-shadow' => 'true',
- 'box-shadow-color' => '#000000',
- 'box-shadow-opacity' => '0.2',
- 'box-border-top-width' => '0px',
- 'box-border-bottom-width' => '0px',
- 'box-border-left-width' => '0px',
- 'box-border-right-width' => '0px',
- 'box-background-opacity' => '0.3',
- 'box-backdrop-blur' => '5px',
- 'highlight-color' => '#fbe049',
- 'highlight-size' => '19px',
- 'review-title' => 'normal',
- 'content-align' => 'center',
- 'text-align' => 'left',
- 'star-color' => '#f6bb06',
- 'review-text-mode' => 'readmore',
- 'aggregate-rating-text-size' => '24px',
- 'nav-line' => 'mobile',
- 'header-background-color' => '#000000',
- 'header-border-color' => '#000000',
- 'header-border-top-width' => '0px',
- 'header-border-bottom-width' => '0px',
- 'header-border-left-width' => '0px',
- 'header-border-right-width' => '0px',
- 'header-border-radius' => '5px',
- 'header-padding' => '25px',
- 'header-color' => '#ffffff',
- 'header-shadow' => 'false',
- 'header-shadow-color' => '#000000',
- 'header-shadow-opacity' => '0.15',
- 'header-background-opacity' => '0.3',
- 'header-backdrop-blur' => '5px',
- 'header-btn-background-color' => '#4285f4',
- 'header-btn-border-color' => '#4285f4',
- 'header-btn-border-top-width' => '1px',
- 'header-btn-border-bottom-width' => '1px',
- 'header-btn-border-left-width' => '1px',
- 'header-btn-border-right-width' => '1px',
- 'header-btn-border-radius' => '4px',
- 'header-btn-padding' => '7px',
- 'header-btn-color' => '#ffffff',
- 'header-btn-size' => '13px',
- 'review-gap' => '16px',
- 'button-widget-font-size' => '14px',
- 'ai-summary-background' => 'false',
- 'original-rating-text' => '15px',
- ),
  ),
 );
 public static $widget_languages = [
@@ -4502,7 +2446,7 @@ private static $widget_footer_filter_texts = array (
  ),
  'da' => 
  array (
- 'star' => 'Viser kun RATING_STAR_FILTER stjerneanmeldelser',
+ 'star' => 'Viser kun anmeldelser med RATING_STAR_FILTER stjerner',
  'latest' => 'Viser vores seneste anmeldelser',
  ),
  'de' => 
@@ -6192,45 +4136,160 @@ private function parseReviewText($text)
 return preg_replace('/\r\n|\r|\n/', "\n", trim(html_entity_decode($text, ENT_HTML5 | ENT_QUOTES)));
 }
 
-private $previewContent = null;
-private $templateCache = null;
-public function get_noreg_list_reviews($forcePlatform = null, $listAll = false, $defaultStyleId = 4, $defaultSetId = 'light-background', $onlyPreview = false, $defaultReviews = false, $forceDefaultReviews = false)
+public function renderWidgetFrontend($tiPublicId = null)
 {
-global $wpdb;
+wp_enqueue_script('trustindex-js', 'https://cdn.trustindex.io/loader.js', [], false, true);
+if ($tiPublicId) {
+$tiPublicId = preg_replace('/[^a-zA-Z0-9]/', '', $tiPublicId);
+}
+$attributes = ['data-src' => 'https://cdn.trustindex.io/loader.js?'.$tiPublicId];
+if (!$tiPublicId) {
 $pageDetails = $this->getPageDetails();
 $styleId = (int)$this->getWidgetOption('style-id');
-$setId = $this->getWidgetOption('scss-set');
-$content = $this->getWidgetOption('review-content');
-if (!$onlyPreview && !$listAll && self::$widget_templates['templates'][$styleId]['is-top-rated-badge'] && (float)$pageDetails['rating_score'] < self::$topRatedMinimumScore) {
+if (self::is_amp_active() && self::is_amp_enabled()) {
+return $this->frontEndErrorForAdmins(__('Free plugin features are unavailable with AMP plugin.', 'trustindex-plugin'));
+}
+if (self::$widget_templates['templates'][$styleId]['is-top-rated-badge'] && (float)$pageDetails['rating_score'] < self::$topRatedMinimumScore) {
 $text = sprintf(__('Our exclusive "Top Rated" badge is awarded to service providers with a rating of %s and above.', 'trustindex-plugin'), self::$topRatedMinimumScore)
 .'<br />'
 .'<a href="'.admin_url('admin.php?page='.$this->get_plugin_slug().'/settings.php&tab=free-widget-configurator&step=2').'">'.__('Please select another widget', 'trustindex-plugin').'.</a>';
-return $this->error_box_for_admins($text);
+return $this->frontEndErrorForAdmins($text);
 }
-$needToParse = true;
-if ($onlyPreview) {
-$content = false;
-$styleId = $defaultStyleId;
-$setId = $defaultSetId;
-$this->widgetOptions['style-id'] = $styleId;
-$this->widgetOptions['scss-set'] = $setId;
-if ($this->previewContent && $this->previewContent['id'] === $styleId) {
-$content = $this->previewContent['content'];
+$attributes['data-src'] .= 'wp-widget';
+$attributes['data-html-url'] = admin_url('admin-ajax.php') . '?action='. $this->frontendWidgetAction(true);
+if (is_file($this->getCssFile()) && !get_option($this->get_option_name('load-css-inline'), 0)) {
+$attributes['data-css-url'] = $this->getCssUrl().'?'.filemtime($this->getCssFile());
+}
+if (!$this->getReviewsForWidgetHtml()) {
+$text = sprintf(__('There are no reviews on your %s platform.', 'trustindex-plugin'), ucfirst($this->getShortName()));
+
+if ($this->is_review_download_in_progress()) {
+$text = __('Your reviews are being downloaded.', 'trustindex-plugin') . ' ' . __('This process should only take a few minutes.', 'trustindex-plugin');
+}
+return $this->frontEndErrorForAdmins($text);
 }
 }
+$attributesHtml = implode(' ', array_map(function($attribute, $value) {
+return $attribute.'="'.$value.'"';
+}, array_keys($attributes), $attributes));
+return '<div '.$attributesHtml.'></div>';
+}
+public function renderWidgetAdmin($isDemoReviews = false, $isForceDemoReviews = false, $previewData = null)
+{
+$this->widgetOptionDefaultOverride = [];
+if ($previewData) {
+$this->widgetOptions['style-id'] = $previewData['style-id'];
+$this->widgetOptions['scss-set'] = $previewData['set-id'];
+$this->widgetOptions['review-content'] = "";
+$fileName = $previewData['style-id'].'-'.$previewData['set-id'].'.css';
+wp_enqueue_style('trustindex-widget-preview-'.$fileName, "https://cdn.trustindex.io/assets/widget-presetted-css/v2/$fileName");
+if (isset($previewData['verified-by-trustindex']) && $previewData['verified-by-trustindex']) {
+$this->widgetOptionDefaultOverride['verified-by-trustindex'] = 1;
+$this->widgetOptionDefaultOverride['verified-icon'] = 1;
+}
+}
+$reviews = $this->getReviewsForWidgetHtml(true, $isForceDemoReviews, (bool)$previewData);
+if (!$reviews) {
+return self::get_alertbox('error', __('You do not have reviews with the current filters. <br />Change your filters if you would like to display reviews on your page!', 'trustindex-plugin'));
+}
+$html = $this->getWidgetHtml($reviews, (bool)$previewData);
+if (!$previewData) {
+if (is_file($this->getCssFile()) && !$this->isElementorEditing()) {
+wp_enqueue_style('trustindex-widget-editor', $this->getCssUrl(), [], filemtime($this->getCssFile()));
+} else {
+$html .= '<style type="text/css">'.get_option($this->get_option_name('css-content')).'</style>';
+}
+}
+if ($this->isElementorEditing()) {
+$html .= '<script type="text/javascript" src="https://cdn.trustindex.io/loader.js"></script>';
+} else {
+wp_enqueue_script('trustindex-js', 'https://cdn.trustindex.io/loader.js', [], false, true);
+}
+return $html;
+}
+public function frontendWidgetAction($returnHookName = false)
+{
+if ($returnHookName === true) {
+return 'trustindex_'.$this->getShortName().'_widget';
+}
+if ($this->is_noreg_linked() && $this->getWidgetOption('widget-setted-up')) {
+$reviews = $this->getReviewsForWidgetHtml();
+if ($reviews) {
+echo $this->getWidgetHtml($reviews);
+}
+}
+wp_die();
+}
+private $templateCache = null;
+private function getWidgetHtml($reviews, $isPreview = false)
+{
+$styleId = (int)$this->getWidgetOption('style-id');
+$setId = $this->getWidgetOption('scss-set');
+$content = $this->getWidgetOption('review-content');
+$language = $this->getWidgetOption('lang', false, $isPreview);
+if (!$content || strpos($content, '<!-- R-LIST -->') === false) {
+if (!$this->templateCache) {
+add_action('http_api_curl', function($handle) {
+curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, false);
+curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, false);
+}, 10);
+$response = wp_remote_get("https://cdn.trustindex.io/widget-assets/template/v2/$language.json", [ 'timeout' => 300 ]);
+if (is_wp_error($response)) {
+return $this->frontEndErrorForAdmins(__('Could not download the template for the widget.<br />Please reload the page.<br />If the problem persists, please write an email to support@trustindex.io.', 'trustindex-plugin') .'<br /><br />'. print_r($response, true));
+}
+$this->templateCache = json_decode($response['body'], true);
+}
+$content = $this->templateCache[$styleId];
+if (!$isPreview) {
+update_option($this->get_option_name('review-content'), $content, false);
+}
+}
+$content = $this->parseWidgetHtml($reviews, $content, $isPreview);
+$content = preg_replace('/data-set[_-]id=[\'"][^\'"]*[\'"]/m', 'data-set-id="'. $setId .'"', $content);
+$classAppends = ['ti-' . substr($this->getShortName(), 0, 4)];
+if (!$this->getWidgetOption('show-reviewers-photo', false, $isPreview)) {
+$classAppends []= 'ti-no-profile-img';
+}
+if ($this->getWidgetOption('disable-font', false, $isPreview)) {
+$classAppends []= 'ti-disable-font';
+}
+if (!$this->getWidgetOption('show-arrows', false, $isPreview)) {
+$classAppends []= 'ti-disable-nav';
+}
+if (!$this->getWidgetOption('enable-animation', false, $isPreview)) {
+$classAppends []= 'ti-disable-animation';
+}
+if (!$this->getWidgetOption('no-rating-text', false, $isPreview)) {
+$classAppends []= 'ti-show-rating-text';
+}
+$classAppends []= 'ti-review-text-mode-'.$this->getWidgetOption('review-text-mode', false, $isPreview);
+$classAppends []= 'ti-'.(in_array($styleId, [36, 37, 38, 39]) ? 'content' : 'text').'-align-'.$this->getWidgetOption('align', false, $isPreview);
+$content = str_replace('" data-layout-id=', ' '. implode(' ', $classAppends) .'" data-no-translation="true" data-layout-id=', $content);
+if ($this->getWidgetOption('dateformat', false, $isPreview) === 'modern') {
+$language = $this->getWidgetOption('lang', false, $isPreview);
+$content = str_replace('" data-layout-id=', '" data-time-locale="'. self::$widget_date_format_locales[$language] .'" data-layout-id=', $content);
+}
+if (self::$widget_templates['templates'][$styleId]['type'] === 'floating') {
+$content = str_replace('" data-layout-id=', '" data-widget-default-closed="'.(int)!$this->getWidgetOption('floating-desktop-open', false, $isPreview).'" data-layout-id=', $content);
+$content = str_replace('" data-layout-id=', '" data-widget-default-closed-mobile="'.(int)!$this->getWidgetOption('floating-mobile-open', false, $isPreview).'" data-layout-id=', $content);
+}
+return $content;
+}
+private function getReviewsForWidgetHtml($isDemoReviews = false, $isForceDemoReviews = false, $isPreview = false)
+{
+global $wpdb;
 $sqlRatingField = 'rating';
 if ($this->is_ten_scale_rating_platform()) {
 $sqlRatingField = 'ROUND(rating / 2, 0)';
 }
-$sql = 'SELECT *, rating as original_rating, '. $sqlRatingField .' as rating FROM `'. $this->get_tablename('reviews') .'` ';
-$filter = $this->getWidgetOption('filter', false, $onlyPreview);
+$sql = 'SELECT *, rating AS original_rating, '. $sqlRatingField .' AS rating FROM `'. $this->get_tablename('reviews') .'` ';
+$filter = $this->getWidgetOption('filter', false, $isPreview);
 if (isset($filter['stars']) && count($filter['stars']) === 0) {
 $sql .= 'WHERE 0 ';
-}
-else {
+} else {
 $sql .= 'WHERE hidden = 0 AND ('. $sqlRatingField .' IN ('. implode(',', $filter['stars']) .')';
 if (in_array(5, $filter['stars'])) {
-$sql .= ' or rating IS NULL';
+$sql .= ' OR rating IS NULL';
 }
 $sql .= ') ';
 if (isset($filter['only-ratings']) && $filter['only-ratings']) {
@@ -6239,9 +4298,13 @@ $sql .= 'AND text != "" ';
 }
 $sql .= 'ORDER BY date DESC';
 $reviews = $wpdb->get_results($sql);
-if ($defaultReviews && ($forceDefaultReviews || !count($reviews))) {
+if ($isDemoReviews && ($isForceDemoReviews || !$reviews)) {
+if (!$reviews && !$isForceDemoReviews && $wpdb->get_results('SELECT * FROM `'. $this->get_tablename('reviews') .'`')) {
+return [];
+}
+$pageDetails = $this->getPageDetails();
 $lang = substr(get_locale(), 0, 2);
-if (!isset(self::$widget_languages[ $lang ])) {
+if (!isset(self::$widget_languages[$lang])) {
 $lang = 'en';
 }
 if (!$pageDetails) {
@@ -6265,237 +4328,112 @@ $pageDetails['id'] = '';
 if (!isset($pageDetails['name'])) {
 $pageDetails['name'] = get_bloginfo('name');
 }
+$this->pageDetails = $pageDetails;
 $reviews = $this->getRandomReviews(10);
 }
-if (!count($reviews)) {
-$text = sprintf(__('There are no reviews on your %s platform.', 'trustindex-plugin'), ucfirst($this->getShortName()));
-
-if ($this->is_review_download_in_progress()) {
-$text = __('Your reviews are being downloaded.', 'trustindex-plugin') . ' ' . __('This process should only take a few minutes.', 'trustindex-plugin');
+return $reviews;
 }
-return $this->error_box_for_admins($text);
-}
-if (self::is_amp_active() && self::is_amp_enabled()) {
-return $this->error_box_for_admins(__('Free plugin features are unavailable with AMP plugin.', 'trustindex-plugin'));
-}
-$lang = $this->getWidgetOption('lang', false, $onlyPreview);
-$dateformat = $this->getWidgetOption('dateformat', false, $onlyPreview);
-$noRatingText = $this->getWidgetOption('no-rating-text', false, $onlyPreview);
-$verifiedIcon = $this->getWidgetOption('verified-icon', false, $onlyPreview);
-$showReviewersPhoto = $this->getWidgetOption('show-reviewers-photo', false, $onlyPreview);
-$showLogos = $this->getWidgetOption('show-logos', false, $onlyPreview);
-$showStars = $this->getWidgetOption('show-stars', false, $onlyPreview);
-$footerFilterText = $this->getWidgetOption('footer-filter-text', false, $onlyPreview);
-$showHeaderButton = $this->getWidgetOption('show-header-button', false, $onlyPreview);
-$reviewsLoadMore = $this->getWidgetOption('reviews-load-more', false, $onlyPreview);
-$topRatedType = $this->getWidgetOption('top-rated-type', false, $onlyPreview);
-$topRatedDate = $this->getWidgetOption('top-rated-date', false, $onlyPreview);
-$disableFont = $this->getWidgetOption('disable-font', false, $onlyPreview);
-$showArrows = $this->getWidgetOption('show-arrows', false, $onlyPreview);
-$enableAnimation = $this->getWidgetOption('enable-animation', false, $onlyPreview);
-$align = $this->getWidgetOption('align', false, $onlyPreview);
-$reviewTextMode = $this->getWidgetOption('review-text-mode', false, $onlyPreview);
-$floatingDesktopOpen = $this->getWidgetOption('floating-desktop-open', false, $onlyPreview);
-$floatingMobileOpen = $this->getWidgetOption('floating-mobile-open', false, $onlyPreview);
-$showReviewReplies = $this->getWidgetOption('show-review-replies', false, $onlyPreview);
-$scriptName = 'trustindex-js';
-if (!wp_script_is($scriptName, 'enqueued')) {
-wp_enqueue_script($scriptName, 'https://cdn.trustindex.io/loader.js', [], false, true);
-}
-if ($content === false || empty($content) || (strpos($content, '<!-- R-LIST -->') === false && $needToParse)) {
-if (!$this->templateCache) {
-add_action('http_api_curl', function($handle) {
-curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, false);
-curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, false);
-}, 10);
-$response = wp_remote_get("https://cdn.trustindex.io/widget-assets/template/$lang.json", [ 'timeout' => 300 ]);
-if (is_wp_error($response)) {
-echo $this->get_alertbox('error', '<br />'. __('Could not download the template for the widget.<br />Please reload the page.<br />If the problem persists, please write an email to support@trustindex.io.', 'trustindex-plugin') .'<br /><br />'. print_r($response, true));
-die;
-}
-$this->templateCache = json_decode($response['body'], true);
-}
-$content = $this->templateCache[ $styleId ];
-if (!$onlyPreview) {
-update_option($this->get_option_name('review-content'), $content, false);
-}
-}
-if ($needToParse) {
-$content = $this->parse_noreg_list_reviews([
-'content' => $content,
-'reviews' => $reviews,
-'page-details' => $pageDetails,
-'style-id' => $styleId,
-'set-id' => $setId,
-'no-rating-text' => $noRatingText,
-'dateformat' => $dateformat,
-'language' => $lang,
-'verified-icon' => $verifiedIcon,
-'show-reviewers-photo' => $showReviewersPhoto,
-'footer-filter-text' => $footerFilterText,
-'show-header-button' => $showHeaderButton,
-'reviews-load-more' => $reviewsLoadMore,
-'top-rated-type' => $topRatedType,
-'top-rated-date' => $topRatedDate,
-'show-review-replies' => $showReviewReplies,
-]);
-$this->previewContent = [
-'id' => $styleId,
-'content' => $content
-];
-}
-$content = preg_replace('/data-set[_-]id=[\'"][^\'"]*[\'"]/m', 'data-set-id="'. $setId .'"', $content);
-$classAppends = [ 'ti-' . substr($this->getShortName(), 0, 4) ];
-$widgetType = self::$widget_templates[ 'templates' ][ $styleId ]['type'];
-if (!in_array($widgetType, [ 'button', 'badge', 'top-rated-badge' ]) && !$showLogos) {
-$classAppends []= 'ti-no-logo';
-}
-if (!in_array($widgetType, [ 'button', 'badge', 'top-rated-badge' ]) && !$showStars) {
-$classAppends []= 'ti-no-stars';
-}
-if (!$showReviewersPhoto) {
-$classAppends []= 'ti-no-profile-img';
-}
-if ($disableFont) {
-$classAppends []= 'ti-disable-font';
-}
-if (!$showArrows) {
-$classAppends []= 'ti-disable-nav';
-}
-if (!$enableAnimation) {
-$classAppends []= 'ti-disable-animation';
-}
-if (!$noRatingText) {
-$classAppends []= 'ti-show-rating-text';
-}
-$classAppends []= 'ti-review-text-mode-'.$reviewTextMode;
-$classAppends []= 'ti-'.(in_array($styleId, [36, 37, 38, 39]) ? 'content' : 'text').'-align-'. $align;
-$content = str_replace('" data-layout-id=', ' '. implode(' ', $classAppends) .'" data-no-translation="true" data-layout-id=', $content);
-if ($dateformat === 'modern') {
-$content = str_replace('" data-layout-id=', '" data-time-locale="'. self::$widget_date_format_locales[ $lang ] .'" data-layout-id=', $content);
-}
-if ($widgetType === 'floating') {
-$content = str_replace('" data-layout-id=', '" data-widget-default-closed="'. ($floatingDesktopOpen ? 0 : 1) .'" data-layout-id=', $content);
-$content = str_replace('" data-layout-id=', '" data-widget-default-closed-mobile="'. ($floatingMobileOpen ? 0 : 1) .'" data-layout-id=', $content);
-}
-if ($onlyPreview) {
-wp_enqueue_style("trustindex-widget-css-". $this->getShortName() ."-". $styleId . "-". $setId, "https://cdn.trustindex.io/assets/widget-presetted-css/". $styleId ."-". $setId .".css");
-} else {
-if (!wp_style_is('ti-widget-css-' . $this->getShortName(), 'registered')) {
-if (!get_option($this->get_option_name('load-css-inline'), 0)) {
-if (class_exists('\Elementor\Plugin') && \Elementor\Plugin::$instance->editor->is_edit_mode()) {
-}
-else {
-return $this->error_box_for_admins(__('CSS file could not saved.', 'trustindex-plugin'));
-}
-}
-$widgetCss = get_option($this->get_option_name('css-content'));
-$content .= '<style type="text/css">'. $widgetCss .'</style>';
-}
-else {
-wp_enqueue_style('ti-widget-css-' . $this->getShortName());
-}
-}
-return $content;
-}
-public function parse_noreg_list_reviews($array = [])
+private function parseWidgetHtml($reviews, $content, $isPreview = false)
 {
-$widgetType = self::$widget_templates[ 'templates' ][ $array['style-id'] ]['type'];
-preg_match('/<!-- R-LIST -->(.*)<!-- R-LIST -->/', $array['content'], $matches);
+$pageDetails = $this->getPageDetails();
+$styleId = (int)$this->getWidgetOption('style-id');
+$setId = $this->getWidgetOption('scss-set');
+$language = $this->getWidgetOption('lang', false, $isPreview);
+$widgetTemplate = self::$widget_templates['templates'][$styleId];
+$showStars = $this->getWidgetOption('show-stars', false, $isPreview);
+preg_match('/<!-- R-LIST -->(.*)<!-- R-LIST -->/', $content, $matches);
 if (isset($matches[1])) {
 $reviewContent = "";
-if ($array['reviews'] && count($array['reviews'])) {
-foreach ($array['reviews'] as $r) {
+if ($reviews) {
+foreach ($reviews as $r) {
 $customAttributes = 'data-empty="'. (empty($r->text) ? 1 : 0) .'"';
 $date = "&nbsp;";
 if ($r->date && $r->date !== '0000-00-00') {
-if (in_array($array['dateformat'], [ 'hide', 'modern' ])) {
+$dateformat = $this->getWidgetOption('dateformat', false, $isPreview);
+if (in_array($dateformat, [ 'hide', 'modern' ])) {
 $date = '';
-if ($array['dateformat'] === 'modern') {
+if ($dateformat === 'modern') {
 $customAttributes .= ' data-time="'. strtotime($r->date) .'"';
 }
 }
 else {
-$date = str_replace(self::$widget_month_names['en'], self::$widget_month_names[ $array['language'] ], date($array['dateformat'], strtotime($r->date)));
+$date = str_replace(self::$widget_month_names['en'], self::$widget_month_names[$language], date($dateformat, strtotime($r->date)));
 }
 }
-$ratingContent = $this->get_rating_stars($r->rating);
+$ratingContent = $this->get_rating_stars($r->rating, $showStars);
+if ($showStars) {
 
 if ($this->is_ten_scale_rating_platform()) {
-$ratingContent = '<div class="ti-rating-box">'. $this->formatTenRating($r->original_rating, $array['language']) .'</div>';
+$ratingContent .= '<span class="ti-ten-rating-score">'. $this->formatTenRating($r->original_rating, $language) .'</span>';
+}
 }
 $platformName = ucfirst($this->getShortName());
-if ($array['verified-icon']) {
-$verifiedIconTooltipText = self::$widget_verified_texts[$array['language']];
+if ($this->getWidgetOption('verified-icon', false, $isPreview)) {
+$verifiedIconTooltipText = self::$widget_verified_texts[$language];
 $verifiedIconClass = 'ti-verified-review';
 if (!in_array($platformName, self::$verified_platforms)) {
 $verifiedIconClass = 'ti-verified-review ti-verified-platform';
-$verifiedIconTooltipText = str_replace('%platform%', 'PLATFORM_NAME', self::$widget_verified_platform_texts[$array['language']]);
+$verifiedIconTooltipText = str_replace('%platform%', 'PLATFORM_NAME', self::$widget_verified_platform_texts[$language]);
 }
 $ratingContent .= '<span class="'.$verifiedIconClass.'"><span class="ti-verified-tooltip">'.$verifiedIconTooltipText.'</span></span>';
 }
-if (!$array['show-reviewers-photo']) {
+if (!$this->getWidgetOption('show-reviewers-photo', false, $isPreview)) {
 $matches[1] = preg_replace('/<div class="ti-profile-img">.+<\/div>/U', '', $matches[1]);
 }
 $imageUrl = $r->user_photo;
 $image2xUrl = $imageUrl;
 
 $text = $this->getReviewHtml($r);
-if ($array['show-review-replies'] && $r->reply) {
-$text .= '<br /><br /><strong class="ti-reply-by-owner-title">'.self::$widget_reply_by_texts[$array['language']].'</strong><br />'.$this->parseReviewText($r->reply);
+if ($r->reply && $this->getWidgetOption('show-review-replies', false, $isPreview)) {
+$text .= '<br /><br /><strong class="ti-reply-by-owner-title">'.self::$widget_reply_by_texts[$language].'</strong><br />'.$this->parseReviewText($r->reply);
 }
-$reviewContent .= str_replace(
-[
+$reviewContent .= str_replace([
 '%platform%',
 '%reviewer_photo% 2x',
 '%reviewer_photo%',
 '%reviewer_name%',
 '%created_at%',
 '%text%',
-'<span class="ti-star f"></span><span class="ti-star f"></span><span class="ti-star f"></span><span class="ti-star f"></span><span class="ti-star f"></span>',
 '%rating_score%',
-'class="ti-review-item'
-],
-[
+'class="ti-review-item',
+'<!-- STARS-CONTENT -->',
+], [
 $platformName,
 $image2xUrl.' 2x',
 $imageUrl,
 $r->user,
 $date,
 $text,
-$ratingContent,
 round($r->original_rating),
-$customAttributes . ' class="ti-review-item'
-],
-$matches[1]
-);
+$customAttributes . ' class="ti-review-item',
+$ratingContent,
+], $matches[1]);
 $reviewContent = str_replace('<div></div>', '', $reviewContent);
 }
 }
-$array['content'] = str_replace($matches[0], $reviewContent, $array['content']);
+$content = str_replace($matches[0], $reviewContent, $content);
 }
-$ratingCount = $array['page-details']['rating_number'];
-$ratingScore = $array['page-details']['rating_score'];
+$ratingCount = $pageDetails['rating_number'];
+$ratingScore = $pageDetails['rating_score'];
 if (empty($ratingCount)) {
-$ratingCount = count($array['reviews']);
+$ratingCount = count($reviews);
 }
 if (empty($ratingScore)) {
 $ratingSum = 0.0;
-foreach ($array['reviews'] as $review) {
+foreach ($reviews as $review) {
 $ratingSum += (float)$review->rating;
 }
-$c = count($array['reviews']);
+$c = count($reviews);
 $ratingScore = $c ? $ratingSum / $c : 0;
 }
-$ratingText = $this->get_rating_text($ratingScore, $array['language']);
+$ratingText = $this->get_rating_text($ratingScore, $language);
 $ratingTextUcfirst = ucfirst(strtolower($ratingText));
 if (function_exists('mb_strtolower')) {
 $ratingTextUcfirst = mb_substr($ratingText, 0, 1, 'UTF-8') . mb_strtolower(mb_substr($ratingText, 1, null, 'UTF-8'));
 }
-$imageUrl = isset($array['page-details']['avatar_url']) ? $array['page-details']['avatar_url'] : null;
+$imageUrl = isset($pageDetails['avatar_url']) ? $pageDetails['avatar_url'] : null;
 $image2xUrl = $imageUrl;
-$array['content'] = str_replace(
-[
+$content = str_replace([
 '%platform%',
 '%site_name%',
 "RATING_NUMBER",
@@ -6506,12 +4444,11 @@ $array['content'] = str_replace(
 "PLATFORM_URL_LOGO 2x",
 "PLATFORM_URL_LOGO",
 "PLATFORM_NAME",
-'<span class="ti-star e"></span><span class="ti-star e"></span><span class="ti-star e"></span><span class="ti-star e"></span><span class="ti-star e"></span>',
+'<!-- STARS-CONTENT -->',
 'PLATFORM_SMALL_LOGO',
-],
-[
+], [
 ucfirst($this->getShortName()),
-$array['page-details']['name'],
+$pageDetails['name'],
 $ratingCount,
 number_format((float)$ratingScore, 1),
 $this->is_ten_scale_rating_platform() ? 10 : 5,
@@ -6519,80 +4456,100 @@ $ratingText,
 $ratingTextUcfirst,
 $image2xUrl.' 2x',
 $imageUrl,
-$this->get_platform_name($this->getShortName(), $array['page-details']['id']),
-$this->is_ten_scale_rating_platform() ? "<div class='ti-rating-box'>". $this->formatTenRating($ratingScore, $array['language']) ."</div>" : $this->get_rating_stars($ratingScore),
+$this->get_platform_name($this->getShortName(), $pageDetails['id']),
+$this->get_rating_stars($ratingScore, $showStars),
 '<div class="ti-small-logo"><img src="'. $this->get_plugin_file_url('static/img/platform/logo.svg') . '" alt="'. ucfirst($this->getShortName()) .'"></div>',
-],
-$array['content']
-);
-if ($this->isDarkLogo($array['style-id'], $array['set-id'])) {
-$array['content'] = str_replace('img/platform/logo', 'img/platform/logo-dark', $array['content']);
-$array['content'] = str_replace('platform/'. ucfirst($this->getShortName()) .'/logo', 'platform/'. ucfirst($this->getShortName()) .'/logo-dark', $array['content']);
+], $content);
+if (!in_array($widgetTemplate['type'], [ 'button', 'badge', 'top-rated-badge' ]) && !$this->getWidgetOption('show-logos', false, $isPreview)) {
+$content = preg_replace('/<img class="ti-platform-icon".+>/U', '', $content);
 }
-if ($this->is_ten_scale_rating_platform() && $array['style-id'] == 11) {
-$array['content'] = str_replace('<span class="ti-rating">'. $ratingScore .'</span> ', '', $array['content']);
+if ($this->isDarkLogo($styleId, $setId)) {
+$content = str_replace('img/platform/logo', 'img/platform/logo-dark', $content);
+$content = str_replace('platform/'. ucfirst($this->getShortName()) .'/logo', 'platform/'. ucfirst($this->getShortName()) .'/logo-dark', $content);
 }
-if (in_array($array['style-id'], [ 8, 10, 11, 12, 13, 20, 22, 24, 25, 26, 27, 28, 29, 35, 55, 56, 57, 58, 59, 60, 61, 62, 106 ])) {
-if (!$array['show-header-button']) {
-$array['content'] = preg_replace('/<!-- HEADER-BUTTON-START.+HEADER-BUTTON-END -->/s', '', $array['content']);
+if ($this->is_ten_scale_rating_platform() && $styleId === 11) {
+$content = str_replace('<span class="ti-rating">'. $ratingScore .'</span> ', '', $content);
 }
-$array['content'] = str_replace([ '<!-- HEADER-BUTTON-START', 'HEADER-BUTTON-END -->' ], '', $array['content']);
+if (in_array($styleId, [8, 10, 11, 12, 13, 20, 22, 24, 25, 26, 27, 28, 29, 35, 55, 56, 57, 58, 59, 60, 61, 62, 106])) {
+if (!$this->getWidgetOption('show-header-button', false, $isPreview)) {
+$content = preg_replace('/<!-- HEADER-BUTTON-START.+HEADER-BUTTON-END -->/s', '', $content);
+}
+$content = str_replace(['<!-- HEADER-BUTTON-START', 'HEADER-BUTTON-END -->'], '', $content);
 
-$array['content'] = str_replace('%footer_link%', $this->getPageUrl(), $array['content']);
+$content = str_replace('%footer_link%', $this->getPageUrl(), $content);
+} else {
+$content = preg_replace('/<a href=[\'"]%footer_link%[\'"][^>]*>(.+)<\/a>/mU', '$1', $content);
 }
-else {
-$array['content'] = preg_replace('/<a href=[\'"]%footer_link%[\'"][^>]*>(.+)<\/a>/mU', '$1', $array['content']);
+if (!$this->getWidgetOption('reviews-load-more', false, $isPreview)) {
+$content = preg_replace('/<div class="ti-load-more-reviews-container"[^>]*>.+<\/div>\s*<\/div>/U', '', $content);
 }
-if (!$array['reviews-load-more']) {
-$array['content'] = preg_replace('/<div class="ti-load-more-reviews-container"[^>]*>.+<\/div>\s*<\/div>/U', '', $array['content']);
-}
-if ($array['no-rating-text'] && in_array($array['style-id'], [ 4, 6, 7, 15, 16, 19, 31, 33, 36, 37, 38, 39, 44 ])) {
-if (in_array($array['style-id'], [ 6, 7 ])) {
-$array['content'] = preg_replace('/<div class="ti-footer">.*<\/div>/mU', '<div class="ti-footer"></div>', $array['content']);
-}
-else if(in_array($array['style-id'], [ 31, 33 ])) {
-$array['content'] = preg_replace('/<div class="ti-header source-.*<\/div>\s?<div class="ti-reviews-container">/mU', '<div class="ti-reviews-container">', $array['content']);
-}
-else {
-$array['content'] = preg_replace('/<div class="ti-rating-text">.*<\/div>/mU', '', $array['content']);
-$array['content'] = preg_replace('/<div class="ti-footer">\s*<\/div>/m', '', $array['content']);
+if (in_array($styleId, [4, 6, 7, 15, 16, 19, 31, 33, 36, 37, 38, 39, 44]) && $this->getWidgetOption('no-rating-text', false, $isPreview)) {
+if (in_array($styleId, [6, 7])) {
+$content = preg_replace('/<div class="ti-footer">.*<\/div>/mU', '<div class="ti-footer"></div>', $content);
+} else if(in_array($styleId, [31, 33])) {
+$content = preg_replace('/<div class="ti-header source-.*<\/div>\s?<div class="ti-reviews-container">/mU', '<div class="ti-reviews-container">', $content);
+} else {
+$content = preg_replace('/<div class="ti-rating-text">.*<\/div>/mU', '', $content);
+$content = preg_replace('/<div class="ti-footer">\s*<\/div>/m', '', $content);
 }
 }
-if ($array['footer-filter-text'] && (!in_array($widgetType, [ 'button', 'badge', 'floating', 'top-rated-badge' ]) || in_array($array['style-id'], [ 23, 30, 32, 53 ]))) {
-$filterText = $this->get_footer_filter_text($array['language']);
-if (!$array['no-rating-text'] && !in_array($array['style-id'], [ 5, 8, 9, 10, 13, 18, 23, 30, 31, 32, 33, 34, 53, 54 ])) {
-$array['content'] = str_replace('</span><!-- FOOTER FILTER TEXT -->', ',</span><span class="nowrap"><!-- FOOTER FILTER TEXT --></span>', $array['content']);
-$array['content'] = str_replace('<div class="ti-footer-filter-text"><!-- FOOTER FILTER TEXT --></div>', '', $array['content']);
-$array['content'] = str_replace('<!-- FOOTER FILTER TEXT -->', function_exists('mb_strtolower') ? mb_strtolower($filterText) : strtolower($filterText), $array['content']);
+if ($this->getWidgetOption('footer-filter-text', false, $isPreview) && (!in_array($widgetTemplate['type'], ['button', 'badge', 'floating', 'top-rated-badge']) || in_array($styleId, [23, 30, 32, 53]))) {
+$filterText = $this->get_footer_filter_text($language);
+if (!in_array($styleId, [5, 8, 9, 10, 13, 18, 23, 30, 31, 32, 33, 34, 53, 54]) && !$this->getWidgetOption('no-rating-text', false, $isPreview)) {
+$content = str_replace('</span><!-- FOOTER FILTER TEXT -->', ',</span><span class="nowrap"><!-- FOOTER FILTER TEXT --></span>', $content);
+$content = str_replace('<div class="ti-footer-filter-text"><!-- FOOTER FILTER TEXT --></div>', '', $content);
+$content = str_replace('<!-- FOOTER FILTER TEXT -->', function_exists('mb_strtolower') ? mb_strtolower($filterText) : strtolower($filterText), $content);
+} else {
+$content = str_replace('<!-- FOOTER FILTER TEXT -->', $filterText, $content);
 }
-else {
-$array['content'] = str_replace('<!-- FOOTER FILTER TEXT -->', $filterText, $array['content']);
+} else {
+$content = str_replace([ '<div class="ti-footer-filter-text"><!-- FOOTER FILTER TEXT --></div>', '<!-- FOOTER FILTER TEXT -->' ], '', $content);
 }
+$verifiedByTrustindex = (int)$this->getWidgetOption('verified-by-trustindex', false, $isPreview);
+if ($verifiedByTrustindex && $this->isVerifiedByTrustindexAvailable()) {
+$content = str_replace('data-style="1"', 'data-style="'.$verifiedByTrustindex.'"', $content);
+$content = str_replace('a=sys&c=verified-badge', 'a=sys&c=wp-verified-badge', $content);
+$content = str_replace('<!-- VERIFIED BY TRUSTINDEX START', '', $content);
+$content = str_replace('VERIFIED BY TRUSTINDEX END -->', '', $content);
+} else {
+$content = preg_replace('/<!-- VERIFIED BY TRUSTINDEX START.*VERIFIED BY TRUSTINDEX END -->/s', '', $content);
 }
-else {
-$array['content'] = str_replace([ '<div class="ti-footer-filter-text"><!-- FOOTER FILTER TEXT --></div>', '<!-- FOOTER FILTER TEXT -->' ], '', $array['content']);
-}
-if (!in_array($array['style-id'], [ 53, 54 ])) {
-preg_match('/src="([^"]+logo[^\.]*\.svg)"/m', $array['content'], $matches);
+if (!in_array($styleId, [ 53, 54 ])) {
+preg_match('/src="([^"]+logo[^\.]*\.svg)"/m', $content, $matches);
 if (isset($matches[1]) && !empty($matches[1])) {
-$array['content'] = str_replace($matches[0], $matches[0] . ' width="150" height="25"', $array['content']);
-$array['content'] = preg_replace('/width="([\d%]+)" height="([\d%]+)"( alt="[^"]+")? width="([\d%]+)" height="([\d%]+)"/', 'width="$1" height="$2"$3', $array['content']);
+$content = str_replace($matches[0], $matches[0] . ' width="150" height="25"', $content);
+$content = preg_replace('/width="([\d%]+)" height="([\d%]+)"( alt="[^"]+")? width="([\d%]+)" height="([\d%]+)"/', 'width="$1" height="$2"$3', $content);
 }
 }
-if (self::$widget_templates['templates'][ $array['style-id'] ]['is-top-rated-badge']) {
+if ($widgetTemplate['is-top-rated-badge']) {
+$topRatedDate = $this->getWidgetOption('top-rated-date', false, $isPreview);
+$topRatedType = $this->getWidgetOption('top-rated-type', false, $isPreview);
 $date = date('Y');
-if ($array['top-rated-date'] === 'last-year') {
+if ($topRatedDate === 'last-year') {
 $date = date('Y') - 1;
-} else if ($array['top-rated-date'] === 'hide') {
+} else if ($topRatedDate === 'hide') {
 $date = '';
 }
-$title = trim(str_replace('%date%', $date, self::$widget_top_rated_titles[$array['top-rated-type']][$array['language']]));
-if (in_array($array['style-id'], [97, 98, 104])) {
+$title = trim(str_replace('%date%', $date, self::$widget_top_rated_titles[$topRatedType][$language]));
+if (in_array($styleId, [97, 98, 104])) {
 $title = str_replace('<br />', '', $title);
 }
-$array['content'] = preg_replace('/<div class="ti-top-rated-title">.*<\/div>/mU', '<div class="ti-top-rated-title">'. $title .'</div>', $array['content']);
+$content = preg_replace('/<div class="ti-top-rated-title">.*<\/div>/mU', '<div class="ti-top-rated-title">'. $title .'</div>', $content);
+$content = str_replace('a=sys&c=top-rated-badge', 'a=sys&c=wp-top-rated-badge', $content);
 }
-return $array['content'];
+return $content;
+}
+public function isVerifiedByTrustindexAvailable()
+{
+$pageDetails = $this->getPageDetails();
+$styleId = (int)$this->getWidgetOption('style-id');
+$widgetTemplate = self::$widget_templates['templates'][$styleId];
+return $this->isLayoutHasReviews() && !in_array($widgetTemplate['type'], ['floating']) && !$widgetTemplate['is-top-rated-badge'] && (float)$pageDetails['rating_score'] >= self::$topRatedMinimumScore;
+}
+public function isLayoutHasReviews()
+{
+$styleId = (int)$this->getWidgetOption('style-id');
+return !in_array(self::$widget_templates['templates'][$styleId]['type'], ['button', 'badge', 'top-rated-badge']) || in_array($styleId, [23, 30, 32]);
 }
 public function get_footer_filter_text($lang = 'en')
 {
@@ -6677,27 +4634,33 @@ else {
 return strtoupper($texts[ $rating - 1 ]);
 }
 }
-public function get_rating_stars($ratingScore)
+public function get_rating_stars($ratingScore, $platformStars = true)
 {
 $text = "";
 if (!is_numeric($ratingScore)) {
 return $text;
 }
+$platform = ucfirst($this->getShortName());
+$altPlatform = $platform;
+if (!$platformStars) {
+$platform = 'Trustindex';
+}
+$fullStarUrl = '<img class="ti-star" src="https://cdn.trustindex.io/assets/platform/'.$platform.'/star/f.svg" alt="'.$altPlatform.'" width="17" height="17" loading="lazy" />';
 for ($si = 1; $si <= $ratingScore; $si++) {
-$text .= '<span class="ti-star f"></span>';
+$text .= $fullStarUrl;
 }
 $fractional = $ratingScore - floor($ratingScore);
 if(0.25 <= $fractional) {
 if ($fractional < 0.75) {
-$text .= '<span class="ti-star h"></span>';
+$text .= preg_replace('/f(\.svg)?"/', 'h$1"', $fullStarUrl);
 }
 else {
-$text .= '<span class="ti-star f"></span>';
+$text .= $fullStarUrl;
 }
 $si++;
 }
 for (; $si <= 5; $si++) {
-$text .= '<span class="ti-star e"></span>';
+$text .= preg_replace('/f(\.svg)?"/', 'e$1"', $fullStarUrl);
 }
 return $text;
 }
@@ -6727,6 +4690,8 @@ $r->original_rating = $i == max(0, $count-2) ? 4 : 5;
 $r->rating = $r->original_rating;
 $r->highlight = null;
 $r->date = date('Y-m-d', strtotime('-'. ($i * 2) .' days'));
+$r->reviewId = null;
+$r->reply = null;
 if ($this->is_ten_scale_rating_platform()) {
 $r->original_rating = number_format($i == max(0, $count-2) ? 8 : 10, 1);
 $r->rating = round($r->original_rating / 2);
@@ -7035,6 +5000,10 @@ return ampforwp_is_amp_endpoint();
 else {
 return false;
 }
+}
+private function isElementorEditing()
+{
+return class_exists('\Elementor\Plugin') && \Elementor\Plugin::$instance->editor->is_edit_mode();
 }
 public function filter_filesystem_method($method)
 {
