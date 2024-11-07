@@ -412,7 +412,7 @@ $widgetSettedUp = null;
 $pageDetails = $pluginManagerInstance->getPageDetails();
 $isTopRatedBadge = $styleId ? $pluginManager::$widget_templates['templates'][$styleId]['is-top-rated-badge'] : false;
 if ($isTopRatedBadge) {
-$isTopRatedBadgeValid = (float)$pageDetails['rating_score'] >= $pluginManager::$topRatedMinimumScore;
+$isTopRatedBadgeValid = isset($pageDetails['rating_score']) ? (float)$pageDetails['rating_score'] >= $pluginManager::$topRatedMinimumScore : false;
 }
 }
 wp_enqueue_style('trustindex-widget-preview-css', 'https://cdn.trustindex.io/assets/ti-preview-box.css');
@@ -622,7 +622,7 @@ if (isset($template['params']['top-rated-badge-border']) && $template['params'][
 $set = 'ligth-border';
 }
 }
-$isTopRatedBadgeValid = (float)$pageDetails['rating_score'] >= $pluginManager::$topRatedMinimumScore;
+$isTopRatedBadgeValid = isset($pageDetails['rating_score']) ? (float)$pageDetails['rating_score'] >= $pluginManager::$topRatedMinimumScore : false;
 if (!isset($template['is-active']) || $template['is-active']):
 ?>
 <div class="<?php echo esc_attr($className); ?>">
@@ -701,12 +701,12 @@ $className = 'ti-half-width';
 <div class="clear"></div>
 </div>
 <div class="preview">
-<?php echo $pluginManagerInstance->renderWidgetAdmin(true, true, ['style-id' => $styleId, 'set-id' => $id, 'verified-by-trustindex' => true]); ?>
+<?php echo $pluginManagerInstance->renderWidgetAdmin(true, false, ['style-id' => $styleId, 'set-id' => $id, 'verified-by-trustindex' => true]); ?>
 </div>
 <div class="ti-notice ti-notice-info ti-verified-badge-notice">
 <p>
 <span class="dashicons dashicons-star-empty"></span> <strong><?php echo esc_html(__('Congratulations!', 'trustindex-plugin')); ?></strong><br />
-<?php echo sprintf(__('Our system ranked you in the top %d%% of companies based on your reviews. (Your total rating score above %s in the last %d month, and your reviews are genuine)', 'trustindex-plugin'), 5, $pluginManager::$topRatedMinimumScore, 12); ?><br />
+<?php echo sprintf(__('Our system ranked you in the top %d%% of companies based on your reviews. Your total rating score above %s in the last %d month, and your reviews are genuine', 'trustindex-plugin'), 5, $pluginManager::$topRatedMinimumScore, 12); ?><br />
 <?php echo __('This allows you to <strong>use in the widgets the Trustindex verified badge, the Universal Symbol of Trust.</strong> With the verified badge you can build more trust, and sell more!', 'trustindex-plugin'); ?>
 </p>
 </div>

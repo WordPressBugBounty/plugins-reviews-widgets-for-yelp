@@ -3,9 +3,18 @@ defined('ABSPATH') or die('No script kiddies please!');
 require_once(ABSPATH . 'wp-admin' . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'upgrade.php');
 global $wpdb;
 $wpdb->hide_errors();
-include $this->get_plugin_dir() . 'include' . DIRECTORY_SEPARATOR . 'schema.php';
 $notCreatedTables = [];
 $mysqlError = "";
+if (is_multisite()) {
+$sites = $wpdb->get_results('SELECT blog_id AS id FROM `'.$wpdb->blogs.'` ORDER BY blog_id', ARRAY_A);
+} else {
+$sites = [['id' => -1]];
+}
+foreach ($sites as $site) {
+if ($site['id'] !== -1) {
+switch_to_blog($site['id']);
+}
+include $this->get_plugin_dir() . 'include' . DIRECTORY_SEPARATOR . 'schema.php';
 foreach (array_keys($ti_db_schema) as $tableName) {
 if (!$this->is_table_exists($tableName)) {
 dbDelta(trim($ti_db_schema[ $tableName ]));
@@ -15,6 +24,10 @@ $mysqlError = $wpdb->last_error;
 }
 if (!$this->is_table_exists($tableName)) {
 $notCreatedTables []= $tableName;
+}
+}
+if ($site['id'] !== -1) {
+restore_current_blog();
 }
 }
 if ($notCreatedTables) {

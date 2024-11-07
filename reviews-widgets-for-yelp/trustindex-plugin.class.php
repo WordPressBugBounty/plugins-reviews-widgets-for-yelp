@@ -785,7 +785,7 @@ $className = 'TrustindexPlugin_' . $forcePlatform;
 if (!class_exists($className)) {
 return $this->frontEndErrorForAdmins(ucfirst($forcePlatform) . ' plugin is not active or not found!');
 }
-$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-12.4.1", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
+$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-12.4.2", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
 $chosedPlatform->setNotificationParam('not-using-no-widget', 'active', false);
 if (!$chosedPlatform->is_noreg_linked()) {
 return $this->frontEndErrorForAdmins(sprintf(__('You have to connect your business (%s)!', 'trustindex-plugin'), $forcePlatform));
@@ -4156,7 +4156,7 @@ $text = sprintf(__('Our exclusive "Top Rated" badge is awarded to service provid
 return $this->frontEndErrorForAdmins($text);
 }
 $attributes['data-src'] .= 'wp-widget';
-$attributes['data-html-url'] = admin_url('admin-ajax.php') . '?action='. $this->frontendWidgetAction(true);
+$attributes['data-html-url'] = site_url().'?'. $this->frontendWidgetAction(true);
 if (is_file($this->getCssFile()) && !get_option($this->get_option_name('load-css-inline'), 0)) {
 $attributes['data-css-url'] = $this->getCssUrl().'?'.filemtime($this->getCssFile());
 }
@@ -4207,10 +4207,10 @@ wp_enqueue_script('trustindex-js', 'https://cdn.trustindex.io/loader.js', [], fa
 }
 return $html;
 }
-public function frontendWidgetAction($returnHookName = false)
+public function frontendWidgetAction($returnName = false)
 {
-if ($returnHookName === true) {
-return 'trustindex_'.$this->getShortName().'_widget';
+if ($returnName === true) {
+return 'trustindex-'.$this->getShortName().'-widget-content';
 }
 if ($this->is_noreg_linked() && $this->getWidgetOption('widget-setted-up')) {
 $reviews = $this->getReviewsForWidgetHtml();
@@ -4218,7 +4218,7 @@ if ($reviews) {
 echo $this->getWidgetHtml($reviews);
 }
 }
-wp_die();
+exit;
 }
 private $templateCache = null;
 private function getWidgetHtml($reviews, $isPreview = false)
@@ -4457,7 +4457,7 @@ $ratingTextUcfirst,
 $image2xUrl.' 2x',
 $imageUrl,
 $this->get_platform_name($this->getShortName(), $pageDetails['id']),
-$this->get_rating_stars($ratingScore, $showStars),
+$this->get_rating_stars($this->is_ten_scale_rating_platform() ? $ratingScore / 2 : $ratingScore, $showStars),
 '<div class="ti-small-logo"><img src="'. $this->get_plugin_file_url('static/img/platform/logo.svg') . '" alt="'. ucfirst($this->getShortName()) .'"></div>',
 ], $content);
 if (!in_array($widgetTemplate['type'], [ 'button', 'badge', 'top-rated-badge' ]) && !$this->getWidgetOption('show-logos', false, $isPreview)) {
