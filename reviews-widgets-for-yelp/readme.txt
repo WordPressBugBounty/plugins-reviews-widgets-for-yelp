@@ -3,9 +3,9 @@ Contributors: trustindex
 Donate link: https://www.trustindex.io/prices/
 Tags: yelp reviews, reviews, yelp, ratings, widget
 Requires at least: 3.0.1
-Tested up to: 6.6
+Tested up to: 6.7
 Requires PHP: 5.2
-Stable tag: 12.4.2
+Stable tag: 12.4.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Plugin Name: Widgets for Yelp Reviews
@@ -14,7 +14,7 @@ Plugin URI: https://wordpress.org/plugins/reviews-widgets-for-yelp/
 Author: Trustindex.io <support@trustindex.io>
 Author URI: https://www.trustindex.io/
 Text Domain: reviews-widgets-for-yelp
-Version: 12.4.2
+Version: 12.4.3
 
 Embed Yelp reviews fast and easily into your WordPress site. Increase SEO, trust and sales using Yelp reviews.
 

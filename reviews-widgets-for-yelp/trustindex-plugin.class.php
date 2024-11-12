@@ -785,7 +785,7 @@ $className = 'TrustindexPlugin_' . $forcePlatform;
 if (!class_exists($className)) {
 return $this->frontEndErrorForAdmins(ucfirst($forcePlatform) . ' plugin is not active or not found!');
 }
-$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-12.4.2", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
+$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-12.4.3", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
 $chosedPlatform->setNotificationParam('not-using-no-widget', 'active', false);
 if (!$chosedPlatform->is_noreg_linked()) {
 return $this->frontEndErrorForAdmins(sprintf(__('You have to connect your business (%s)!', 'trustindex-plugin'), $forcePlatform));
@@ -4142,6 +4142,7 @@ wp_enqueue_script('trustindex-js', 'https://cdn.trustindex.io/loader.js', [], fa
 if ($tiPublicId) {
 $tiPublicId = preg_replace('/[^a-zA-Z0-9]/', '', $tiPublicId);
 }
+$preContent = "";
 $attributes = ['data-src' => 'https://cdn.trustindex.io/loader.js?'.$tiPublicId];
 if (!$tiPublicId) {
 $pageDetails = $this->getPageDetails();
@@ -4155,12 +4156,18 @@ $text = sprintf(__('Our exclusive "Top Rated" badge is awarded to service provid
 .'<a href="'.admin_url('admin.php?page='.$this->get_plugin_slug().'/settings.php&tab=free-widget-configurator&step=2').'">'.__('Please select another widget', 'trustindex-plugin').'.</a>';
 return $this->frontEndErrorForAdmins($text);
 }
+if ($reviews = $this->getReviewsForWidgetHtml()) {
+$templateId = 'trustindex-'.$this->getShortName().'-widget-html';
 $attributes['data-src'] .= 'wp-widget';
-$attributes['data-html-url'] = site_url().'?'. $this->frontendWidgetAction(true);
+$attributes['data-template-id'] = $templateId;
+$preContent = '<template id="'.esc_attr($templateId).'">'.$this->getWidgetHtml($reviews);
 if (is_file($this->getCssFile()) && !get_option($this->get_option_name('load-css-inline'), 0)) {
 $attributes['data-css-url'] = $this->getCssUrl().'?'.filemtime($this->getCssFile());
+} else {
+$preContent .= '<style type="text/css">'.get_option($this->get_option_name('css-content')).'</style>';
 }
-if (!$this->getReviewsForWidgetHtml()) {
+$preContent .= '</template>';
+} else {
 $text = sprintf(__('There are no reviews on your %s platform.', 'trustindex-plugin'), ucfirst($this->getShortName()));
 
 if ($this->is_review_download_in_progress()) {
@@ -4170,9 +4177,9 @@ return $this->frontEndErrorForAdmins($text);
 }
 }
 $attributesHtml = implode(' ', array_map(function($attribute, $value) {
-return $attribute.'="'.$value.'"';
+return esc_attr($attribute).'="'.esc_attr($value).'"';
 }, array_keys($attributes), $attributes));
-return '<div '.$attributesHtml.'></div>';
+return $preContent.'<div '.$attributesHtml.'></div>';
 }
 public function renderWidgetAdmin($isDemoReviews = false, $isForceDemoReviews = false, $previewData = null)
 {
@@ -4206,19 +4213,6 @@ $html .= '<script type="text/javascript" src="https://cdn.trustindex.io/loader.j
 wp_enqueue_script('trustindex-js', 'https://cdn.trustindex.io/loader.js', [], false, true);
 }
 return $html;
-}
-public function frontendWidgetAction($returnName = false)
-{
-if ($returnName === true) {
-return 'trustindex-'.$this->getShortName().'-widget-content';
-}
-if ($this->is_noreg_linked() && $this->getWidgetOption('widget-setted-up')) {
-$reviews = $this->getReviewsForWidgetHtml();
-if ($reviews) {
-echo $this->getWidgetHtml($reviews);
-}
-}
-exit;
 }
 private $templateCache = null;
 private function getWidgetHtml($reviews, $isPreview = false)
