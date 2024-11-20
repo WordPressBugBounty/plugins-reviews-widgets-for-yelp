@@ -9,7 +9,7 @@ Author: Trustindex.io <support@trustindex.io>
 Author URI: https://www.trustindex.io/
 Contributors: trustindex
 License: GPLv2 or later
-Version: 12.4.3
+Version: 12.4.4
 Text Domain: reviews-widgets-for-yelp
 Domain Path: /languages
 Donate link: https://www.trustindex.io/prices/
@@ -20,7 +20,7 @@ Copyright 2019 Trustindex Kft (email: support@trustindex.io)
 defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
 require_once plugin_dir_path(__FILE__) . 'include' . DIRECTORY_SEPARATOR . 'cache-plugin-filters.php';
 require_once plugin_dir_path(__FILE__) . 'trustindex-plugin.class.php';
-$trustindex_pm_yelp = new TrustindexPlugin_yelp("yelp", __FILE__, "12.4.3", "Widgets for Yelp Reviews", "Yelp");
+$trustindex_pm_yelp = new TrustindexPlugin_yelp("yelp", __FILE__, "12.4.4", "Widgets for Yelp Reviews", "Yelp");
 $pluginManagerInstance = $trustindex_pm_yelp;
 register_activation_hook(__FILE__, [ $pluginManagerInstance, 'activate' ]);
 register_deactivation_hook(__FILE__, [ $pluginManagerInstance, 'deactivate' ]);
@@ -50,7 +50,6 @@ $tag = str_replace(' src', ' defer async src', $tag);
 return $tag;
 }, 10, 2);
 add_action('init', [ $pluginManagerInstance, 'register_tinymce_features' ]);
-add_action('init', [ $pluginManagerInstance, 'output_buffer' ]);
 add_action('wp_ajax_list_trustindex_widgets', [ $pluginManagerInstance, 'list_trustindex_widgets_ajax' ]);
 add_action('admin_enqueue_scripts', [ $pluginManagerInstance, 'trustindex_add_scripts' ]);
 add_action('rest_api_init', [ $pluginManagerInstance, 'init_restapi' ]);
