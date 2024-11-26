@@ -9,7 +9,7 @@ Author: Trustindex.io <support@trustindex.io>
 Author URI: https://www.trustindex.io/
 Contributors: trustindex
 License: GPLv2 or later
-Version: 12.4.4
+Version: 12.4.5
 Text Domain: reviews-widgets-for-yelp
 Domain Path: /languages
 Donate link: https://www.trustindex.io/prices/
@@ -20,13 +20,14 @@ Copyright 2019 Trustindex Kft (email: support@trustindex.io)
 defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
 require_once plugin_dir_path(__FILE__) . 'include' . DIRECTORY_SEPARATOR . 'cache-plugin-filters.php';
 require_once plugin_dir_path(__FILE__) . 'trustindex-plugin.class.php';
-$trustindex_pm_yelp = new TrustindexPlugin_yelp("yelp", __FILE__, "12.4.4", "Widgets for Yelp Reviews", "Yelp");
+$trustindex_pm_yelp = new TrustindexPlugin_yelp("yelp", __FILE__, "12.4.5", "Widgets for Yelp Reviews", "Yelp");
 $pluginManagerInstance = $trustindex_pm_yelp;
 register_activation_hook(__FILE__, [ $pluginManagerInstance, 'activate' ]);
 register_deactivation_hook(__FILE__, [ $pluginManagerInstance, 'deactivate' ]);
 add_action('plugins_loaded', [ $pluginManagerInstance, 'load' ]);
 add_action('wp_insert_site', function($site) use($pluginManagerInstance) {
 switch_to_blog($site->blog_id);
+$tiReviewsTableName = $pluginManagerInstance->get_tablename('reviews');
 include $pluginManagerInstance->get_plugin_dir() . 'include' . DIRECTORY_SEPARATOR . 'schema.php';
 foreach (array_keys($ti_db_schema) as $tableName) {
 if (!$pluginManagerInstance->is_table_exists($tableName)) {
