@@ -779,7 +779,7 @@ $className = 'TrustindexPlugin_' . $forcePlatform;
 if (!class_exists($className)) {
 return $this->frontEndErrorForAdmins(ucfirst($forcePlatform) . ' plugin is not active or not found!');
 }
-$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-12.4.5", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
+$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-12.4.6", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
 $chosedPlatform->setNotificationParam('not-using-no-widget', 'active', false);
 if (!$chosedPlatform->is_noreg_linked()) {
 return $this->frontEndErrorForAdmins(sprintf(__('You have to connect your business (%s)!', 'trustindex-plugin'), $forcePlatform));
@@ -4165,7 +4165,8 @@ $templateId = 'trustindex-'.$this->getShortName().'-widget-html';
 $attributes['data-src'] .= 'wp-widget';
 $attributes['data-template-id'] = $templateId;
 $preContent = '<pre class="ti-widget" style="display: none"><template id="'.esc_attr($templateId).'">'.$this->getWidgetHtml($reviews);
-$preContent = str_replace(['src="', 'srcset="'], ['data-ti-src="', 'data-ti-srcset="'], $preContent);
+$preContent = preg_replace('/<img (.*)src="([^"]+)"(.*)\/>/U', '<trustindex-image $1data-imgurl="$2"$3></trustindex-image>', $preContent);
+$preContent = str_replace('srcset="', 'data-imgurlset="', $preContent);
 if (is_file($this->getCssFile()) && !get_option($this->get_option_name('load-css-inline'), 0)) {
 $attributes['data-css-url'] = $this->getCssUrl().'?'.filemtime($this->getCssFile());
 } else {
