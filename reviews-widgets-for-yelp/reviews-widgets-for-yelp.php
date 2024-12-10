@@ -9,7 +9,7 @@ Author: Trustindex.io <support@trustindex.io>
 Author URI: https://www.trustindex.io/
 Contributors: trustindex
 License: GPLv2 or later
-Version: 12.4.6
+Version: 12.4.7
 Text Domain: reviews-widgets-for-yelp
 Domain Path: /languages
 Donate link: https://www.trustindex.io/prices/
@@ -20,7 +20,8 @@ Copyright 2019 Trustindex Kft (email: support@trustindex.io)
 defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
 require_once plugin_dir_path(__FILE__) . 'include' . DIRECTORY_SEPARATOR . 'cache-plugin-filters.php';
 require_once plugin_dir_path(__FILE__) . 'trustindex-plugin.class.php';
-$trustindex_pm_yelp = new TrustindexPlugin_yelp("yelp", __FILE__, "12.4.6", "Widgets for Yelp Reviews", "Yelp");
+$trustindex_pm_yelp = new TrustindexPlugin_yelp("yelp", __FILE__, "12.4.7", "Widgets for Yelp Reviews", "Yelp");
+$pluginManager = 'TrustindexPlugin_yelp';
 $pluginManagerInstance = $trustindex_pm_yelp;
 register_activation_hook(__FILE__, [ $pluginManagerInstance, 'activate' ]);
 register_deactivation_hook(__FILE__, [ $pluginManagerInstance, 'deactivate' ]);
@@ -43,19 +44,23 @@ if (!function_exists('register_block_type')) {
 add_action('widgets_init', [ $pluginManagerInstance, 'init_widget' ]);
 add_action('widgets_init', [ $pluginManagerInstance, 'register_widget' ]);
 }
+add_action('init', function() {
+wp_register_script('trustindex-loader-js', 'https://cdn.trustindex.io/loader.js', [], null, [
+'strategy' => 'async',
+'in_footer' => true,
+]);
+});
 add_action('init', [ $pluginManagerInstance, 'init_shortcode' ]);
-add_filter('script_loader_tag', function($tag, $handle) {
-if (strpos($tag, 'trustindex.io/loader.js') !== false && strpos($tag, 'defer async') === false) {
-$tag = str_replace(' src', ' defer async src', $tag);
-}
-return $tag;
-}, 10, 2);
 add_action('init', [ $pluginManagerInstance, 'register_tinymce_features' ]);
 add_action('wp_ajax_list_trustindex_widgets', [ $pluginManagerInstance, 'list_trustindex_widgets_ajax' ]);
 add_action('admin_enqueue_scripts', [ $pluginManagerInstance, 'trustindex_add_scripts' ]);
 add_action('rest_api_init', [ $pluginManagerInstance, 'init_restapi' ]);
 if (class_exists('Woocommerce') && !class_exists('TrustindexCollectorPlugin') && !function_exists('ti_woocommerce_notice')) {
 function ti_woocommerce_notice() {
+global $pluginManager;
+if (!current_user_can($pluginManager::$permissionNeeded)) {
+return;
+}
 $wcNotification = get_option('trustindex-wc-notification', time() - 1);
 if ($wcNotification == 'hide' || (int)$wcNotification > time()) {
 return;
@@ -133,7 +138,10 @@ echo 'Error in WP: '. $e->getMessage();
 }
 exit;
 });
-add_action('admin_notices', function() use ($pluginManagerInstance) {
+add_action('admin_notices', function() use ($pluginManager, $pluginManagerInstance) {
+if (!current_user_can($pluginManager::$permissionNeeded)) {
+return;
+}
 foreach ($pluginManagerInstance->getNotificationOptions() as $type => $options) {
 if (!$pluginManagerInstance->isNotificationActive($type)) {
 continue;

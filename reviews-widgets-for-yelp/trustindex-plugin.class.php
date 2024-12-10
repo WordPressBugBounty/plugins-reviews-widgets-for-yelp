@@ -6,6 +6,7 @@ private $plugin_name;
 private $platform_name;
 private $shortname;
 private $version;
+public static $permissionNeeded = 'edit_pages';
 public function __construct($shortname, $pluginFilePath, $version, $pluginName, $platformName)
 {
 $this->shortname = $shortname;
@@ -262,7 +263,6 @@ return get_option($this->get_option_name('active'), 0);
 public function add_setting_menu()
 {
 global $menu, $submenu;
-$permission = 'edit_pages';
 $settingsPageUrl = $this->get_plugin_slug() . "/settings.php";
 $settingsPageTitle = $this->platform_name . ' ';
 if (function_exists('mb_strtolower')) {
@@ -282,7 +282,7 @@ if ($topMenu === false) {
 add_menu_page(
 $settingsPageTitle,
 'Trustindex.io',
-$permission,
+self::$permissionNeeded,
 $settingsPageUrl,
 '',
 $this->get_plugin_file_url('static/img/trustindex-sign-logo.png')
@@ -294,7 +294,7 @@ add_submenu_page(
 $topMenu[2],
 'Trustindex.io',
 $topMenu[3],
-$permission,
+self::$permissionNeeded,
 $topMenu[2]
 );
 }
@@ -302,7 +302,7 @@ add_submenu_page(
 $topMenu[2],
 'Trustindex.io',
 $settingsPageTitle,
-$permission,
+self::$permissionNeeded,
 $settingsPageUrl
 );
 }
@@ -779,7 +779,7 @@ $className = 'TrustindexPlugin_' . $forcePlatform;
 if (!class_exists($className)) {
 return $this->frontEndErrorForAdmins(ucfirst($forcePlatform) . ' plugin is not active or not found!');
 }
-$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-12.4.6", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
+$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-12.4.7", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
 $chosedPlatform->setNotificationParam('not-using-no-widget', 'active', false);
 if (!$chosedPlatform->is_noreg_linked()) {
 return $this->frontEndErrorForAdmins(sprintf(__('You have to connect your business (%s)!', 'trustindex-plugin'), $forcePlatform));
@@ -4142,7 +4142,7 @@ return preg_replace('/\r\n|\r|\n/', "\n", trim(html_entity_decode($text, ENT_HTM
 
 public function renderWidgetFrontend($tiPublicId = null)
 {
-wp_enqueue_script('trustindex-js', 'https://cdn.trustindex.io/loader.js', [], false, true);
+$this->enqueueLoaderScript();
 if ($tiPublicId) {
 $tiPublicId = preg_replace('/[^a-zA-Z0-9]/', '', $tiPublicId);
 }
@@ -4216,9 +4216,20 @@ $html .= '<style type="text/css">'.get_option($this->get_option_name('css-conten
 if ($this->isElementorEditing()) {
 $html .= '<script type="text/javascript" src="https://cdn.trustindex.io/loader.js"></script>';
 } else {
-wp_enqueue_script('trustindex-js', 'https://cdn.trustindex.io/loader.js', [], false, true);
+$this->enqueueLoaderScript();
 }
 return $html;
+}
+public function enqueueLoaderScript()
+{
+if (wp_script_is('trustindex-loader-js', 'registered')) {
+wp_enqueue_script('trustindex-loader-js');
+} else {
+wp_enqueue_script('trustindex-loader-js', 'https://cdn.trustindex.io/loader.js', [], null, [
+'strategy' => 'async',
+'in_footer' => true,
+]);
+}
 }
 private $templateCache = null;
 private function getWidgetHtml($reviews, $isPreview = false)
