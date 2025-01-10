@@ -779,7 +779,7 @@ $className = 'TrustindexPlugin_' . $forcePlatform;
 if (!class_exists($className)) {
 return $this->frontEndErrorForAdmins(ucfirst($forcePlatform) . ' plugin is not active or not found!');
 }
-$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-12.4.7", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
+$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-12.5", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
 $chosedPlatform->setNotificationParam('not-using-no-widget', 'active', false);
 if (!$chosedPlatform->is_noreg_linked()) {
 return $this->frontEndErrorForAdmins(sprintf(__('You have to connect your business (%s)!', 'trustindex-plugin'), $forcePlatform));
@@ -939,18 +939,28 @@ public static $topRatedMinimumScore = 4.5;
 public static $widget_templates = array (
  'categories' => 
  array (
- 'slider' => '4,5,13,14,15,19,34,36,37,39,44,45,46,47,95,105',
+ 'slider' => '4,5,13,14,15,19,34,36,37,39,44,45,46,47,95,105,108',
  'sidebar' => '6,7,8,9,10,18,54,81',
  'list' => '33,80',
  'grid' => '16,31,38,48,79',
  'badge' => '11,12,20,22,23,55,56,57,58,97,98,99,100,101,102,103,104,107',
- 'button' => '24,25,26,27,28,29,30,32,35,59,60,61,62,106',
+ 'button' => '24,25,26,27,28,29,30,32,35,59,60,61,62,106,109,110,111',
  'floating' => '17,21,52,53',
  'popup' => '23,30,32',
  'top-rated-badge' => '97,98,99,100,101,102,103,104',
  ),
  'templates' => 
  array (
+ 4 => 
+ array (
+ 'name' => 'Slider I.',
+ 'type' => 'slider',
+ 'is-active' => true,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ ),
+ ),
  48 => 
  array (
  'name' => 'Grid I. - Big picture',
@@ -991,16 +1001,6 @@ public static $widget_templates = array (
  array (
  ),
  ),
- 4 => 
- array (
- 'name' => 'Slider I.',
- 'type' => 'slider',
- 'is-active' => true,
- 'is-top-rated-badge' => false,
- 'params' => 
- array (
- ),
- ),
  14 => 
  array (
  'name' => 'Slider I. - with header',
@@ -1009,6 +1009,18 @@ public static $widget_templates = array (
  'is-top-rated-badge' => false,
  'params' => 
  array (
+ ),
+ ),
+ 108 => 
+ array (
+ 'name' => 'Slider I. - with Top Rated header and photos',
+ 'type' => 'slider',
+ 'is-active' => false,
+ 'is-top-rated-badge' => true,
+ 'params' => 
+ array (
+ 'top-rated-badge-border' => false,
+ 'default-hide-date' => true,
  ),
  ),
  105 => 
@@ -1213,21 +1225,21 @@ public static $widget_templates = array (
  array (
  ),
  ),
- 18 => 
- array (
- 'name' => 'Full sidebar I.',
- 'type' => 'sidebar',
- 'is-active' => true,
- 'is-top-rated-badge' => false,
- 'params' => 
- array (
- ),
- ),
  81 => 
  array (
  'name' => 'Full sidebar I. - with header',
  'type' => 'sidebar',
  'is-active' => false,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ ),
+ ),
+ 18 => 
+ array (
+ 'name' => 'Full sidebar I.',
+ 'type' => 'sidebar',
+ 'is-active' => true,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1589,11 +1601,41 @@ public static $widget_templates = array (
  array (
  ),
  ),
+ 109 => 
+ array (
+ 'name' => 'Button IX.',
+ 'type' => 'button',
+ 'is-active' => true,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ ),
+ ),
+ 110 => 
+ array (
+ 'name' => 'Button X.',
+ 'type' => 'button',
+ 'is-active' => true,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ ),
+ ),
  62 => 
  array (
  'name' => 'Button XI.',
  'type' => 'button',
  'is-active' => false,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ ),
+ ),
+ 111 => 
+ array (
+ 'name' => 'Button XI.',
+ 'type' => 'button',
+ 'is-active' => true,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -4139,6 +4181,10 @@ private function parseReviewText($text)
 {
 return preg_replace('/\r\n|\r|\n/', "\n", trim(html_entity_decode($text, ENT_HTML5 | ENT_QUOTES)));
 }
+private function getProfileImageUrl($imageUrl, $layoutId, $sizeMultiply = 1) {
+
+return $imageUrl;
+}
 
 public function renderWidgetFrontend($tiPublicId = null)
 {
@@ -4334,7 +4380,7 @@ else {
 $pageDetails['rating_score'] = number_format($scoreTmp / 2, 1);
 }
 if (!isset($pageDetails['id'])) {
-$pageDetails['id'] = '';
+$pageDetails['id'] = 'hu';
 }
 if (!isset($pageDetails['name'])) {
 $pageDetails['name'] = get_bloginfo('name');
@@ -4391,9 +4437,6 @@ $ratingContent .= '<span class="'.$verifiedIconClass.'"><span class="ti-verified
 if (!$this->getWidgetOption('show-reviewers-photo', false, $isPreview)) {
 $matches[1] = preg_replace('/<div class="ti-profile-img">.+<\/div>/U', '', $matches[1]);
 }
-$imageUrl = $r->user_photo;
-$image2xUrl = $imageUrl;
-
 $text = $this->getReviewHtml($r);
 if ($r->reply && $this->getWidgetOption('show-review-replies', false, $isPreview)) {
 $text .= '<br /><br /><strong class="ti-reply-by-owner-title">'.self::$widget_reply_by_texts[$language].'</strong><br />'.$this->parseReviewText($r->reply);
@@ -4410,8 +4453,8 @@ $reviewContent .= str_replace([
 '<!-- STARS-CONTENT -->',
 ], [
 $platformName,
-$image2xUrl.' 2x',
-$imageUrl,
+$this->getProfileImageUrl($r->user_photo, $styleId, 2).' 2x',
+$this->getProfileImageUrl($r->user_photo, $styleId),
 $r->user,
 $date,
 $text,
@@ -4444,6 +4487,21 @@ $ratingTextUcfirst = mb_substr($ratingText, 0, 1, 'UTF-8') . mb_strtolower(mb_su
 }
 $imageUrl = isset($pageDetails['avatar_url']) ? $pageDetails['avatar_url'] : null;
 $image2xUrl = $imageUrl;
+
+$profileImageListForButton = "";
+if ($reviews) {
+for ($i = 0; $i < min(count($reviews), 5); $i++) {
+$profileImageListForButton .= '
+<div class="ti-profile-img">
+<img
+src="'.esc_url($this->getProfileImageUrl($reviews[$i]->user_photo, $styleId)).'"
+srcset="'.esc_url($this->getProfileImageUrl($reviews[$i]->user_photo, $styleId, 2)).' 2x"
+alt="'.esc_attr($reviews[$i]->user).'"
+loading="lazy"
+/>
+</div>';
+}
+}
 $content = str_replace([
 '%platform%',
 '%site_name%',
@@ -4457,6 +4515,8 @@ $content = str_replace([
 "PLATFORM_NAME",
 '<!-- STARS-CONTENT -->',
 'PLATFORM_SMALL_LOGO',
+'PLATFORM_SMALL_ICON',
+'<div class="ti-profile-images"></div>',
 ], [
 ucfirst($this->getShortName()),
 $pageDetails['name'],
@@ -4469,7 +4529,9 @@ $image2xUrl.' 2x',
 $imageUrl,
 $this->get_platform_name($this->getShortName(), $pageDetails['id']),
 $this->get_rating_stars($this->is_ten_scale_rating_platform() ? $ratingScore / 2 : $ratingScore, $showStars),
-'<div class="ti-small-logo"><img src="'. $this->get_plugin_file_url('static/img/platform/logo.svg') . '" alt="'. ucfirst($this->getShortName()) .'"></div>',
+'<div class="ti-small-logo"><img src="'.$this->get_plugin_file_url('static/img/platform/logo.svg').'" alt="'.ucfirst($this->getShortName()).'" width="150" height="25" loading="lazy"></div>',
+'<img class="ti-platform-icon" src="https://cdn.trustindex.io/assets/platform/'.ucfirst($this->getShortName()).'/icon.svg" alt="'.ucfirst($this->getShortName()).'" width="20" height="20" loading="lazy" />',
+'<div class="ti-profile-images">'.$profileImageListForButton.'</div>',
 ], $content);
 if (!in_array($widgetTemplate['type'], [ 'button', 'badge', 'top-rated-badge' ]) && !$this->getWidgetOption('show-logos', false, $isPreview)) {
 $content = preg_replace('/<img class="ti-platform-icon".+>/U', '', $content);
@@ -4481,7 +4543,7 @@ $content = str_replace('platform/'. ucfirst($this->getShortName()) .'/logo', 'pl
 if ($this->is_ten_scale_rating_platform() && $styleId === 11) {
 $content = str_replace('<span class="ti-rating">'. $ratingScore .'</span> ', '', $content);
 }
-if (in_array($styleId, [8, 10, 11, 12, 13, 20, 22, 24, 25, 26, 27, 28, 29, 35, 55, 56, 57, 58, 59, 60, 61, 62, 106, 107])) {
+if (in_array($styleId, [8, 10, 11, 12, 13, 20, 22, 24, 25, 26, 27, 28, 29, 35, 55, 56, 57, 58, 59, 60, 61, 62, 106, 107, 109, 110, 111])) {
 if (!$this->getWidgetOption('show-header-button', false, $isPreview)) {
 $content = preg_replace('/<!-- HEADER-BUTTON-START.+HEADER-BUTTON-END -->/s', '', $content);
 }
@@ -4719,6 +4781,9 @@ curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, false);
 curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, false);
 }, 10);
 $response = wp_remote_get('https://api.wordpress.org/plugins/info/1.2/?action=plugin_information&request[slug]='. $this->get_plugin_slug());
+if (is_wp_error($response)) {
+return false;
+}
 $json = json_decode($response['body'], true);
 if (!$json || !isset($json['version'])) {
 return false;
