@@ -779,7 +779,7 @@ $className = 'TrustindexPlugin_' . $forcePlatform;
 if (!class_exists($className)) {
 return $this->frontEndErrorForAdmins(ucfirst($forcePlatform) . ' plugin is not active or not found!');
 }
-$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-12.5", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
+$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-12.6", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
 $chosedPlatform->setNotificationParam('not-using-no-widget', 'active', false);
 if (!$chosedPlatform->is_noreg_linked()) {
 return $this->frontEndErrorForAdmins(sprintf(__('You have to connect your business (%s)!', 'trustindex-plugin'), $forcePlatform));
@@ -840,8 +840,8 @@ die;
 if (!$setChange) {
 update_option($this->get_option_name('scss-set'), $defaultSet, false);
 }
-if (in_array($styleId, [17, 21, 52, 53])) {
-$cssContent .= '.ti-preview-box { position: initial !important }';
+if (in_array($styleId, [17, 21, 52, 53, 112])) {
+$cssContent .= '.ti-preview-box { position: unset !important }';
 }
 update_option($this->get_option_name('css-content'), $cssContent, false);
 return $this->handleCssFile();
@@ -944,23 +944,13 @@ public static $widget_templates = array (
  'list' => '33,80',
  'grid' => '16,31,38,48,79',
  'badge' => '11,12,20,22,23,55,56,57,58,97,98,99,100,101,102,103,104,107',
- 'button' => '24,25,26,27,28,29,30,32,35,59,60,61,62,106,109,110,111',
- 'floating' => '17,21,52,53',
- 'popup' => '23,30,32',
+ 'button' => '24,25,26,27,28,29,30,32,35,59,60,61,62,106,109,110,111,113',
+ 'floating' => '17,21,52,53,112',
+ 'popup' => '23,30,32,112',
  'top-rated-badge' => '97,98,99,100,101,102,103,104',
  ),
  'templates' => 
  array (
- 4 => 
- array (
- 'name' => 'Slider I.',
- 'type' => 'slider',
- 'is-active' => true,
- 'is-top-rated-badge' => false,
- 'params' => 
- array (
- ),
- ),
  48 => 
  array (
  'name' => 'Grid I. - Big picture',
@@ -996,6 +986,16 @@ public static $widget_templates = array (
  'name' => 'Slider I. - Big picture',
  'type' => 'slider',
  'is-active' => false,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ ),
+ ),
+ 4 => 
+ array (
+ 'name' => 'Slider I.',
+ 'type' => 'slider',
+ 'is-active' => true,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1105,21 +1105,21 @@ public static $widget_templates = array (
  array (
  ),
  ),
- 15 => 
- array (
- 'name' => 'Slider VI.',
- 'type' => 'slider',
- 'is-active' => true,
- 'is-top-rated-badge' => false,
- 'params' => 
- array (
- ),
- ),
  44 => 
  array (
  'name' => 'Slider VI.',
  'type' => 'slider',
  'is-active' => false,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ ),
+ ),
+ 15 => 
+ array (
+ 'name' => 'Slider VI.',
+ 'type' => 'slider',
+ 'is-active' => true,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1431,21 +1431,21 @@ public static $widget_templates = array (
  array (
  ),
  ),
- 57 => 
- array (
- 'name' => 'HTML badge V.',
- 'type' => 'badge',
- 'is-active' => false,
- 'is-top-rated-badge' => false,
- 'params' => 
- array (
- ),
- ),
  23 => 
  array (
  'name' => 'Company badge I. - with popup',
  'type' => 'badge',
  'is-active' => true,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ ),
+ ),
+ 57 => 
+ array (
+ 'name' => 'HTML badge V.',
+ 'type' => 'badge',
+ 'is-active' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1611,16 +1611,6 @@ public static $widget_templates = array (
  array (
  ),
  ),
- 110 => 
- array (
- 'name' => 'Button X.',
- 'type' => 'button',
- 'is-active' => true,
- 'is-top-rated-badge' => false,
- 'params' => 
- array (
- ),
- ),
  62 => 
  array (
  'name' => 'Button XI.',
@@ -1631,9 +1621,29 @@ public static $widget_templates = array (
  array (
  ),
  ),
+ 110 => 
+ array (
+ 'name' => 'Button X.',
+ 'type' => 'button',
+ 'is-active' => true,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ ),
+ ),
  111 => 
  array (
  'name' => 'Button XI.',
+ 'type' => 'button',
+ 'is-active' => true,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ ),
+ ),
+ 113 => 
+ array (
+ 'name' => 'Button XII.',
  'type' => 'button',
  'is-active' => true,
  'is-top-rated-badge' => false,
@@ -1674,6 +1684,16 @@ public static $widget_templates = array (
  52 => 
  array (
  'name' => 'Floating IV.',
+ 'type' => 'floating',
+ 'is-active' => true,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ ),
+ ),
+ 112 => 
+ array (
+ 'name' => 'Floating V. - with popup',
  'type' => 'floating',
  'is-active' => true,
  'is-top-rated-badge' => false,
@@ -4084,7 +4104,7 @@ public static $widget_reply_by_texts = array (
  'hy' => 'Պատասխանել սեփականատիրոջ կողմից',
  'id' => 'Balasan dari pemilik',
  'is' => 'Svar frá eiganda',
- 'it' => 'Rispondi dal proprietario',
+ 'it' => 'Risposta dal proprietario',
  'ja' => 'オーナーからの返信',
  'ka' => 'პასუხი მფლობელის მიერ',
  'kk' => 'Иесінің жауабы',
@@ -4150,6 +4170,10 @@ $url = str_replace([ '%domain%', '%page_id%', '%25page_id%25' ], [ $domain, $pag
 
 
 return $url;
+}
+private function getDefaultCompanyAvatarUrl()
+{
+return 'https://cdn.trustindex.io/companies/default_avatar.jpg';
 }
 
 public function getReviewHtml($review)
@@ -4485,7 +4509,7 @@ $ratingTextUcfirst = ucfirst(strtolower($ratingText));
 if (function_exists('mb_strtolower')) {
 $ratingTextUcfirst = mb_substr($ratingText, 0, 1, 'UTF-8') . mb_strtolower(mb_substr($ratingText, 1, null, 'UTF-8'));
 }
-$imageUrl = isset($pageDetails['avatar_url']) ? $pageDetails['avatar_url'] : null;
+$imageUrl = isset($pageDetails['avatar_url']) && $pageDetails['avatar_url'] ? $pageDetails['avatar_url'] : $this->getDefaultCompanyAvatarUrl();
 $image2xUrl = $imageUrl;
 
 $profileImageListForButton = "";
@@ -4543,7 +4567,7 @@ $content = str_replace('platform/'. ucfirst($this->getShortName()) .'/logo', 'pl
 if ($this->is_ten_scale_rating_platform() && $styleId === 11) {
 $content = str_replace('<span class="ti-rating">'. $ratingScore .'</span> ', '', $content);
 }
-if (in_array($styleId, [8, 10, 11, 12, 13, 20, 22, 24, 25, 26, 27, 28, 29, 35, 55, 56, 57, 58, 59, 60, 61, 62, 106, 107, 109, 110, 111])) {
+if (in_array($styleId, [8, 10, 11, 12, 13, 20, 22, 24, 25, 26, 27, 28, 29, 35, 55, 56, 57, 58, 59, 60, 61, 62, 106, 107, 109, 110, 111, 113])) {
 if (!$this->getWidgetOption('show-header-button', false, $isPreview)) {
 $content = preg_replace('/<!-- HEADER-BUTTON-START.+HEADER-BUTTON-END -->/s', '', $content);
 }
