@@ -391,8 +391,6 @@ return [
 'load-css-inline',
 'align',
 'review-text-mode',
-'floating-desktop-open',
-'floating-mobile-open',
 'amp-hidden-notification',
 'review-download-token',
 'review-download-inprogress',
@@ -462,13 +460,10 @@ case 'no-rating-text':
 $default = !in_array($styleId, [6, 8, 37]) ? 1 : 0;
 break;
 case 'verified-icon':
-$default = in_array($styleId, [5,34]) ? 1 : 0;
-break;
 case 'enable-animation':
 case 'show-arrows':
 case 'show-header-button':
 case 'reviews-load-more':
-case 'floating-desktop-open':
 $default = 1;
 break;
 case 'widget-setted-up':
@@ -779,7 +774,7 @@ $className = 'TrustindexPlugin_' . $forcePlatform;
 if (!class_exists($className)) {
 return $this->frontEndErrorForAdmins(ucfirst($forcePlatform) . ' plugin is not active or not found!');
 }
-$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-12.6", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
+$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-12.6.1", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
 $chosedPlatform->setNotificationParam('not-using-no-widget', 'active', false);
 if (!$chosedPlatform->is_noreg_linked()) {
 return $this->frontEndErrorForAdmins(sprintf(__('You have to connect your business (%s)!', 'trustindex-plugin'), $forcePlatform));
@@ -840,7 +835,7 @@ die;
 if (!$setChange) {
 update_option($this->get_option_name('scss-set'), $defaultSet, false);
 }
-if (in_array($styleId, [17, 21, 52, 53, 112])) {
+if (in_array($styleId, [17, 21, 52, 53, 112, 114])) {
 $cssContent .= '.ti-preview-box { position: unset !important }';
 }
 update_option($this->get_option_name('css-content'), $cssContent, false);
@@ -945,17 +940,29 @@ public static $widget_templates = array (
  'grid' => '16,31,38,48,79',
  'badge' => '11,12,20,22,23,55,56,57,58,97,98,99,100,101,102,103,104,107',
  'button' => '24,25,26,27,28,29,30,32,35,59,60,61,62,106,109,110,111,113',
- 'floating' => '17,21,52,53,112',
- 'popup' => '23,30,32,112',
+ 'floating' => '17,21,52,53,112,114',
+ 'popup' => '23,30,32,112,114',
  'top-rated-badge' => '97,98,99,100,101,102,103,104',
  ),
  'templates' => 
  array (
+ 4 => 
+ array (
+ 'name' => 'Slider I.',
+ 'type' => 'slider',
+ 'is-active' => true,
+ 'is-popular' => false,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ ),
+ ),
  48 => 
  array (
  'name' => 'Grid I. - Big picture',
  'type' => 'grid',
  'is-active' => false,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -966,6 +973,7 @@ public static $widget_templates = array (
  'name' => 'Slider III. - Big picture',
  'type' => 'slider',
  'is-active' => false,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -976,6 +984,7 @@ public static $widget_templates = array (
  'name' => 'Slider II. - Big picture',
  'type' => 'slider',
  'is-active' => false,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -986,16 +995,7 @@ public static $widget_templates = array (
  'name' => 'Slider I. - Big picture',
  'type' => 'slider',
  'is-active' => false,
- 'is-top-rated-badge' => false,
- 'params' => 
- array (
- ),
- ),
- 4 => 
- array (
- 'name' => 'Slider I.',
- 'type' => 'slider',
- 'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1006,6 +1006,7 @@ public static $widget_templates = array (
  'name' => 'Slider I. - with header',
  'type' => 'slider',
  'is-active' => false,
+ 'is-popular' => true,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1016,6 +1017,7 @@ public static $widget_templates = array (
  'name' => 'Slider I. - with Top Rated header and photos',
  'type' => 'slider',
  'is-active' => false,
+ 'is-popular' => false,
  'is-top-rated-badge' => true,
  'params' => 
  array (
@@ -1028,6 +1030,7 @@ public static $widget_templates = array (
  'name' => 'Slider I. - with Top Rated header and photos',
  'type' => 'slider',
  'is-active' => false,
+ 'is-popular' => false,
  'is-top-rated-badge' => true,
  'params' => 
  array (
@@ -1040,6 +1043,7 @@ public static $widget_templates = array (
  'name' => 'Slider I. - with AI summary',
  'type' => 'slider',
  'is-active' => false,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1050,6 +1054,7 @@ public static $widget_templates = array (
  'name' => 'Slider II. - centered',
  'type' => 'slider',
  'is-active' => false,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1060,6 +1065,7 @@ public static $widget_templates = array (
  'name' => 'Slider II.',
  'type' => 'slider',
  'is-active' => true,
+ 'is-popular' => true,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1070,6 +1076,7 @@ public static $widget_templates = array (
  'name' => 'Slider III.',
  'type' => 'slider',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1080,6 +1087,7 @@ public static $widget_templates = array (
  'name' => 'Slider IV.',
  'type' => 'slider',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1090,6 +1098,7 @@ public static $widget_templates = array (
  'name' => 'Slider IV.',
  'type' => 'slider',
  'is-active' => false,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1100,6 +1109,7 @@ public static $widget_templates = array (
  'name' => 'Slider V.',
  'type' => 'slider',
  'is-active' => true,
+ 'is-popular' => true,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1110,6 +1120,7 @@ public static $widget_templates = array (
  'name' => 'Slider VI.',
  'type' => 'slider',
  'is-active' => false,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1120,6 +1131,7 @@ public static $widget_templates = array (
  'name' => 'Slider VI.',
  'type' => 'slider',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1130,6 +1142,7 @@ public static $widget_templates = array (
  'name' => 'Slider VII.',
  'type' => 'slider',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1140,6 +1153,7 @@ public static $widget_templates = array (
  'name' => 'List I.',
  'type' => 'list',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1150,6 +1164,7 @@ public static $widget_templates = array (
  'name' => 'List I. - with header',
  'type' => 'list',
  'is-active' => false,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1160,6 +1175,7 @@ public static $widget_templates = array (
  'name' => 'Grid - with photos',
  'type' => 'grid',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1170,6 +1186,7 @@ public static $widget_templates = array (
  'name' => 'Mansonry grid - with header',
  'type' => 'grid',
  'is-active' => false,
+ 'is-popular' => true,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1180,6 +1197,7 @@ public static $widget_templates = array (
  'name' => 'Grid II.',
  'type' => 'grid',
  'is-active' => false,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1190,6 +1208,7 @@ public static $widget_templates = array (
  'name' => 'Mansonry grid',
  'type' => 'grid',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1200,16 +1219,7 @@ public static $widget_templates = array (
  'name' => 'Sidebar slider I.',
  'type' => 'sidebar',
  'is-active' => true,
- 'is-top-rated-badge' => false,
- 'params' => 
- array (
- ),
- ),
- 6 => 
- array (
- 'name' => 'Sidebar slider II.',
- 'type' => 'sidebar',
- 'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1220,6 +1230,18 @@ public static $widget_templates = array (
  'name' => 'Sidebar slider II.',
  'type' => 'sidebar',
  'is-active' => false,
+ 'is-popular' => false,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ ),
+ ),
+ 6 => 
+ array (
+ 'name' => 'Sidebar slider II.',
+ 'type' => 'sidebar',
+ 'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1230,6 +1252,7 @@ public static $widget_templates = array (
  'name' => 'Full sidebar I. - with header',
  'type' => 'sidebar',
  'is-active' => false,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1240,6 +1263,7 @@ public static $widget_templates = array (
  'name' => 'Full sidebar I.',
  'type' => 'sidebar',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1250,6 +1274,7 @@ public static $widget_templates = array (
  'name' => 'Full sidebar II.',
  'type' => 'sidebar',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1260,6 +1285,7 @@ public static $widget_templates = array (
  'name' => 'Full sidebar II.',
  'type' => 'sidebar',
  'is-active' => false,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1270,6 +1296,7 @@ public static $widget_templates = array (
  'name' => 'Full sidebar III.',
  'type' => 'sidebar',
  'is-active' => false,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1280,6 +1307,7 @@ public static $widget_templates = array (
  'name' => 'Top Rated badge I.',
  'type' => 'badge',
  'is-active' => true,
+ 'is-popular' => true,
  'is-top-rated-badge' => true,
  'params' => 
  array (
@@ -1292,6 +1320,7 @@ public static $widget_templates = array (
  'name' => 'Top Rated badge II.',
  'type' => 'badge',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => true,
  'params' => 
  array (
@@ -1304,6 +1333,7 @@ public static $widget_templates = array (
  'name' => 'Top Rated badge III.',
  'type' => 'badge',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => true,
  'params' => 
  array (
@@ -1316,6 +1346,7 @@ public static $widget_templates = array (
  'name' => 'Top Rated badge IV.',
  'type' => 'badge',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => true,
  'params' => 
  array (
@@ -1328,6 +1359,7 @@ public static $widget_templates = array (
  'name' => 'Top Rated badge V.',
  'type' => 'badge',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => true,
  'params' => 
  array (
@@ -1340,6 +1372,7 @@ public static $widget_templates = array (
  'name' => 'Top Rated badge VI.',
  'type' => 'badge',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => true,
  'params' => 
  array (
@@ -1352,6 +1385,7 @@ public static $widget_templates = array (
  'name' => 'Top Rated badge VII.',
  'type' => 'badge',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => true,
  'params' => 
  array (
@@ -1364,6 +1398,7 @@ public static $widget_templates = array (
  'name' => 'Top Rated badge VIII.',
  'type' => 'badge',
  'is-active' => true,
+ 'is-popular' => true,
  'is-top-rated-badge' => true,
  'params' => 
  array (
@@ -1376,6 +1411,7 @@ public static $widget_templates = array (
  'name' => 'HTML badge I.',
  'type' => 'badge',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1386,6 +1422,7 @@ public static $widget_templates = array (
  'name' => 'HTML badge II.',
  'type' => 'badge',
  'is-active' => true,
+ 'is-popular' => true,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1396,6 +1433,7 @@ public static $widget_templates = array (
  'name' => 'HTML badge III.',
  'type' => 'badge',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1406,6 +1444,7 @@ public static $widget_templates = array (
  'name' => 'HTML badge IV.',
  'type' => 'badge',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1416,6 +1455,7 @@ public static $widget_templates = array (
  'name' => 'HTML badge V.',
  'type' => 'badge',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1426,16 +1466,7 @@ public static $widget_templates = array (
  'name' => 'Company badge I.',
  'type' => 'badge',
  'is-active' => true,
- 'is-top-rated-badge' => false,
- 'params' => 
- array (
- ),
- ),
- 23 => 
- array (
- 'name' => 'Company badge I. - with popup',
- 'type' => 'badge',
- 'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1446,6 +1477,18 @@ public static $widget_templates = array (
  'name' => 'HTML badge V.',
  'type' => 'badge',
  'is-active' => false,
+ 'is-popular' => false,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ ),
+ ),
+ 23 => 
+ array (
+ 'name' => 'Company badge I. - with popup',
+ 'type' => 'badge',
+ 'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1456,6 +1499,7 @@ public static $widget_templates = array (
  'name' => 'HTML badge VI.',
  'type' => 'badge',
  'is-active' => false,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1466,6 +1510,7 @@ public static $widget_templates = array (
  'name' => 'HTML badge III.',
  'type' => 'badge',
  'is-active' => false,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1476,6 +1521,7 @@ public static $widget_templates = array (
  'name' => 'Button I.',
  'type' => 'button',
  'is-active' => true,
+ 'is-popular' => true,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1486,6 +1532,7 @@ public static $widget_templates = array (
  'name' => 'Button I.',
  'type' => 'button',
  'is-active' => false,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1496,6 +1543,7 @@ public static $widget_templates = array (
  'name' => 'Button II.',
  'type' => 'button',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1506,6 +1554,7 @@ public static $widget_templates = array (
  'name' => 'Button III.',
  'type' => 'button',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1516,6 +1565,7 @@ public static $widget_templates = array (
  'name' => 'Button IV. - with dropdown',
  'type' => 'button',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1526,6 +1576,7 @@ public static $widget_templates = array (
  'name' => 'Button V.',
  'type' => 'button',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1536,6 +1587,7 @@ public static $widget_templates = array (
  'name' => 'Button V.',
  'type' => 'button',
  'is-active' => false,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1546,6 +1598,7 @@ public static $widget_templates = array (
  'name' => 'Button VI.',
  'type' => 'button',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1556,6 +1609,7 @@ public static $widget_templates = array (
  'name' => 'Button VII.',
  'type' => 'button',
  'is-active' => false,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1566,16 +1620,7 @@ public static $widget_templates = array (
  'name' => 'Button VII. - with popup',
  'type' => 'button',
  'is-active' => true,
- 'is-top-rated-badge' => false,
- 'params' => 
- array (
- ),
- ),
- 59 => 
- array (
- 'name' => 'Button VIII.',
- 'type' => 'button',
- 'is-active' => false,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1586,6 +1631,18 @@ public static $widget_templates = array (
  'name' => 'Button VIII.',
  'type' => 'button',
  'is-active' => true,
+ 'is-popular' => true,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ ),
+ ),
+ 59 => 
+ array (
+ 'name' => 'Button VIII.',
+ 'type' => 'button',
+ 'is-active' => false,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1596,6 +1653,7 @@ public static $widget_templates = array (
  'name' => 'Button X.',
  'type' => 'button',
  'is-active' => false,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1606,6 +1664,7 @@ public static $widget_templates = array (
  'name' => 'Button IX.',
  'type' => 'button',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1616,6 +1675,7 @@ public static $widget_templates = array (
  'name' => 'Button XI.',
  'type' => 'button',
  'is-active' => false,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1626,6 +1686,7 @@ public static $widget_templates = array (
  'name' => 'Button X.',
  'type' => 'button',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1636,6 +1697,7 @@ public static $widget_templates = array (
  'name' => 'Button XI.',
  'type' => 'button',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1646,6 +1708,7 @@ public static $widget_templates = array (
  'name' => 'Button XII.',
  'type' => 'button',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1656,6 +1719,7 @@ public static $widget_templates = array (
  'name' => 'Floating I.',
  'type' => 'floating',
  'is-active' => true,
+ 'is-popular' => true,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1666,6 +1730,7 @@ public static $widget_templates = array (
  'name' => 'Floating II.',
  'type' => 'floating',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1676,6 +1741,7 @@ public static $widget_templates = array (
  'name' => 'Floating III.',
  'type' => 'floating',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1686,6 +1752,7 @@ public static $widget_templates = array (
  'name' => 'Floating IV.',
  'type' => 'floating',
  'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1696,6 +1763,18 @@ public static $widget_templates = array (
  'name' => 'Floating V. - with popup',
  'type' => 'floating',
  'is-active' => true,
+ 'is-popular' => false,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ ),
+ ),
+ 114 => 
+ array (
+ 'name' => 'Floating VI. - with popup',
+ 'type' => 'floating',
+ 'is-active' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -3557,7 +3636,7 @@ public static $widget_date_format_locales = array (
  'cs' => 'před %d %s|dnes|dnem|dny|týdnem|týdny|měsícem|měsíci|rokem|roky',
  'cy' => '%d %s yn ôl|heddiw|diwrnod|diwrnod|wythnos|wythnosau|mis|mis|flwyddyn|flynyddoedd',
  'da' => '%d %s siden|i dag|dag|dage|uge|uger|måned|måneder|år|år',
- 'de' => 'vor %d %s|heute|tag|tagen|woche|wochen|monat|monaten|jahr|jahren',
+ 'de' => 'vor %d %s|Heute|Tag|Tagen|Woche|Wochen|Monat|Monaten|Jahr|Jahren',
  'el' => 'πριν από %d ημέρα|σήμερα|ημέρα|ημέρες|εβδομάδα|εβδομάδες|μήνα|μήνες|χρόνο|χρόνια',
  'es' => 'hace %d %s|hoy|día|días|semana|semanas|mes|meses|año|años',
  'et' => '%d %s tagasi|täna|päev|päeva|nädal|nädalat|kuu|kuud|aasta|aastat',
@@ -3636,7 +3715,7 @@ public static $widget_top_rated_titles = array (
  'mk' => 'Највисоко оценет <br /> стан за %date% година',
  'ms' => 'Pangsapuri <br /> Tertinggi %date%',
  'nl' => 'Best beoordeelde <br /> appartement %date%',
- 'no' => 'Topprangerte <br /> leilighet %date%',
+ 'no' => 'Topprangert <br /> leilighet %date%',
  'pl' => 'Najwyżej oceniane <br /> mieszkanie %date%',
  'pt' => 'Apartamento mais <br /> bem avaliado em %date%',
  'ro' => 'Cel mai bine <br /> cotat apartament %date%',
@@ -3689,7 +3768,7 @@ public static $widget_top_rated_titles = array (
  'mk' => 'Најдобро оценет <br /> бар %date% година',
  'ms' => 'Bar Penilaian <br /> Tertinggi %date%',
  'nl' => 'Best beoordeelde <br /> staaf %date%',
- 'no' => 'Topprangerte <br /> bar %date%',
+ 'no' => 'Topprangert <br /> bar %date%',
  'pl' => 'Najwyżej oceniany <br /> bar %date%',
  'pt' => 'Barra mais <br /> bem avaliado em %date%',
  'ro' => 'Cel mai bine <br /> cotat bar %date%',
@@ -3742,7 +3821,7 @@ public static $widget_top_rated_titles = array (
  'mk' => 'Најдобро оценет <br /> Кафе %date% година',
  'ms' => 'Kafe <br /> Tertinggi %date%',
  'nl' => 'Best beoordeeld <br /> café %date%',
- 'no' => 'Topprangerte <br /> kafé %date%',
+ 'no' => 'Topprangert <br /> kafé %date%',
  'pl' => 'Najwyżej oceniana <br /> kawiarnia %date%',
  'pt' => 'Café mais <br /> bem avaliado em %date%',
  'ro' => 'Cel mai bine <br /> cotat cafe %date%',
@@ -3795,7 +3874,7 @@ public static $widget_top_rated_titles = array (
  'mk' => 'Најдобро оценета <br /> клиника %date% година',
  'ms' => 'Klinik <br /> Tertinggi %date%',
  'nl' => 'Best beoordeelde <br /> kliniek %date%',
- 'no' => 'Topprangerte <br /> klinikk %date%',
+ 'no' => 'Topprangert <br /> klinikk %date%',
  'pl' => 'Najwyżej oceniana <br /> klinika %date%',
  'pt' => 'Clínica mais <br /> bem avaliado em %date%',
  'ro' => 'Cel mai bine <br /> cotat clinică %date%',
@@ -3848,7 +3927,7 @@ public static $widget_top_rated_titles = array (
  'mk' => 'Највисоко оценет <br /> хотел за %date% година',
  'ms' => 'Hotel Penilaian <br /> Teratas %date%',
  'nl' => 'Best beoordeelde <br /> hotel %date%',
- 'no' => 'Topprangerte <br /> hotell %date%',
+ 'no' => 'Topprangert <br /> hotell %date%',
  'pl' => 'Najwyżej oceniany <br /> hotel %date%',
  'pt' => 'Hotéis mais <br /> bem avaliado em %date%',
  'ro' => 'Cel mai bine <br /> cotat hotel %date%',
@@ -3901,7 +3980,7 @@ public static $widget_top_rated_titles = array (
  'mk' => 'Најдобро оценет <br /> провајдер за %date% година',
  'ms' => 'Penyedia Penilaian <br /> Tertinggi %date%',
  'nl' => 'Best beoordeelde <br /> aanbieder %date%',
- 'no' => 'Topprangerte <br /> leverandør %date%',
+ 'no' => 'Topprangert <br /> leverandør %date%',
  'pl' => 'Najwyżej oceniany <br /> dostawca %date%',
  'pt' => 'Provedor mais <br /> bem avaliado em %date%',
  'ro' => 'Cel mai bine <br /> cotat furnizor %date%',
@@ -3954,7 +4033,7 @@ public static $widget_top_rated_titles = array (
  'mk' => 'Најдобро оценет <br /> ресторан %date% година',
  'ms' => 'Restoran Penarafan <br /> Tertinggi %date%',
  'nl' => 'Best beoordeelde <br /> restaurant %date%',
- 'no' => 'Topprangerte <br /> restaurant %date%',
+ 'no' => 'Topprangert <br /> restaurant %date%',
  'pl' => 'Najwyżej oceniana <br /> restauracja %date%',
  'pt' => 'Restaurante mais <br /> bem avaliado em %date%',
  'ro' => 'Cel mai bine <br /> cotat restaurant %date%',
@@ -4007,7 +4086,7 @@ public static $widget_top_rated_titles = array (
  'mk' => 'Најдобро оценет <br /> сервис за %date% година',
  'ms' => 'Perkhidmatan <br /> Tertinggi %date%',
  'nl' => 'Best beoordeelde <br /> service %date%',
- 'no' => 'Topprangerte <br /> tjeneste %date%',
+ 'no' => 'Topprangert <br /> tjeneste %date%',
  'pl' => 'Najwyżej oceniana <br /> usługa %date%',
  'pt' => 'Serviço mais <br /> bem avaliado em %date%',
  'ro' => 'Cel mai bine <br /> cotat serviciu %date%',
@@ -4060,7 +4139,7 @@ public static $widget_top_rated_titles = array (
  'mk' => 'Најдобро оценет <br /> веб-продавница %date% година',
  'ms' => 'Kedai Web Penilaian <br /> Tertinggi %date%',
  'nl' => 'Best beoordeelde <br /> webshop %date%',
- 'no' => 'Topprangerte <br /> nettbutikk %date%',
+ 'no' => 'Topprangert <br /> nettbutikk %date%',
  'pl' => 'Najwyżej oceniany <br /> sklep internetowy %date%',
  'pt' => 'Loja virtual mais <br /> bem avaliada em %date%',
  'ro' => 'Cel mai bine <br /> cotat magazin web %date%',
@@ -4268,7 +4347,6 @@ $fileName = $previewData['style-id'].'-'.$previewData['set-id'].'.css';
 wp_enqueue_style('trustindex-widget-preview-'.$fileName, "https://cdn.trustindex.io/assets/widget-presetted-css/v2/$fileName");
 if (isset($previewData['verified-by-trustindex']) && $previewData['verified-by-trustindex']) {
 $this->widgetOptionDefaultOverride['verified-by-trustindex'] = 1;
-$this->widgetOptionDefaultOverride['verified-icon'] = 1;
 }
 }
 $reviews = $this->getReviewsForWidgetHtml(true, $isForceDemoReviews, (bool)$previewData);
@@ -4349,10 +4427,6 @@ $content = str_replace('" data-layout-id=', ' '. implode(' ', $classAppends) .'"
 if ($this->getWidgetOption('dateformat', false, $isPreview) === 'modern') {
 $language = $this->getWidgetOption('lang', false, $isPreview);
 $content = str_replace('" data-layout-id=', '" data-time-locale="'. self::$widget_date_format_locales[$language] .'" data-layout-id=', $content);
-}
-if (self::$widget_templates['templates'][$styleId]['type'] === 'floating') {
-$content = str_replace('" data-layout-id=', '" data-widget-default-closed="'.(int)!$this->getWidgetOption('floating-desktop-open', false, $isPreview).'" data-layout-id=', $content);
-$content = str_replace('" data-layout-id=', '" data-widget-default-closed-mobile="'.(int)!$this->getWidgetOption('floating-mobile-open', false, $isPreview).'" data-layout-id=', $content);
 }
 return $content;
 }

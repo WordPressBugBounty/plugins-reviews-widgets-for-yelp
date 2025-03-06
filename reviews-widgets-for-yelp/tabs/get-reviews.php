@@ -17,7 +17,7 @@ defined('ABSPATH') or die('No script kiddies please!');
 <br /><br />
 <?php echo __('With automated follow-ups and customizable templates, email campaigns streamline the review collection process, boost your online reputation, and help you climb to the top of Google Maps in your industry.', 'trustindex-plugin'); ?>
 <br /><br />
-<a href="https://www.trustindex.io/features-list/collect-reviews/email-campaigns/" target="_blank" class="ti-btn"><?php echo __('Create Your Review Collector Campaign Now!', 'trustindex-plugin'); ?></a>
+<a href="https://www.trustindex.io/ti-redirect.php?a=sys&c=wp-getmore-email&url=/features-list/collect-reviews/email-campaigns/" target="_blank" class="ti-btn"><?php echo __('Create Your Review Collector Campaign Now!', 'trustindex-plugin'); ?></a>
 </div>
 <div class="ti-promobox-image">
 <img src="<?php echo $pluginManagerInstance->get_plugin_file_url('static/img/review-collection-sm.png'); ?>" />
@@ -32,7 +32,7 @@ defined('ABSPATH') or die('No script kiddies please!');
 <br /><br />
 <?php echo __("By tapping their smartphones on these NFC-enabled cards, customers are instantly directed to your business's review platform, making it easy and convenient for them to leave feedback. Get more reviews effortlessly with this convenient and modern solution!", 'trustindex-plugin'); ?>
 <br /><br />
-<a href="https://www.trustindex.io/features-list/collect-reviews/nfc-cards/" target="_blank" class="ti-btn"><?php echo __('Order Your NFC Cards Today!', 'trustindex-plugin'); ?></a>
+<a href="https://www.trustindex.io/ti-redirect.php?a=sys&c=wp-getmore-nfc&url=/features-list/collect-reviews/nfc-cards/" target="_blank" class="ti-btn"><?php echo __('Order Your NFC Cards Today!', 'trustindex-plugin'); ?></a>
 </div>
 <div class="ti-promobox-image">
 <img src="<?php echo $pluginManagerInstance->get_plugin_file_url('static/img/nfc-card-sm.png'); ?>" />
@@ -49,7 +49,7 @@ defined('ABSPATH') or die('No script kiddies please!');
 <br /><br />
 <?php echo __('Our smartphone-scannable QR codes guide your customers to your review platforms in just a few seconds. Print and display them in your business to gather reviews daily on platforms like Google, Facebook, and more!', 'trustindex-plugin'); ?>
 <br /><br />
-<a href="https://www.trustindex.io/features-list/collect-reviews/qr-codes/" target="_blank" class="ti-btn"><?php echo __('Create Your Custom QR Code!', 'trustindex-plugin'); ?></a>
+<a href="https://www.trustindex.io/ti-redirect.php?a=sys&c=wp-getmore-qr&url=/features-list/collect-reviews/qr-codes/" target="_blank" class="ti-btn"><?php echo __('Create Your Custom QR Code!', 'trustindex-plugin'); ?></a>
 </div>
 <div class="ti-promobox-image">
 <img src="<?php echo $pluginManagerInstance->get_plugin_file_url('static/img/sample-qr.jpg'); ?>" />

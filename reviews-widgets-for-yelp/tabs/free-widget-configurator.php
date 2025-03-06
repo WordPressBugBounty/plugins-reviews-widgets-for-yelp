@@ -132,8 +132,6 @@ delete_option($pluginManagerInstance->get_option_name('show-arrows'));
 delete_option($pluginManagerInstance->get_option_name('show-header-button'));
 delete_option($pluginManagerInstance->get_option_name('reviews-load-more'));
 delete_option($pluginManagerInstance->get_option_name('show-reviewers-photo'));
-delete_option($pluginManagerInstance->get_option_name('floating-desktop-open'));
-delete_option($pluginManagerInstance->get_option_name('floating-mobile-open'));
 delete_option($pluginManagerInstance->get_option_name('widget-setted-up'));
 delete_option($pluginManagerInstance->get_option_name('show-review-replies'));
 delete_option($pluginManagerInstance->get_option_name('verified-by-trustindex'));
@@ -165,8 +163,6 @@ $optionsToDelete = [
 'show-header-button',
 'reviews-load-more',
 'dateformat',
-'floating-desktop-open',
-'floating-mobile-open',
 'show-review-replies',
 'verified-by-trustindex',
 ];
@@ -204,7 +200,7 @@ $styleId = (int)$_REQUEST['style_id'];
 update_option($pluginManagerInstance->get_option_name('style-id'), $styleId, false);
 delete_option($pluginManagerInstance->get_option_name('review-content'));
 trustindex_plugin_change_step(3);
-if (in_array($styleId, [17, 21, 52, 53, 112])) {
+if (in_array($styleId, [17, 21, 52, 53, 112, 114])) {
 $pluginManagerInstance->noreg_save_css();
 }
 if (isset($_GET['style_id'])) {
@@ -219,7 +215,6 @@ trustindex_plugin_change_step(4);
 $pluginManagerInstance->noreg_save_css(true);
 if (isset($_GET['verified_by_trustindex'])) {
 update_option($pluginManagerInstance->get_option_name('verified-by-trustindex'), 1, false);
-update_option($pluginManagerInstance->get_option_name('verified-icon'), 1, false);
 }
 if (isset($_GET['set_id'])) {
 header('Location: admin.php?page='. sanitize_text_field($_GET['page']) .'&tab=free-widget-configurator');
@@ -312,16 +307,6 @@ if (isset($_POST['footer-filter-text'])) {
 $r = sanitize_text_field($_POST['footer-filter-text']);
 }
 update_option($pluginManagerInstance->get_option_name('footer-filter-text'), $r, false);
-$r = 1;
-if (isset($_POST['floating-desktop-open'])) {
-$r = sanitize_text_field($_POST['floating-desktop-open']);
-}
-update_option($pluginManagerInstance->get_option_name('floating-desktop-open'), $r, false);
-$r = 0;
-if (isset($_POST['floating-mobile-open'])) {
-$r = sanitize_text_field($_POST['floating-mobile-open']);
-}
-update_option($pluginManagerInstance->get_option_name('floating-mobile-open'), $r, false);
 $r = 0;
 if (isset($_POST['show-review-replies'])) {
 $r = sanitize_text_field($_POST['show-review-replies']);
@@ -428,7 +413,7 @@ __('Insert code', 'trustindex-plugin')
 ];
 $stepDone = 0;
 $stepCurrent = isset($_GET['step']) ? (int)sanitize_text_field($_GET['step']) : 0;
-if ($stepCurrent === 3 && in_array($styleId, [17, 21, 52, 53, 112])) {
+if ($stepCurrent === 3 && in_array($styleId, [17, 21, 52, 53, 112, 114])) {
 $stepCurrent = 4;
 }
 if ($widgetSettedUp) {
@@ -631,6 +616,15 @@ if (!isset($template['is-active']) || $template['is-active']):
 <div class="ti-box-header ti-box-header-normal">
 <?php echo __('Layout', 'trustindex-plugin'); ?>:
 <strong><?php echo esc_html(__($template['name'], 'trustindex-plugin')); ?></strong>
+<?php if ($template['is-popular']): ?>
+<span class="ti-badge ti-most-popular-badge ti-tooltip">
+<?php echo __('Most popular', 'trustindex-plugin'); ?> <span class="dashicons dashicons-info-outline"></span>
+<span class="ti-tooltip-message"><?php echo
+__('Selected by most users!', 'trustindex-plugin').' '.
+__('This widget layout helps build trust and effectively increases sales.', 'trustindex-plugin');
+?></span>
+</span>
+<?php endif; ?>
 <?php if (!$template['is-top-rated-badge'] || $isTopRatedBadgeValid): ?>
 <a href="<?php echo wp_nonce_url('?page='. esc_attr($_GET['page']) .'&tab=free-widget-configurator&command=save-style&style_id='. esc_attr(urlencode($id)), 'ti-save-style'); ?>" class="ti-btn ti-btn-sm ti-btn-loading-on-click ti-pull-right"><?php echo __('Select', 'trustindex-plugin'); ?></a>
 <div class="clear"></div>
@@ -668,7 +662,10 @@ $className = 'ti-half-width';
 }
 ?>
 <div class="ti-preview-boxes-container">
-<?php foreach ($pluginManager::$widget_styles as $id => $style): ?>
+<?php
+$isFirstLayout = true;
+$isVerifiedByTrustindexAvailable = $pluginManagerInstance->isVerifiedByTrustindexAvailable();
+foreach ($pluginManager::$widget_styles as $id => $style): ?>
 <?php if (!isset($style['is-active']) || $style['is-active']): ?>
 <div class="<?php echo esc_attr($className); ?>">
 <div class="ti-box ti-preview-boxes" data-layout-id="<?php echo esc_attr($styleId); ?>" data-set-id="<?php echo esc_attr($id); ?>">
@@ -676,6 +673,15 @@ $className = 'ti-half-width';
 <div class="ti-box-header ti-box-header-normal">
 <?php echo __('Style', 'trustindex-plugin'); ?>:
 <strong><?php echo __($style['name'], 'trustindex-plugin'); ?></strong>
+<?php if ($isFirstLayout && !$isVerifiedByTrustindexAvailable): ?>
+<span class="ti-badge ti-most-popular-badge ti-tooltip">
+<?php echo __('Most popular', 'trustindex-plugin'); ?> <span class="dashicons dashicons-info-outline"></span>
+<span class="ti-tooltip-message"><?php echo
+__('Selected by most users!', 'trustindex-plugin').' '.
+__('This widget style helps build trust and effectively increases sales.', 'trustindex-plugin');
+?></span>
+</span>
+<?php endif; ?>
 <a href="<?php echo wp_nonce_url('?page='. esc_attr($_GET['page']) .'&tab=free-widget-configurator&command=save-set&set_id='. esc_attr(urlencode($id)), 'ti-save-set'); ?>" class="ti-btn ti-btn-sm ti-btn-loading-on-click ti-pull-right"><?php echo __('Select', 'trustindex-plugin'); ?></a>
 <div class="clear"></div>
 </div>
@@ -685,7 +691,7 @@ $className = 'ti-half-width';
 </div>
 </div>
 </div>
-<?php if ($id === 'light-background' && $pluginManagerInstance->isVerifiedByTrustindexAvailable()): ?>
+<?php if ($id === 'light-background' && $isVerifiedByTrustindexAvailable): ?>
 <div class="<?php echo esc_attr($className); ?>">
 <div class="ti-box ti-preview-boxes" data-layout-id="<?php echo esc_attr($styleId); ?>" data-set-id="<?php echo esc_attr($id); ?>">
 <div class="ti-box-inner">
@@ -693,10 +699,16 @@ $className = 'ti-half-width';
 <?php echo __('Style', 'trustindex-plugin'); ?>:
 <strong>
 <?php echo __($style['name'], 'trustindex-plugin'); ?>
- -
- <?php echo __('with Trustindex verified', 'trustindex-plugin'); ?>
-<span class="ti-badge ti-badge-info"><?php echo esc_html(__('Recommended', 'trustindex-plugin')); ?></span>
+-
+<?php echo __('with Trustindex verified', 'trustindex-plugin'); ?>
 </strong>
+<span class="ti-badge ti-most-popular-badge ti-tooltip">
+<?php echo __('Most popular', 'trustindex-plugin'); ?> <span class="dashicons dashicons-info-outline"></span>
+<span class="ti-tooltip-message"><?php echo
+__('Selected by most users!', 'trustindex-plugin').' '.
+__('This widget style helps build trust and effectively increases sales.', 'trustindex-plugin');
+?></span>
+</span>
 <a href="<?php echo wp_nonce_url('?page='. esc_attr($_GET['page']) .'&tab=free-widget-configurator&command=save-set&set_id='. esc_attr(urlencode($id)), 'ti-save-set'); ?>&verified_by_trustindex" class="ti-btn ti-btn-sm ti-btn-loading-on-click ti-pull-right"><?php echo __('Select', 'trustindex-plugin'); ?></a>
 <div class="clear"></div>
 </div>
@@ -715,7 +727,9 @@ $className = 'ti-half-width';
 </div>
 <?php endif; ?>
 <?php endif; ?>
-<?php endforeach; ?>
+<?php
+$isFirstLayout = false;
+endforeach; ?>
 </div>
 <?php elseif ($stepCurrent === 4): ?>
 <?php $widgetType = $pluginManager::$widget_templates['templates'][$styleId]['type']; ?>
@@ -741,7 +755,7 @@ $className = 'ti-half-width';
 <div class="ti-box-inner">
 <div class="ti-box-header">
 <?php echo __('Widget Preview', 'trustindex-plugin'); ?>
-<?php if (!in_array($styleId, [17, 21, 52, 53, 112])): ?>
+<?php if (!in_array($styleId, [17, 21, 52, 53, 112, 114])): ?>
 <span class="ti-box-header-normal ti-pull-right">
 <?php echo __('Style', 'trustindex-plugin'); ?>:
 <strong><?php echo esc_html(__($pluginManager::$widget_styles[ $scssSet ]['name'], 'trustindex-plugin')); ?></strong>
@@ -841,7 +855,7 @@ break;
 </select>
 </form>
 </div>
-<?php if (!in_array($styleId, [17, 21, 52, 53, 112])): ?>
+<?php if (!in_array($styleId, [17, 21, 52, 53, 112, 114])): ?>
 <div class="ti-form-group">
 <label><?php echo __('Align', 'trustindex-plugin'); ?></label>
 <form method="post" action="">
@@ -993,16 +1007,6 @@ break;
 <label><?php echo __('Show platform stars', 'trustindex-plugin'); ?></label>
 </span>
 <?php endif; ?>
-<?php endif; ?>
-<?php if (in_array($widgetType, ['floating'])): ?>
-<span class="ti-checkbox ti-checkbox-row">
-<input type="checkbox" name="floating-desktop-open" value="1"<?php if ($pluginManagerInstance->getWidgetOption('floating-desktop-open')): ?> checked<?php endif; ?> />
-<label><?php echo __('Opened on desktop', 'trustindex-plugin'); ?></label>
-</span>
-<span class="ti-checkbox ti-checkbox-row">
-<input type="checkbox" name="floating-mobile-open" value="1"<?php if ($pluginManagerInstance->getWidgetOption('floating-mobile-open')): ?> checked<?php endif; ?> />
-<label><?php echo __('Opened on mobile', 'trustindex-plugin'); ?></label>
-</span>
 <?php endif; ?>
 </form>
 </div>
