@@ -378,6 +378,7 @@ return [
 'lang',
 'no-rating-text',
 'dateformat',
+'nameformat',
 'rate-us-feedback',
 'verified-icon',
 'enable-animation',
@@ -445,6 +446,9 @@ break;
 case 'dateformat':
 $default = 'Y-m-d';
 break;
+case 'nameformat':
+$default = 1;
+break;
 case 'filter':
 global $wpdb;
 $onlyRatingsDefault = false;
@@ -474,7 +478,7 @@ case 'show-review-replies':
 $default = 0;
 break;
 case 'align':
-$default = in_array($styleId, [ 36, 37, 38, 39 ]) ? 'center' : 'left';
+$default = in_array($styleId, [ 36, 37, 38, 39 ]) ? 'center' : ($this->isRtlLanguage() ? 'right' : 'left');
 break;
 case 'review-text-mode':
 $default = 'readmore';
@@ -774,7 +778,7 @@ $className = 'TrustindexPlugin_' . $forcePlatform;
 if (!class_exists($className)) {
 return $this->frontEndErrorForAdmins(ucfirst($forcePlatform) . ' plugin is not active or not found!');
 }
-$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-12.6.1", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
+$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-12.7", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
 $chosedPlatform->setNotificationParam('not-using-no-widget', 'active', false);
 if (!$chosedPlatform->is_noreg_linked()) {
 return $this->frontEndErrorForAdmins(sprintf(__('You have to connect your business (%s)!', 'trustindex-plugin'), $forcePlatform));
@@ -939,7 +943,7 @@ public static $widget_templates = array (
  'list' => '33,80',
  'grid' => '16,31,38,48,79',
  'badge' => '11,12,20,22,23,55,56,57,58,97,98,99,100,101,102,103,104,107',
- 'button' => '24,25,26,27,28,29,30,32,35,59,60,61,62,106,109,110,111,113',
+ 'button' => '24,25,26,27,28,29,30,32,35,59,60,61,62,106,109,110,111,113,115',
  'floating' => '17,21,52,53,112,114',
  'popup' => '23,30,32,112,114',
  'top-rated-badge' => '97,98,99,100,101,102,103,104',
@@ -1082,22 +1086,22 @@ public static $widget_templates = array (
  array (
  ),
  ),
- 34 => 
+ 19 => 
  array (
  'name' => 'Slider IV.',
  'type' => 'slider',
- 'is-active' => true,
+ 'is-active' => false,
  'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
  ),
  ),
- 19 => 
+ 34 => 
  array (
  'name' => 'Slider IV.',
  'type' => 'slider',
- 'is-active' => false,
+ 'is-active' => true,
  'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
@@ -1115,22 +1119,22 @@ public static $widget_templates = array (
  array (
  ),
  ),
- 44 => 
+ 15 => 
  array (
  'name' => 'Slider VI.',
  'type' => 'slider',
- 'is-active' => false,
+ 'is-active' => true,
  'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
  ),
  ),
- 15 => 
+ 44 => 
  array (
  'name' => 'Slider VI.',
  'type' => 'slider',
- 'is-active' => true,
+ 'is-active' => false,
  'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
@@ -1626,17 +1630,6 @@ public static $widget_templates = array (
  array (
  ),
  ),
- 106 => 
- array (
- 'name' => 'Button VIII.',
- 'type' => 'button',
- 'is-active' => true,
- 'is-popular' => true,
- 'is-top-rated-badge' => false,
- 'params' => 
- array (
- ),
- ),
  59 => 
  array (
  'name' => 'Button VIII.',
@@ -1648,12 +1641,12 @@ public static $widget_templates = array (
  array (
  ),
  ),
- 61 => 
+ 106 => 
  array (
- 'name' => 'Button X.',
+ 'name' => 'Button VIII.',
  'type' => 'button',
- 'is-active' => false,
- 'is-popular' => false,
+ 'is-active' => true,
+ 'is-popular' => true,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1664,6 +1657,17 @@ public static $widget_templates = array (
  'name' => 'Button IX.',
  'type' => 'button',
  'is-active' => true,
+ 'is-popular' => false,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ ),
+ ),
+ 61 => 
+ array (
+ 'name' => 'Button X.',
+ 'type' => 'button',
+ 'is-active' => false,
  'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
@@ -1706,6 +1710,17 @@ public static $widget_templates = array (
  113 => 
  array (
  'name' => 'Button XII.',
+ 'type' => 'button',
+ 'is-active' => true,
+ 'is-popular' => false,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ ),
+ ),
+ 115 => 
+ array (
+ 'name' => 'Button XIII.',
  'type' => 'button',
  'is-active' => true,
  'is-popular' => false,
@@ -2037,6 +2052,72 @@ public static $widget_languages = [
 'kk' => 'қазақ'
 ];
 public static $widget_dateformats = [ 'modern', 'j F Y', 'j. F, Y', 'F j, Y', 'Y.m.d.', 'Y-m-d', 'd/m/Y', 'hide' ];
+public static $widget_nameformats = array (
+ 1 => 
+ array (
+ 'id' => '1',
+ 'sample' => 'Do not format',
+ 'regex' => NULL,
+ 'ucfirst' => NULL,
+ 'toupper' => NULL,
+ ),
+ 2 => 
+ array (
+ 'id' => '2',
+ 'sample' => 'F Lastname',
+ 'regex' => '/^(.)[^\\s]*\\s([^\\s]+).*$/',
+ 'ucfirst' => true,
+ 'toupper' => false,
+ ),
+ 3 => 
+ array (
+ 'id' => '3',
+ 'sample' => 'Lastname',
+ 'regex' => '/^[^\\s]*\\s?([^\\s]+).*$/',
+ 'ucfirst' => true,
+ 'toupper' => false,
+ ),
+ 4 => 
+ array (
+ 'id' => '4',
+ 'sample' => 'Firstname L',
+ 'regex' => '/^([^\\s]+)\\s(.).*$/',
+ 'ucfirst' => true,
+ 'toupper' => false,
+ ),
+ 5 => 
+ array (
+ 'id' => '5',
+ 'sample' => 'Firstname',
+ 'regex' => '/^([^\\s]+).*$/',
+ 'ucfirst' => true,
+ 'toupper' => false,
+ ),
+ 6 => 
+ array (
+ 'id' => '6',
+ 'sample' => 'FIRSTNAME LASTNAME',
+ 'regex' => '/^(.*)$/',
+ 'ucfirst' => false,
+ 'toupper' => true,
+ ),
+ 8 => 
+ array (
+ 'id' => '8',
+ 'sample' => 'Firstname Lastname',
+ 'regex' => '/^(.*)$/',
+ 'ucfirst' => true,
+ 'toupper' => false,
+ ),
+ 9 => 
+ array (
+ 'id' => '9',
+ 'sample' => 'FL',
+ 'regex' => '/^(.)[^\\s]*\\s*(.)?.*$/',
+ 'ucfirst' => false,
+ 'toupper' => true,
+ ),
+);
 private static $widget_rating_texts = array (
  'en' => 
  array (
@@ -4368,6 +4449,27 @@ $this->enqueueLoaderScript();
 }
 return $html;
 }
+public function renderNameFormat($name, $formatId = null)
+{
+if (!$formatId) {
+$formatId = $this->getWidgetOption('nameformat');
+}
+if (!isset(self::$widget_nameformats[$formatId])) {
+return $name;
+}
+$format = self::$widget_nameformats[$formatId];
+if (!$format['regex']) {
+return $name;
+}
+$result = preg_replace($format['regex'], '$1 $2', $name);
+if ($format['ucfirst']) {
+$result = function_exists('mb_ucfirst') ? mb_ucfirst($result) : ucfirst($result);
+}
+if ($format['toupper']) {
+$result = function_exists('mb_strtoupper') ? mb_strtoupper($result) : strtoupper($result);
+}
+return $result;
+}
 public function enqueueLoaderScript()
 {
 if (wp_script_is('trustindex-loader-js', 'registered')) {
@@ -4424,6 +4526,9 @@ $classAppends []= 'ti-show-rating-text';
 $classAppends []= 'ti-review-text-mode-'.$this->getWidgetOption('review-text-mode', false, $isPreview);
 $classAppends []= 'ti-'.(in_array($styleId, [36, 37, 38, 39]) ? 'content' : 'text').'-align-'.$this->getWidgetOption('align', false, $isPreview);
 $content = str_replace('" data-layout-id=', ' '. implode(' ', $classAppends) .'" data-no-translation="true" data-layout-id=', $content);
+if ($this->isRtlLanguage()) {
+$content = str_replace('" data-layout-id=', '" data-rotate-to="left" data-layout-id=', $content);
+}
 if ($this->getWidgetOption('dateformat', false, $isPreview) === 'modern') {
 $language = $this->getWidgetOption('lang', false, $isPreview);
 $content = str_replace('" data-layout-id=', '" data-time-locale="'. self::$widget_date_format_locales[$language] .'" data-layout-id=', $content);
@@ -4553,7 +4658,7 @@ $reviewContent .= str_replace([
 $platformName,
 $this->getProfileImageUrl($r->user_photo, $styleId, 2).' 2x',
 $this->getProfileImageUrl($r->user_photo, $styleId),
-$r->user,
+$this->renderNameFormat($r->user),
 $date,
 $text,
 round($r->original_rating),
@@ -4641,7 +4746,7 @@ $content = str_replace('platform/'. ucfirst($this->getShortName()) .'/logo', 'pl
 if ($this->is_ten_scale_rating_platform() && $styleId === 11) {
 $content = str_replace('<span class="ti-rating">'. $ratingScore .'</span> ', '', $content);
 }
-if (in_array($styleId, [8, 10, 11, 12, 13, 20, 22, 24, 25, 26, 27, 28, 29, 35, 55, 56, 57, 58, 59, 60, 61, 62, 106, 107, 109, 110, 111, 113])) {
+if (in_array($styleId, [8, 10, 11, 12, 13, 20, 22, 24, 25, 26, 27, 28, 29, 35, 55, 56, 57, 58, 59, 60, 61, 62, 106, 107, 109, 110, 111, 113, 115])) {
 if (!$this->getWidgetOption('show-header-button', false, $isPreview)) {
 $content = preg_replace('/<!-- HEADER-BUTTON-START.+HEADER-BUTTON-END -->/s', '', $content);
 }
@@ -4721,6 +4826,17 @@ public function isLayoutHasReviews()
 {
 $styleId = (int)$this->getWidgetOption('style-id');
 return !in_array(self::$widget_templates['templates'][$styleId]['type'], ['button', 'badge', 'top-rated-badge']) || in_array($styleId, [23, 30, 32]);
+}
+public function isRtlLanguage()
+{
+if (in_array($this->getWidgetOption('lang'), array (
+ 0 => 'ar',
+ 1 => 'he',
+ 2 => 'fa',
+))) {
+return true;
+}
+return false;
 }
 public function get_footer_filter_text($lang = 'en')
 {

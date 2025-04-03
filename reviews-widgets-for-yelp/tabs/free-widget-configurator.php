@@ -9,6 +9,7 @@ $ti_command_list = [
 'save-set',
 'save-language',
 'save-dateformat',
+'save-nameformat',
 'save-top-rated-type',
 'save-top-rated-date',
 'save-options',
@@ -125,6 +126,7 @@ delete_option($pluginManagerInstance->get_option_name('scss-set'));
 delete_option($pluginManagerInstance->get_option_name('filter'));
 delete_option($pluginManagerInstance->get_option_name('lang'));
 delete_option($pluginManagerInstance->get_option_name('dateformat'));
+delete_option($pluginManagerInstance->get_option_name('nameformat'));
 delete_option($pluginManagerInstance->get_option_name('no-rating-text'));
 delete_option($pluginManagerInstance->get_option_name('verified-icon'));
 delete_option($pluginManagerInstance->get_option_name('enable-animation'));
@@ -163,6 +165,7 @@ $optionsToDelete = [
 'show-header-button',
 'reviews-load-more',
 'dateformat',
+'nameformat',
 'show-review-replies',
 'verified-by-trustindex',
 ];
@@ -232,11 +235,19 @@ else if ($ti_command === 'save-language') {
 check_admin_referer('ti-save-language');
 update_option($pluginManagerInstance->get_option_name('lang'), sanitize_text_field($_POST['lang']), false);
 delete_option($pluginManagerInstance->get_option_name('review-content'));
+if ($pluginManagerInstance->isRtlLanguage()) {
+update_option($pluginManagerInstance->get_option_name('align'), 'right', false);
+}
 exit;
 }
 else if ($ti_command === 'save-dateformat') {
 check_admin_referer('ti-save-dateformat');
 update_option($pluginManagerInstance->get_option_name('dateformat'), sanitize_text_field($_POST['dateformat']), false);
+exit;
+}
+else if ($ti_command === 'save-nameformat') {
+check_admin_referer('ti-save-nameformat');
+update_option($pluginManagerInstance->get_option_name('nameformat'), sanitize_text_field($_POST['nameformat']), false);
 exit;
 }
 else if ($ti_command === 'save-top-rated-type') {
@@ -702,6 +713,7 @@ __('This widget style helps build trust and effectively increases sales.', 'trus
 -
 <?php echo __('with Trustindex verified', 'trustindex-plugin'); ?>
 </strong>
+<?php if ($className === 'ti-half-width'): ?><br /><?php endif; ?>
 <span class="ti-badge ti-most-popular-badge ti-tooltip">
 <?php echo __('Most popular', 'trustindex-plugin'); ?> <span class="dashicons dashicons-info-outline"></span>
 <span class="ti-tooltip-message"><?php echo
@@ -715,13 +727,13 @@ __('This widget style helps build trust and effectively increases sales.', 'trus
 <div class="preview">
 <?php echo $pluginManagerInstance->renderWidgetAdmin(true, false, ['style-id' => $styleId, 'set-id' => $id, 'verified-by-trustindex' => true]); ?>
 </div>
+</div>
 <div class="ti-notice ti-notice-info ti-verified-badge-notice">
 <p>
 <span class="dashicons dashicons-star-empty"></span> <strong><?php echo esc_html(__('Congratulations!', 'trustindex-plugin')); ?></strong><br />
 <?php echo sprintf(__('Our system ranked you in the top %d%% of companies based on your reviews. Your total rating score above %s in the last %d month, and your reviews are genuine', 'trustindex-plugin'), 5, $pluginManager::$topRatedMinimumScore, 12); ?><br />
 <?php echo __('This allows you to <strong>use in the widgets the Trustindex verified badge, the Universal Symbol of Trust.</strong> With the verified badge you can build more trust, and sell more!', 'trustindex-plugin'); ?>
 </p>
-</div>
 </div>
 </div>
 </div>
@@ -851,6 +863,26 @@ echo date($format);
 break;
 }
 ?></option>
+<?php endforeach; ?>
+</select>
+</form>
+</div>
+<div class="ti-form-group">
+<label><?php echo __('Select name format', 'trustindex-plugin'); ?></label>
+<form method="post" action="">
+<input type="hidden" name="command" value="save-nameformat" />
+<?php wp_nonce_field('ti-save-nameformat'); ?>
+<select class="ti-form-control" name="nameformat">
+<?php foreach ($pluginManager::$widget_nameformats as $format): ?>
+<option value="<?php echo esc_attr($format['id']); ?>" <?php echo $pluginManagerInstance->getWidgetOption('nameformat') == $format['id'] ? 'selected' : ''; ?>>
+<?php
+if (1 === (int)$format['id']) {
+echo __('Do not format', 'trustindex-plugin');
+} else {
+echo esc_html($pluginManagerInstance->renderNameFormat('Firstname Lastname', $format['id']));
+}
+?>
+</option>
 <?php endforeach; ?>
 </select>
 </form>
