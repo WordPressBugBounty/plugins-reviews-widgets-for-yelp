@@ -247,7 +247,7 @@ $this->setNotificationParam('not-using-no-connection', 'active', true);
 $this->setNotificationParam('not-using-no-connection', 'do-check', false);
 }
 if ( !class_exists('TrustindexGutenbergPlugin') && function_exists( 'register_block_type' ) && !WP_Block_Type_Registry::get_instance()->is_registered( 'trustindex/block-selector' )) {
-require_once dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'static' . DIRECTORY_SEPARATOR . 'block-editor' . DIRECTORY_SEPARATOR . 'block-editor.php';
+require_once $this->get_plugin_dir() . 'static' . DIRECTORY_SEPARATOR . 'block-editor' . DIRECTORY_SEPARATOR . 'block-editor.php';
 TrustindexGutenbergPlugin::instance();
 }
 }
@@ -778,7 +778,7 @@ $className = 'TrustindexPlugin_' . $forcePlatform;
 if (!class_exists($className)) {
 return $this->frontEndErrorForAdmins(ucfirst($forcePlatform) . ' plugin is not active or not found!');
 }
-$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-12.7.1", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
+$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-12.7.2", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
 $chosedPlatform->setNotificationParam('not-using-no-widget', 'active', false);
 if (!$chosedPlatform->is_noreg_linked()) {
 return $this->frontEndErrorForAdmins(sprintf(__('You have to connect your business (%s)!', 'trustindex-plugin'), $forcePlatform));
@@ -1010,7 +1010,7 @@ public static $widget_templates = array (
  'name' => 'Slider I. - with header',
  'type' => 'slider',
  'is-active' => false,
- 'is-popular' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1021,7 +1021,7 @@ public static $widget_templates = array (
  'name' => 'Slider I. - with Top Rated header and photos',
  'type' => 'slider',
  'is-active' => false,
- 'is-popular' => false,
+ 'is-popular' => true,
  'is-top-rated-badge' => true,
  'params' => 
  array (
@@ -1113,7 +1113,7 @@ public static $widget_templates = array (
  'name' => 'Slider V.',
  'type' => 'slider',
  'is-active' => true,
- 'is-popular' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1734,7 +1734,7 @@ public static $widget_templates = array (
  'name' => 'Floating I.',
  'type' => 'floating',
  'is-active' => true,
- 'is-popular' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1778,7 +1778,7 @@ public static $widget_templates = array (
  'name' => 'Floating V. - with popup',
  'type' => 'floating',
  'is-active' => true,
- 'is-popular' => false,
+ 'is-popular' => true,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -4463,7 +4463,7 @@ return $name;
 }
 $result = preg_replace($format['regex'], '$1 $2', $name);
 if ($format['ucfirst']) {
-$result = function_exists('mb_ucfirst') ? mb_ucfirst($result) : ucfirst($result);
+$result = ucfirst($result);
 }
 if ($format['toupper']) {
 $result = function_exists('mb_strtoupper') ? mb_strtoupper($result) : strtoupper($result);
@@ -4739,10 +4739,6 @@ $this->get_rating_stars($this->is_ten_scale_rating_platform() ? $ratingScore / 2
 if (!in_array($widgetTemplate['type'], [ 'button', 'badge', 'top-rated-badge' ]) && !$this->getWidgetOption('show-logos', false, $isPreview)) {
 $content = preg_replace('/<img class="ti-platform-icon".+>/U', '', $content);
 }
-if ($this->isDarkLogo($styleId, $setId)) {
-$content = str_replace('img/platform/logo', 'img/platform/logo-dark', $content);
-$content = str_replace('platform/'. ucfirst($this->getShortName()) .'/logo', 'platform/'. ucfirst($this->getShortName()) .'/logo-dark', $content);
-}
 if ($this->is_ten_scale_rating_platform() && $styleId === 11) {
 $content = str_replace('<span class="ti-rating">'. $ratingScore .'</span> ', '', $content);
 }
@@ -4856,21 +4852,6 @@ $replace = $start .'-'. $end;
 $text = str_replace('RATING_STAR_FILTER', $replace, $langExists ? self::$widget_footer_filter_texts[ $lang ]['star'] : 'Showing only RATING_STAR_FILTER star reviews');
 }
 return $text;
-}
-public function isDarkLogo($layoutId, $colorSchema)
-{
-if (in_array($layoutId, [ 5, 9, 31, 34, 33 ])) {
-return substr($colorSchema, 0, 5) === 'dark-';
-}
-switch ($colorSchema) {
-case 'light-contrast':
-case 'light-contrast-large':
-case 'light-contrast-large-blue':
-case 'dark-background':
-case 'dark-border':
-return true;
-}
-return false;
 }
 public function get_platform_name($type, $id = "")
 {
