@@ -90,4 +90,17 @@ $tag = str_replace([
 }
 return $tag;
 }, 9999999);
+$localizationFiles = json_decode(get_option('litespeed.conf.optm-localize_domains'), true);
+if (is_array($localizationFiles) && $localizationFiles) {
+$isUpdated = false;
+foreach ($localizationFiles as $i => $url) {
+if (strpos($url, '#') !== 0 && strpos($url, '.trustindex.') !== false) {
+$localizationFiles[$i] = '# '.$url;
+$isUpdated = true;
+}
+}
+if ($isUpdated) {
+update_option('litespeed.conf.optm-localize_domains', json_encode($localizationFiles), true);
+}
+}
 ?>
