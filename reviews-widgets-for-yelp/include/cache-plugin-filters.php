@@ -90,8 +90,13 @@ $tag = str_replace([
 }
 return $tag;
 }, 9999999);
-$localizationFiles = json_decode(get_option('litespeed.conf.optm-localize_domains'), true);
-if (is_array($localizationFiles) && $localizationFiles) {
+$localizationFiles = get_option('litespeed.conf.optm-localize_domains');
+$isJson = false;
+if (is_string($localizationFiles)) {
+$localizationFiles = json_decode($localizationFiles, true);
+$isJson = true;
+}
+if ($localizationFiles && is_array($localizationFiles)) {
 $isUpdated = false;
 foreach ($localizationFiles as $i => $url) {
 if (strpos($url, '#') !== 0 && strpos($url, '.trustindex.') !== false) {
@@ -100,7 +105,10 @@ $isUpdated = true;
 }
 }
 if ($isUpdated) {
-update_option('litespeed.conf.optm-localize_domains', json_encode($localizationFiles), true);
+if ($isJson) {
+$localizationFiles = json_encode($localizationFiles);
+}
+update_option('litespeed.conf.optm-localize_domains', $localizationFiles, true);
 }
 }
 ?>
