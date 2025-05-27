@@ -40,7 +40,7 @@ exit;
 }
 $yesIcon = '<span class="dashicons dashicons-yes-alt"></span>';
 $noIcon = '<span class="dashicons dashicons-dismiss"></span>';
-$pluginUpdated = ($pluginManagerInstance->get_plugin_current_version() <= "12.7.4");
+$pluginUpdated = ($pluginManagerInstance->get_plugin_current_version() <= "12.7.5");
 $cssInline = get_option($pluginManagerInstance->get_option_name('load-css-inline'), 0);
 $css = get_option($pluginManagerInstance->get_option_name('css-content'));
 $tiSuccess = "";
@@ -309,7 +309,7 @@ $tiPackage = is_array($tiWidgets) && $tiWidgets && isset($tiWidgets[0]['package'
 <button type="submit" class="ti-btn ti-btn-loading-on-click ti-mb-1"><?php echo __('CONNECT ACCOUNT', 'trustindex-plugin');?></button>
 <br />
 <a class="ti-btn ti-btn-default" href="<?php echo 'https://admin.trustindex.io/'; ?>forgot-password" target="_blank"><?php echo __('Have you forgotten your password?', 'trustindex-plugin'); ?></a>
-<a class="ti-btn ti-btn-default" href="https://www.trustindex.io/ti-redirect.php?a=sys&c=wp-yelp-4" target="_blank"><?php echo __('Create a new Trustindex account', 'trustindex-plugin');?></a>
+<a class="ti-btn ti-btn-default" href="https://www.trustindex.io/?a=sys&c=wp-yelp-4" target="_blank"><?php echo __('Create a new Trustindex account', 'trustindex-plugin');?></a>
 </p>
 </form>
 <?php endif; ?>

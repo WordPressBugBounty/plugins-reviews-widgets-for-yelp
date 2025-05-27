@@ -209,7 +209,7 @@ href="<?php echo esc_url(admin_url('admin.php?page='. esc_attr(sanitize_text_fie
 <?php endif; ?>
 </a>
 <?php endforeach; ?>
-<a href="https://www.trustindex.io/ti-redirect.php?a=sys&c=<?php echo esc_attr($logoCampaignId); ?>" target="_blank" title="Trustindex" class="ti-logo">
+<a href="https://www.trustindex.io/?a=sys&c=<?php echo esc_attr($logoCampaignId); ?>" target="_blank" title="Trustindex" class="ti-logo">
 <img src="<?php echo esc_url($pluginManagerInstance->get_plugin_file_url($logoFile)); ?>" />
 </a>
 </div>

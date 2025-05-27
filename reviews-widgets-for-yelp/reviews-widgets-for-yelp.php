@@ -9,9 +9,9 @@ Author: Trustindex.io <support@trustindex.io>
 Author URI: https://www.trustindex.io/
 Contributors: trustindex
 License: GPLv2 or later
-Version: 12.7.4
-Requires at least: 3.0.1
-Requires PHP: 5.2
+Version: 12.7.5
+Requires at least: 6.2
+Requires PHP: 7.0
 Text Domain: reviews-widgets-for-yelp
 Domain Path: /languages
 Donate link: https://www.trustindex.io/prices/
@@ -22,7 +22,7 @@ Copyright 2019 Trustindex Kft (email: support@trustindex.io)
 defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
 require_once plugin_dir_path(__FILE__) . 'include' . DIRECTORY_SEPARATOR . 'cache-plugin-filters.php';
 require_once plugin_dir_path(__FILE__) . 'trustindex-plugin.class.php';
-$trustindex_pm_yelp = new TrustindexPlugin_yelp("yelp", __FILE__, "12.7.4", "Widgets for Yelp Reviews", "Yelp");
+$trustindex_pm_yelp = new TrustindexPlugin_yelp("yelp", __FILE__, "12.7.5", "Widgets for Yelp Reviews", "Yelp");
 $pluginManager = 'TrustindexPlugin_yelp';
 $pluginManagerInstance = $trustindex_pm_yelp;
 add_action('admin_init', function() { ob_start(); });
@@ -54,6 +54,14 @@ wp_register_script('trustindex-loader-js', 'https://cdn.trustindex.io/loader.js'
 ]);
 });
 add_action('init', [ $pluginManagerInstance, 'init_shortcode' ]);
+add_action('elementor/controls/controls_registered', function($controlsManager) {
+require_once(__DIR__ . '/include/elementor-widgets.php');
+$controlsManager->register_control('choose', new \Elementor\Control_Choose2());
+});
+add_action('elementor/widgets/widgets_registered', function ($widgetsManager) use ($pluginManagerInstance) {
+require_once(__DIR__ . '/include/elementor-widgets.php');
+$widgetsManager->register(new \Elementor\TrustrindexElementorWidget_Yelp([], [$pluginManagerInstance]));
+});
 add_action('init', [ $pluginManagerInstance, 'register_tinymce_features' ]);
 add_action('wp_ajax_list_trustindex_widgets', [ $pluginManagerInstance, 'list_trustindex_widgets_ajax' ]);
 add_action('admin_enqueue_scripts', [ $pluginManagerInstance, 'trustindex_add_scripts' ]);

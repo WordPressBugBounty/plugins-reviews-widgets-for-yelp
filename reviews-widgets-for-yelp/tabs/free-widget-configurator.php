@@ -492,7 +492,7 @@ echo sprintf(__("You have connected your Trustindex account, so you can find pre
 <?php if ($pluginManagerInstance->is_trustindex_connected()): ?>
  <a href="?page=<?php echo esc_attr($_GET['page']); ?>&tab=advanced">Trustindex admin</a>
 <?php else: ?>
- <a href="https://www.trustindex.io/ti-redirect.php?a=sys&c=wp-amp" target="_blank"><?php echo __('Try premium features (like AMP) for free', 'trustindex-plugin'); ?></a>
+ <a href="https://www.trustindex.io/?a=sys&c=wp-amp" target="_blank"><?php echo __('Try premium features (like AMP) for free', 'trustindex-plugin'); ?></a>
 <?php endif; ?>
 </p>
 <button type="button" class="notice-dismiss" data-command="save-amp-notice-hide"></button>

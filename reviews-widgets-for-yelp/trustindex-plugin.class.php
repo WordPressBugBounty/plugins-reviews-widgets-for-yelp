@@ -75,7 +75,7 @@ return admin_url('admin-ajax.php') . '?action='. $this->getWebhookAction();
 public function getProFeatureButton($campaignId)
 {
 
-return '<a class="ti-btn" href="https://www.trustindex.io/ti-redirect.php?a=sys&c='. $campaignId .'" target="_blank">'. __('Create a Free Account for More Features', 'trustindex-plugin') .'</a>';
+return '<a class="ti-btn" href="https://www.trustindex.io/?a=sys&c='. $campaignId .'" target="_blank">'. __('Create a Free Account for More Features', 'trustindex-plugin') .'</a>';
 }
 public function is_review_download_in_progress()
 {
@@ -762,7 +762,11 @@ public function shortcode_func($atts)
 {
 $atts = shortcode_atts([ 'data-widget-id' => null, 'no-registration' => null ], $atts);
 if (isset($atts['data-widget-id']) && $atts['data-widget-id']) {
-return $this->renderWidgetFrontend($atts['data-widget-id']);
+$content = $this->renderWidgetFrontend($atts['data-widget-id']);
+if ($this->isElementorEditing()) {
+$content .= '<script type="text/javascript" src="https://cdn.trustindex.io/loader.js"></script>';
+}
+return $content;
 }
 else if (isset($atts['no-registration']) && $atts['no-registration']) {
 $forcePlatform = $atts['no-registration'];
@@ -778,7 +782,7 @@ $className = 'TrustindexPlugin_' . $forcePlatform;
 if (!class_exists($className)) {
 return $this->frontEndErrorForAdmins(ucfirst($forcePlatform) . ' plugin is not active or not found!');
 }
-$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-12.7.4", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
+$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-12.7.5", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
 $chosedPlatform->setNotificationParam('not-using-no-widget', 'active', false);
 if (!$chosedPlatform->is_noreg_linked()) {
 return $this->frontEndErrorForAdmins(sprintf(__('You have to connect your business (%s)!', 'trustindex-plugin'), $forcePlatform));
