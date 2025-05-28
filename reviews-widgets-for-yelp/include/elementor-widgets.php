@@ -75,6 +75,7 @@ $shortcode = $settings['embed_code'];
 echo do_shortcode($shortcode);
 }
 }
+if (!class_exists('Elementor\Control_Choose2')) {
 class Control_Choose2 extends Control_Choose {
 public function content_template() {
 $control_uid_input_type = '{{value}}';
@@ -100,5 +101,6 @@ $control_uid_input_type = '{{value}}';
 <div class="elementor-control-field-description">{{{ data.description }}}</div>
 <# } #>
 <?php
+}
 }
 }
