@@ -17,10 +17,12 @@ header('Location: admin.php?' . build_query($params));
 exit;
 }
 if (isset($_GET['notification'])) {
-$type = sanitize_text_field(wp_unslash($_GET['notification']));
-$options = $pluginManagerInstance->getNotificationOptions($type);
 if (isset($_GET['action'])) {
-switch (sanitize_text_field(wp_unslash($_GET['action']))) {
+$type = sanitize_text_field(wp_unslash($_GET['notification']));
+$action = sanitize_text_field(wp_unslash($_GET['action']));
+
+$options = $pluginManagerInstance->getNotificationOptions($type);
+switch ($action) {
 case 'later':
 $remindDays = isset($_GET['remind-days']) ? (int)$_GET['remind-days'] : 14;
 $pluginManagerInstance->setNotificationParam($type, 'timestamp', time() + ($remindDays * 86400));
