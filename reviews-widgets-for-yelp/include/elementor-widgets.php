@@ -53,7 +53,7 @@ $this->add_control('custom_panel_notice', [
 'type' => \Elementor\Controls_Manager::NOTICE,
 'notice_type' => 'success',
 'heading' => __('UPGRADE to PRO Features', 'trustindex-plugin'),
-'content' => sprintf(__('Automatic review update, creating unlimited review widgets, downloading and displaying all reviews, %d review platforms available!', 'trustindex-plugin'), 134)
+'content' => sprintf(__('Automatic review update, creating unlimited review widgets, downloading and displaying all reviews, %d review platforms available!', 'trustindex-plugin'), 135)
 . '<br /><br /><a href="https://www.trustindex.io/?a=sys&c=wp-google-elementor" target="_blank">'.__('Create a Free Account for More Features', 'trustindex-plugin').'</a>',
 'condition' => [ 'type' => 'free' ],
 ]);

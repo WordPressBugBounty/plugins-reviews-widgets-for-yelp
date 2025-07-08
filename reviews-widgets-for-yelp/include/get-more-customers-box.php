@@ -19,7 +19,7 @@ defined('ABSPATH') or die('No script kiddies please!');
 <?php echo __('Boost engagement by displaying customer photos in an interactive popup slider, bringing real experiences to life.', 'trustindex-plugin'); ?>
 </li>
 <li>
-<strong><?php echo sprintf(__("%d review platforms", 'trustindex-plugin'), 134); ?></strong><br />
+<strong><?php echo sprintf(__("%d review platforms", 'trustindex-plugin'), 135); ?></strong><br />
 <?php echo sprintf(__("Add more reviews to your widget from %s, etc. to enjoy more trust, and to keep customers on your site.", 'trustindex-plugin'), 'Google, Facebook, Yelp, Amazon, Tripadvisor, Booking.com, Airbnb, Hotels.com, Capterra, Foursquare, Opentable'); ?><br />
 <img src="<?php echo $pluginManagerInstance->get_plugin_file_url('static/img/platforms.png'); ?>" alt="" style="margin-top: 5px" />
 </li>

@@ -411,6 +411,13 @@ return [
 'top-rated-date',
 'show-review-replies',
 'verified-by-trustindex',
+'fomo-open',
+'fomo-link',
+'fomo-border',
+'fomo-arrow',
+'fomo-icon',
+'fomo-color',
+'fomo-margin',
 'cdn-version-control',
 'version-control',
 'preview',
@@ -468,6 +475,9 @@ case 'enable-animation':
 case 'show-arrows':
 case 'show-header-button':
 case 'reviews-load-more':
+case 'fomo-open':
+case 'fomo-border':
+case 'fomo-arrow':
 $default = 1;
 break;
 case 'widget-setted-up':
@@ -475,6 +485,8 @@ case 'disable-font':
 case 'footer-filter-text':
 case 'floating-mobile-open':
 case 'show-review-replies':
+case 'fomo-link':
+case 'fomo-margin':
 $default = 0;
 break;
 case 'align':
@@ -500,6 +512,13 @@ $default = in_array($styleId, [98, 100, 102, 104]) ? 'hide' : '';
 break;
 case 'verified-by-trustindex':
 $default = 0;
+break;
+case 'fomo-icon':
+$default = self::$widget_templates['templates'][$styleId]['params']['fomo-icon'];
+break;
+case 'fomo-color':
+$params = self::$widget_templates['templates'][$styleId]['params'];
+$default = isset($params['fomo-color']) ? $params['fomo-color'] : '#FF552B';
 break;
 }
 }
@@ -782,7 +801,7 @@ $className = 'TrustindexPlugin_' . $forcePlatform;
 if (!class_exists($className)) {
 return $this->frontEndErrorForAdmins(ucfirst($forcePlatform) . ' plugin is not active or not found!');
 }
-$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-12.8", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
+$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-12.9", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
 $chosedPlatform->setNotificationParam('not-using-no-widget', 'active', false);
 if (!$chosedPlatform->is_noreg_linked()) {
 return $this->frontEndErrorForAdmins(sprintf(__('You have to connect your business (%s)!', 'trustindex-plugin'), $forcePlatform));
@@ -951,6 +970,7 @@ public static $widget_templates = array (
  'floating' => '17,21,52,53,112,114',
  'popup' => '23,30,32,112,114',
  'top-rated-badge' => '97,98,99,100,101,102,103,104',
+ 'fomo' => '116,117,118,119,120,121',
  ),
  'templates' => 
  array (
@@ -1189,23 +1209,23 @@ public static $widget_templates = array (
  array (
  ),
  ),
- 79 => 
- array (
- 'name' => 'Mansonry grid - with header',
- 'type' => 'grid',
- 'is-active' => false,
- 'is-popular' => true,
- 'is-top-rated-badge' => false,
- 'params' => 
- array (
- ),
- ),
  38 => 
  array (
  'name' => 'Grid II.',
  'type' => 'grid',
  'is-active' => false,
  'is-popular' => false,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ ),
+ ),
+ 79 => 
+ array (
+ 'name' => 'Mansonry grid - with header',
+ 'type' => 'grid',
+ 'is-active' => false,
+ 'is-popular' => true,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1656,22 +1676,22 @@ public static $widget_templates = array (
  array (
  ),
  ),
- 109 => 
+ 61 => 
  array (
- 'name' => 'Button IX.',
+ 'name' => 'Button X.',
  'type' => 'button',
- 'is-active' => true,
+ 'is-active' => false,
  'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
  ),
  ),
- 61 => 
+ 109 => 
  array (
- 'name' => 'Button X.',
+ 'name' => 'Button IX.',
  'type' => 'button',
- 'is-active' => false,
+ 'is-active' => true,
  'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
@@ -1797,6 +1817,138 @@ public static $widget_templates = array (
  'is-top-rated-badge' => false,
  'params' => 
  array (
+ ),
+ ),
+ 116 => 
+ array (
+ 'name' => 'Fomo Review Widget I.',
+ 'type' => 'fomo',
+ 'is-active' => true,
+ 'is-popular' => false,
+ 'is-top-rated-badge' => true,
+ 'params' => 
+ array (
+ 'is-top-rated-badge' => true,
+ 'fomo-icon' => 'platform',
+ 'fomo-icon-choices' => 
+ array (
+ 0 => 'profile-images',
+ 1 => 'platform',
+ 2 => 'fire',
+ 3 => 'trophy',
+ ),
+ 'fomo-platform-block' => true,
+ 'top-rated-badge-border' => false,
+ 'default-hide-date' => false,
+ ),
+ ),
+ 117 => 
+ array (
+ 'name' => 'Fomo Review Widget II.',
+ 'type' => 'fomo',
+ 'is-active' => true,
+ 'is-popular' => false,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ 'fomo-icon' => 'platform',
+ 'fomo-icon-choices' => 
+ array (
+ 0 => 'profile-images',
+ 1 => 'platform',
+ 2 => 'fire',
+ 3 => 'trophy',
+ ),
+ 'fomo-title-text' => 'RATING_TEXT rating',
+ 'fomo-platform-block' => true,
+ ),
+ ),
+ 120 => 
+ array (
+ 'name' => 'Fomo Review Widget III.',
+ 'type' => 'fomo',
+ 'is-active' => true,
+ 'is-popular' => false,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ 'fomo-icon' => 'fire',
+ 'fomo-icon-choices' => 
+ array (
+ 0 => 'profile-images',
+ 1 => 'platform',
+ 2 => 'fire',
+ 3 => 'trophy',
+ ),
+ 'fomo-title-text' => '5STAR_RATING_NUMBER <u>5-star</u> PLATFORM_NAME reviews',
+ 'fomo-platform-block' => true,
+ ),
+ ),
+ 119 => 
+ array (
+ 'name' => 'Fomo Review Widget IV.',
+ 'type' => 'fomo',
+ 'is-active' => true,
+ 'is-popular' => false,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ 'fomo-icon' => 'fire',
+ 'fomo-icon-choices' => 
+ array (
+ 0 => 'profile-images',
+ 1 => 'platform',
+ 2 => 'fire',
+ 3 => 'trophy',
+ ),
+ 'fomo-title-text' => '5STAR_RATING_NUMBER_LAST <u>5-star</u> PLATFORM_NAME reviews',
+ 'fomo-subtitle-text' => 'in the last 30 days',
+ 'fomo-platform-block' => true,
+ ),
+ ),
+ 118 => 
+ array (
+ 'name' => 'Fomo Review Widget V.',
+ 'type' => 'fomo',
+ 'is-active' => true,
+ 'is-popular' => false,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ 'fomo-icon' => 'fire',
+ 'fomo-icon-choices' => 
+ array (
+ 0 => 'profile-images',
+ 1 => 'platform',
+ 2 => 'fire',
+ 3 => 'trophy',
+ ),
+ 'fomo-title-text' => 'RATING_TEXT rating',
+ 'fomo-subtitle-text' => 'based on RATING_NUMBER PLATFORM_NAME reviews',
+ 'fomo-break-after-subtitle' => true,
+ 'fomo-platform-block' => true,
+ ),
+ ),
+ 121 => 
+ array (
+ 'name' => 'Fomo Review Widget VI.',
+ 'type' => 'fomo',
+ 'is-active' => true,
+ 'is-popular' => false,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ 'fomo-icon' => 'profile-images',
+ 'fomo-icon-choices' => 
+ array (
+ 0 => 'profile-images',
+ 1 => 'platform',
+ 2 => 'fire',
+ 3 => 'trophy',
+ ),
+ 'fomo-title-text' => 'RATING_TEXT rating',
+ 'fomo-platform-block' => true,
+ 'fomo-color' => '#F6BB06',
  ),
  ),
  ),
@@ -4400,7 +4552,7 @@ $templateId = 'trustindex-'.$this->getShortName().'-widget-html';
 $attributes['data-src'] .= 'wp-widget';
 $attributes['data-template-id'] = $templateId;
 $preContent = '<pre class="ti-widget" style="display: none"><template id="'.esc_attr($templateId).'">'.$this->getWidgetHtml($reviews);
-$preContent = preg_replace('/<img (.*)src="([^"]+)"(.*)\/>/U', '<trustindex-image $1data-imgurl="$2"$3></trustindex-image>', $preContent);
+$preContent = preg_replace('/<img (.*)src="([^"]+)"(.*)\/?>/U', '<trustindex-image $1data-imgurl="$2"$3></trustindex-image>', $preContent);
 $preContent = str_replace('srcset="', 'data-imgurlset="', $preContent);
 if (is_file($this->getCssFile()) && !get_option($this->get_option_name('load-css-inline'), 0)) {
 $attributes['data-css-url'] = $this->getCssUrl().'?'.filemtime($this->getCssFile());
@@ -4525,11 +4677,21 @@ $classAppends []= 'ti-disable-nav';
 if (!$this->getWidgetOption('enable-animation', false, $isPreview)) {
 $classAppends []= 'ti-disable-animation';
 }
+if ($this->isFomoWidget()) {
+$classAppends []= 'ti-fomo-align-'.$this->getWidgetOption('align', false, $isPreview);
+if (!$this->getWidgetOption('fomo-border', false, $isPreview)) {
+$classAppends []= 'ti-hide-fomo-border';
+}
+if (!$this->getWidgetOption('fomo-arrow', false, $isPreview)) {
+$classAppends []= 'ti-hide-fomo-arrow';
+}
+} else {
 if (!$this->getWidgetOption('no-rating-text', false, $isPreview)) {
 $classAppends []= 'ti-show-rating-text';
 }
 $classAppends []= 'ti-review-text-mode-'.$this->getWidgetOption('review-text-mode', false, $isPreview);
 $classAppends []= 'ti-'.(in_array($styleId, [36, 37, 38, 39]) ? 'content' : 'text').'-align-'.$this->getWidgetOption('align', false, $isPreview);
+}
 $content = str_replace('" data-layout-id=', ' '. implode(' ', $classAppends) .'" data-no-translation="true" data-layout-id=', $content);
 if ($this->isRtlLanguage()) {
 $content = str_replace('" data-layout-id=', '" data-rotate-to="left" data-layout-id=', $content);
@@ -4537,6 +4699,15 @@ $content = str_replace('" data-layout-id=', '" data-rotate-to="left" data-layout
 if ($this->getWidgetOption('dateformat', false, $isPreview) === 'modern') {
 $language = $this->getWidgetOption('lang', false, $isPreview);
 $content = str_replace('" data-layout-id=', '" data-time-locale="'. self::$widget_date_format_locales[$language] .'" data-layout-id=', $content);
+}
+if ($this->isFomoWidget()) {
+$styleText = '--fomo-color:'.$this->getWidgetOption('fomo-color', false, $isPreview).';';
+if ('right' === $this->getWidgetOption('align', false, $isPreview)) {
+$styleText .= 'left: auto;right: '.$this->getWidgetOption('fomo-margin', false, $isPreview).'px;';
+} else {
+$styleText .= 'left: '.$this->getWidgetOption('fomo-margin', false, $isPreview).'px;';
+}
+$content = str_replace('" data-layout-id=', '" style="'.$styleText.'" data-layout-id=', $content);
 }
 return $content;
 }
@@ -4698,7 +4869,8 @@ $image2xUrl = $imageUrl;
 
 $profileImageListForButton = "";
 if ($reviews) {
-for ($i = 0; $i < min(count($reviews), 5); $i++) {
+$max = $widgetTemplate['type'] === 'fomo' ? 3 : 5;
+for ($i = 0; $i < min(count($reviews), $max); $i++) {
 $profileImageListForButton .= '
 <div class="ti-profile-img">
 <img
@@ -4710,9 +4882,22 @@ loading="lazy"
 </div>';
 }
 }
+if ($widgetTemplate['type'] === 'fomo') {
+$ratingText = $ratingTextUcfirst;
+}
+$fiveStarRatingNumber = 0;
+if (isset($pageDetails['rating_numbers'])) {
+$fiveStarRatingNumber = $pageDetails['rating_numbers'][5];
+}
+$fiveStarRatingNumberLast = 0;
+if (isset($pageDetails['rating_numbers_last'])) {
+$fiveStarRatingNumberLast = $pageDetails['rating_numbers_last'][5];
+}
 $content = str_replace([
 '%platform%',
 '%site_name%',
+"5STAR_RATING_NUMBER_LAST",
+"5STAR_RATING_NUMBER",
 "RATING_NUMBER",
 "RATING_SCORE",
 "RATING_SCALE",
@@ -4728,6 +4913,8 @@ $content = str_replace([
 ], [
 ucfirst($this->getShortName()),
 $pageDetails['name'],
+$fiveStarRatingNumberLast,
+$fiveStarRatingNumber,
 $ratingCount,
 number_format((float)$ratingScore, 1),
 $this->is_ten_scale_rating_platform() ? 10 : 5,
@@ -4741,21 +4928,44 @@ $this->get_rating_stars($this->is_ten_scale_rating_platform() ? $ratingScore / 2
 '<img class="ti-platform-icon" src="https://cdn.trustindex.io/assets/platform/'.ucfirst($this->getShortName()).'/icon.svg" alt="'.ucfirst($this->getShortName()).'" width="20" height="20" loading="lazy" />',
 '<div class="ti-profile-images">'.$profileImageListForButton.'</div>',
 ], $content);
-if (!in_array($widgetTemplate['type'], [ 'button', 'badge', 'top-rated-badge' ]) && !$this->getWidgetOption('show-logos', false, $isPreview)) {
+if (!in_array($widgetTemplate['type'], [ 'button', 'badge', 'top-rated-badge', 'fomo' ]) && !$this->getWidgetOption('show-logos', false, $isPreview)) {
 $content = preg_replace('/<img class="ti-platform-icon".+>/U', '', $content);
 }
 if ($this->is_ten_scale_rating_platform() && $styleId === 11) {
 $content = str_replace('<span class="ti-rating">'. $ratingScore .'</span> ', '', $content);
 }
-if (in_array($styleId, [8, 10, 11, 12, 13, 20, 22, 24, 25, 26, 27, 28, 29, 35, 55, 56, 57, 58, 59, 60, 61, 62, 106, 107, 109, 110, 111, 113, 115])) {
+if (in_array($styleId, [8, 10, 11, 12, 13, 20, 22, 24, 25, 26, 27, 28, 29, 35, 55, 56, 57, 58, 59, 60, 61, 62, 106, 107, 109, 110, 111, 113, 115]) || $widgetTemplate['type'] === 'fomo') {
+if ($widgetTemplate['type'] === 'fomo' && !$this->getWidgetOption('fomo-link', false, $isPreview)) {
+$content = preg_replace('/<a href=[\'"]%footer_link%[\'"][^>]*>(.+)<\/a>/mU', '<div class="ti-header">$1</div>', $content);
+} else {
 if (!$this->getWidgetOption('show-header-button', false, $isPreview)) {
 $content = preg_replace('/<!-- HEADER-BUTTON-START.+HEADER-BUTTON-END -->/s', '', $content);
 }
 $content = str_replace(['<!-- HEADER-BUTTON-START', 'HEADER-BUTTON-END -->'], '', $content);
 
 $content = str_replace('%footer_link%', $this->getPageUrl(), $content);
+}
 } else {
 $content = preg_replace('/<a href=[\'"]%footer_link%[\'"][^>]*>(.+)<\/a>/mU', '$1', $content);
+}
+if ($widgetTemplate['type'] === 'fomo') {
+if (!$this->getWidgetOption('fomo-open', false, $isPreview)) {
+$content = str_replace('class="ti-widget-container"', 'class="ti-widget-container ti-header-closed"', $content);
+}
+$iconType = $this->getWidgetOption('fomo-icon', false, $isPreview);
+$iconHtml = '<div class="ti-fomo-icon" data-type="'.$iconType.'"></div>';
+$platformIconHtml = '<img class="ti-platform-icon" src="https://cdn.trustindex.io/assets/platform/'.ucfirst($this->getShortName()).'/icon.svg" alt="'.ucfirst($this->getShortName()).'" width="20" height="20" loading="lazy">';
+if ('profile-images' === $iconType) {
+$iconHtml = '<div class="ti-profile-images">'.$profileImageListForButton.'</div>';
+} else if ('platform' === $iconType) {
+$iconHtml = $platformIconHtml;
+}
+$content = preg_replace('/<div class="ti-icon">\s*<\/div>/', '<div class="ti-icon">'.$iconHtml.'</div>', $content);
+$platformBlockText = '';
+if ($widgetTemplate['params']['fomo-platform-block'] && 'platform' !== $iconType) {
+$platformBlockText = $platformIconHtml;
+}
+$content = str_replace('<!-- PLATFORM-ICON -->', $platformBlockText, $content);
 }
 if (!$this->getWidgetOption('reviews-load-more', false, $isPreview)) {
 $content = preg_replace('/<div class="ti-load-more-reviews-container"[^>]*>.+<\/div>\s*<\/div>/U', '', $content);
@@ -4770,7 +4980,7 @@ $content = preg_replace('/<div class="ti-rating-text">.*<\/div>/mU', '', $conten
 $content = preg_replace('/<div class="ti-footer">\s*<\/div>/m', '', $content);
 }
 }
-if ($this->getWidgetOption('footer-filter-text', false, $isPreview) && (!in_array($widgetTemplate['type'], ['button', 'badge', 'floating', 'top-rated-badge']) || in_array($styleId, [23, 30, 32, 53]))) {
+if ($this->getWidgetOption('footer-filter-text', false, $isPreview) && (!in_array($widgetTemplate['type'], ['button', 'badge', 'floating', 'top-rated-badge', 'fomo']) || in_array($styleId, [23, 30, 32, 53]))) {
 $filterText = $this->get_footer_filter_text($language);
 if (!in_array($styleId, [5, 8, 9, 10, 13, 18, 23, 30, 31, 32, 33, 34, 53, 54]) && !$this->getWidgetOption('no-rating-text', false, $isPreview)) {
 $content = str_replace('</span><!-- FOOTER FILTER TEXT -->', ',</span><span class="nowrap"><!-- FOOTER FILTER TEXT --></span>', $content);
@@ -4804,14 +5014,20 @@ $topRatedType = $this->getWidgetOption('top-rated-type', false, $isPreview);
 $date = date('Y');
 if ($topRatedDate === 'last-year') {
 $date = date('Y') - 1;
-} else if ($topRatedDate === 'hide') {
+} else if ($topRatedDate === 'hide' || $widgetTemplate['type'] === 'fomo') {
 $date = '';
 }
 $title = trim(str_replace('%date%', $date, self::$widget_top_rated_titles[$topRatedType][$language]));
-if (in_array($styleId, [97, 98, 104])) {
+if (in_array($styleId, [97, 98, 104]) || $widgetTemplate['type'] === 'fomo') {
 $title = str_replace('<br />', '', $title);
 }
-$content = preg_replace('/<div class="ti-top-rated-title">.*<\/div>/mU', '<div class="ti-top-rated-title">'. $title .'</div>', $content);
+$title = '<div class="ti-top-rated-title">'.$title.'</div>';
+$regex = '/<div class="ti-top-rated-title">.*<\/div>/mU';
+if ($widgetTemplate['type'] === 'fomo') {
+$title = '<div class="ti-title-text">'.$title.'</div>';
+$regex = '/<div class="ti-title-text">.*<\/div>/mU';
+}
+$content = preg_replace($regex, $title, $content);
 $content = str_replace('a=sys&c=top-rated-badge', 'a=sys&c=wp-top-rated-badge', $content);
 }
 return $content;
@@ -4826,7 +5042,12 @@ return $this->isLayoutHasReviews() && !in_array($widgetTemplate['type'], ['float
 public function isLayoutHasReviews()
 {
 $styleId = (int)$this->getWidgetOption('style-id');
-return !in_array(self::$widget_templates['templates'][$styleId]['type'], ['button', 'badge', 'top-rated-badge']) || in_array($styleId, [23, 30, 32]);
+return !in_array(self::$widget_templates['templates'][$styleId]['type'], ['button', 'badge', 'top-rated-badge', 'fomo']) || in_array($styleId, [23, 30, 32]);
+}
+public function isFomoWidget()
+{
+$styleId = (int)$this->getWidgetOption('style-id');
+return self::$widget_templates['templates'][$styleId]['type'] === 'fomo';
 }
 public function isRtlLanguage()
 {
@@ -5131,6 +5352,12 @@ wp_enqueue_script('trustindex_settings_script_common_'. $this->getShortName(), $
 }
 if(file_exists($this->get_plugin_dir() . 'static' . DIRECTORY_SEPARATOR . 'js' . DIRECTORY_SEPARATOR . 'admin-page-settings-connect.js')) {
 wp_enqueue_script('trustindex_settings_script_connect_'. $this->getShortName(), $this->get_plugin_file_url('static/js/admin-page-settings-connect.js'), [], $this->getVersion());
+}
+if (file_exists($this->get_plugin_dir() . 'static' . DIRECTORY_SEPARATOR . 'css' . DIRECTORY_SEPARATOR . 'spectrum.css')) {
+wp_enqueue_style('trustindex_settings_spectrum_'. $this->getShortName(), $this->get_plugin_file_url('static/css/spectrum.css'), [], $this->getVersion());
+}
+if (file_exists($this->get_plugin_dir() . 'static' . DIRECTORY_SEPARATOR . 'js' . DIRECTORY_SEPARATOR . 'spectrum.js')) {
+wp_enqueue_script('trustindex_settings_spectrum_'. $this->getShortName(), $this->get_plugin_file_url('static/js/spectrum.js'), [], $this->getVersion());
 }
 }
 }

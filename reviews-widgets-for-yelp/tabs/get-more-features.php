@@ -13,7 +13,7 @@ defined('ABSPATH') or die('No script kiddies please!');
 <li><?php echo __('Display unlimited number of reviews', 'trustindex-plugin'); ?></li>
 <li><?php echo __('Create unlimited number of widgets', 'trustindex-plugin'); ?></li>
 <li><?php echo __('Display reviews with photos', 'trustindex-plugin'); ?></li>
-<li><?php echo sprintf(__('%d review platforms', 'trustindex-plugin'), 134); ?></li>
+<li><?php echo sprintf(__('%d review platforms', 'trustindex-plugin'), 135); ?></li>
 <li><?php echo __('Mix reviews from different platforms', 'trustindex-plugin'); ?></li>
 <li><?php echo __('Get more reviews', 'trustindex-plugin'); ?></li>
 <li><?php echo __('Manage all reviews in one place', 'trustindex-plugin'); ?></li>

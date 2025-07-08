@@ -89,6 +89,12 @@ if (isset($pageDetails['avatar_url'])) {
 $pageDetails['avatar_url'] = $data['avatar_url'];
 }
 $pageDetails['rating_number'] = $data['rating_number'];
+if (isset($data['rating_numbers']) && $data['rating_numbers']) {
+$pageDetails['rating_numbers'] = $data['rating_numbers'];
+}
+if (isset($data['rating_numbers_last']) && $data['rating_numbers_last']) {
+$pageDetails['rating_numbers_last'] = $data['rating_numbers_last'];
+}
 $pageDetails['rating_score'] = $data['rating_score'];
 update_option($pluginManagerInstance->get_option_name('page-details'), $pageDetails, false);
 $GLOBALS['wp_object_cache']->delete($pluginManagerInstance->get_option_name('page-details'), 'options');
@@ -193,7 +199,7 @@ update_option($pluginManagerInstance->get_option_name('review-download-token'), 
 <?php endif; ?>
 <div class="ti-upgrade-notice">
 <strong><?php echo __('UPGRADE to PRO Features', 'trustindex-plugin'); ?></strong>
-<p><?php echo sprintf(__('Automatic review update, creating unlimited review widgets, downloading and displaying all reviews, %d review platforms available!', 'trustindex-plugin'), 134); ?></p>
+<p><?php echo sprintf(__('Automatic review update, creating unlimited review widgets, downloading and displaying all reviews, %d review platforms available!', 'trustindex-plugin'), 135); ?></p>
 <?php echo $pluginManagerInstance->getProFeatureButton('wp-yelp-pro'); ?>
 </div>
 
