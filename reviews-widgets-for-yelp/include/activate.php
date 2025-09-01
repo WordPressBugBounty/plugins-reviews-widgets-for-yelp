@@ -15,6 +15,7 @@ if ($site['id'] !== -1) {
 switch_to_blog($site['id']);
 }
 $tiReviewsTableName = $this->get_tablename('reviews');
+$tiViewsTableName = $this->get_tablename('views');
 include $this->get_plugin_dir() . 'include' . DIRECTORY_SEPARATOR . 'schema.php';
 foreach (array_keys($ti_db_schema) as $tableName) {
 if (!$this->is_table_exists($tableName)) {

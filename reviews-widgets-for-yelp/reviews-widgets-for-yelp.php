@@ -9,7 +9,7 @@ Author: Trustindex.io <support@trustindex.io>
 Author URI: https://www.trustindex.io/
 Contributors: trustindex
 License: GPLv2 or later
-Version: 13.0
+Version: 13.1
 Requires at least: 6.2
 Requires PHP: 7.0
 Text Domain: reviews-widgets-for-yelp
@@ -22,16 +22,25 @@ Copyright 2019 Trustindex Kft (email: support@trustindex.io)
 defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
 require_once plugin_dir_path(__FILE__) . 'include' . DIRECTORY_SEPARATOR . 'cache-plugin-filters.php';
 require_once plugin_dir_path(__FILE__) . 'trustindex-plugin.class.php';
-$trustindex_pm_yelp = new TrustindexPlugin_yelp("yelp", __FILE__, "13.0", "Widgets for Yelp Reviews", "Yelp");
+$trustindex_pm_yelp = new TrustindexPlugin_yelp("yelp", __FILE__, "13.1", "Widgets for Yelp Reviews", "Yelp");
 $pluginManager = 'TrustindexPlugin_yelp';
 $pluginManagerInstance = $trustindex_pm_yelp;
 add_action('admin_init', function() { ob_start(); });
 register_activation_hook(__FILE__, [ $pluginManagerInstance, 'activate' ]);
 register_deactivation_hook(__FILE__, [ $pluginManagerInstance, 'deactivate' ]);
 add_action('plugins_loaded', [ $pluginManagerInstance, 'load' ]);
+add_action('wp_head', function() use($pluginManagerInstance) {
+echo '<script class="ti-site-data" type="application/ld+json">{"@context":"http://schema.org","data":'.json_encode([
+'r' =>
+'1:'.$pluginManagerInstance->getRegistrationCount(1) .
+'!7:'.$pluginManagerInstance->getRegistrationCount(7) .
+'!30:'.$pluginManagerInstance->getRegistrationCount(30),
+]).'}</script>';
+});
 add_action('wp_insert_site', function($site) use($pluginManagerInstance) {
 switch_to_blog($site->blog_id);
 $tiReviewsTableName = $pluginManagerInstance->get_tablename('reviews');
+$tiViewsTableName = $pluginManagerInstance->get_tablename('views');
 include $pluginManagerInstance->get_plugin_dir() . 'include' . DIRECTORY_SEPARATOR . 'schema.php';
 foreach (array_keys($ti_db_schema) as $tableName) {
 if (!$pluginManagerInstance->is_table_exists($tableName)) {
@@ -77,7 +86,7 @@ if ($wcNotification == 'hide' || (int)$wcNotification > time()) {
 return;
 }
 ?>
-<div class="notice notice-warning is-dismissible" style="margin: 5px 0 15px">
+<div class="notice notice-warning trustindex-notification-row is-dismissible" style="margin: 5px 0 15px">
 <p><strong><?php echo sprintf(__("Download our new <a href='%s' target='_blank'>%s</a> plugin and get features for free!", 'trustindex-plugin'), 'https://wordpress.org/plugins/customer-reviews-collector-for-woocommerce/', 'Customer Reviews Collector for WooCommerce'); ?></strong></p>
 <ul style="list-style-type: disc; margin-left: 10px; padding-left: 15px">
 <li><?php echo __('Send unlimited review invitations for free', 'trustindex-plugin'); ?></li>
@@ -85,10 +94,10 @@ return;
 <li><?php echo __('Collect reviews on 100+ review platforms (Google, Facebook, Yelp, etc.)', 'trustindex-plugin'); ?></li>
 </ul>
 <p>
-<a href="<?php echo admin_url("admin.php?page=reviews-widgets-for-yelp/settings.php&wc_notification=open"); ?>" target="_blank" class="trustindex-rateus" style="text-decoration: none">
+<a href="<?php echo admin_url("admin.php?page=reviews-widgets-for-yelp/settings.php&wc_notification=open"); ?>" target="_blank" class="ti-close-notification" style="text-decoration: none">
 <button class="button button-primary"><?php echo __('Download plugin', 'trustindex-plugin'); ?></button>
 </a>
-<a href="<?php echo admin_url("admin.php?page=reviews-widgets-for-yelp/settings.php&wc_notification=hide"); ?>" class="trustindex-rateus" style="text-decoration: none">
+<a href="<?php echo admin_url("admin.php?page=reviews-widgets-for-yelp/settings.php&wc_notification=hide"); ?>"target="_blank" class="ti-hide-notification" style="text-decoration: none">
 <button class="button button-secondary"><?php echo __('Do not remind me again', 'trustindex-plugin'); ?></button>
 </a>
 </p>

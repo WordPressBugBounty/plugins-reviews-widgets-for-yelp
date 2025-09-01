@@ -20,6 +20,8 @@ $ti_command_list = [
 'save-fomo-title',
 'save-fomo-text',
 'save-fomo-url',
+'save-fomo-day',
+'save-fomo-hide-count',
 'save-review-text-mode',
 'save-verified-by-trustindex',
 'save-amp-notice-hide',
@@ -180,14 +182,18 @@ $optionsToDelete = [
 'fomo-arrow',
 'fomo-icon',
 'fomo-color',
+'fomo-icon-background',
 'fomo-margin',
 'fomo-title',
 'fomo-text',
 'fomo-url',
+'fomo-day',
+'fomo-hide-count',
 ];
 foreach ($optionsToDelete as $name) {
 delete_option($pluginManagerInstance->get_option_name($name));
 }
+$pluginManagerInstance->emptyViews();
 }
 if ($step < 4) {
 delete_option($pluginManagerInstance->get_option_name('scss-set'));
@@ -362,6 +368,11 @@ if (isset($_POST['fomo-arrow'])) {
 $r = sanitize_text_field($_POST['fomo-arrow']);
 }
 update_option($pluginManagerInstance->get_option_name('fomo-arrow'), $r, false);
+$r = 0;
+if (isset($_POST['fomo-icon-background'])) {
+$r = sanitize_text_field($_POST['fomo-icon-background']);
+}
+update_option($pluginManagerInstance->get_option_name('fomo-icon-background'), $r, false);
 exit;
 }
 else if ($ti_command === 'save-align') {
@@ -371,7 +382,11 @@ exit;
 }
 else if ($ti_command === 'save-fomo-icon') {
 check_admin_referer('ti-save-fomo-icon');
-update_option($pluginManagerInstance->get_option_name('fomo-icon'), sanitize_text_field($_POST['fomo-icon']), false);
+$v = sanitize_text_field($_POST['fomo-icon']);
+update_option($pluginManagerInstance->get_option_name('fomo-icon'), $v, false);
+if ('hide' === $v) {
+update_option($pluginManagerInstance->get_option_name('fomo-open'), 1, false);
+}
 exit;
 }
 else if ($ti_command === 'save-fomo-color') {
@@ -401,6 +416,16 @@ update_option($pluginManagerInstance->get_option_name('fomo-url'), $url, false);
 } else {
 delete_option($pluginManagerInstance->get_option_name('fomo-url'));
 }
+exit;
+}
+else if ($ti_command === 'save-fomo-day') {
+check_admin_referer('ti-save-fomo-day');
+update_option($pluginManagerInstance->get_option_name('fomo-day'), (int)sanitize_text_field($_POST['fomo-day']), false);
+exit;
+}
+else if ($ti_command === 'save-fomo-hide-count') {
+check_admin_referer('ti-save-fomo-hide-count');
+update_option($pluginManagerInstance->get_option_name('fomo-hide-count'), (int)sanitize_text_field($_POST['fomo-hide-count']), false);
 exit;
 }
 else if ($ti_command === 'save-review-text-mode') {
@@ -1057,6 +1082,7 @@ echo esc_html($pluginManagerInstance->renderNameFormat('Firstname Lastname', $fo
 <input type="hidden" name="command" value="save-fomo-icon" />
 <?php wp_nonce_field('ti-save-fomo-icon'); ?>
 <select class="ti-form-control" name="fomo-icon">
+<option value="hide" <?php echo $pluginManagerInstance->getWidgetOption('fomo-icon') === 'hide' ? 'selected' : ''; ?>><?php echo __('Hide', 'trustindex-plugin'); ?></option>
 <?php foreach ($pluginManager::$widget_templates['templates'][$styleId]['params']['fomo-icon-choices'] as $icon): ?>
 <?php echo $iconName = ucfirst(str_replace('-', ' ', $icon)); ?>
 <option value="<?php echo esc_attr($icon); ?>" <?php echo $pluginManagerInstance->getWidgetOption('fomo-icon') == $icon ? 'selected' : ''; ?>><?php echo __($iconName, 'trustindex-plugin'); ?></option>
@@ -1064,7 +1090,7 @@ echo esc_html($pluginManagerInstance->renderNameFormat('Firstname Lastname', $fo
 </select>
 </form>
 </div>
-<div class="ti-form-group ti-right-block">
+<div class="ti-form-group">
 <label><?php echo __('Color', 'trustindex-plugin'); ?></label>
 <form method="post" action="">
 <input type="hidden" name="command" value="save-fomo-color" />
@@ -1074,7 +1100,7 @@ echo esc_html($pluginManagerInstance->renderNameFormat('Firstname Lastname', $fo
 </div>
 </div>
 <div class="ti-form-row">
-<div class="ti-form-group ti-left-block">
+<div class="ti-form-group">
 <label><?php echo __('Align', 'trustindex-plugin'); ?></label>
 <form method="post" action="">
 <input type="hidden" name="command" value="save-align" />
@@ -1086,7 +1112,7 @@ echo esc_html($pluginManagerInstance->renderNameFormat('Firstname Lastname', $fo
 </select>
 </form>
 </div>
-<div class="ti-form-group ti-right-block">
+<div class="ti-form-group">
 <label><?php echo __('Margin', 'trustindex-plugin'); ?></label>
 <form method="post" action="">
 <input type="hidden" name="command" value="save-fomo-margin" />
@@ -1095,6 +1121,36 @@ echo esc_html($pluginManagerInstance->renderNameFormat('Firstname Lastname', $fo
 </form>
 </div>
 </div>
+<?php if (isset($pluginManager::$widget_templates['templates'][$styleId]['params']['fomo-days'])): ?>
+<div class="ti-form-row">
+<div class="ti-form-group">
+<label><?php echo __('Number of days', 'trustindex-plugin'); ?></label>
+<form method="post" action="">
+<input type="hidden" name="command" value="save-fomo-day" />
+<?php wp_nonce_field('ti-save-fomo-day'); ?>
+<select class="ti-form-control" name="fomo-day">
+<?php foreach ($pluginManager::$widget_templates['templates'][$styleId]['params']['fomo-days'] as $day): ?>
+<?php
+$name = sprintf(__('%d days', 'trustindex-plugin'), $day);
+if ($day === 1) {
+$name = sprintf(__('%d hours', 'trustindex-plugin'), 24);
+}
+?>
+<option value="<?php echo esc_attr($day); ?>" <?php echo $pluginManagerInstance->getWidgetOption('fomo-day') == $day ? 'selected' : ''; ?>><?php echo esc_html($name); ?></option>
+<?php endforeach; ?>
+</select>
+</form>
+</div>
+<div class="ti-form-group">
+<label><?php echo __('Hide until count reaches', 'trustindex-plugin'); ?></label>
+<form method="post" action="">
+<input type="hidden" name="command" value="save-fomo-hide-count" />
+<?php wp_nonce_field('ti-save-fomo-hide-count'); ?>
+<input type="number" class="ti-form-control ti-save-input-on-change" min=0 step=1 value="<?php echo esc_attr($pluginManagerInstance->getWidgetOption('fomo-hide-count')); ?>" name="fomo-hide-count" />
+</form>
+</div>
+</div>
+<?php endif; ?>
 <?php endif; ?>
 </div>
 <div class="ti-right-block">
@@ -1194,14 +1250,22 @@ echo esc_html($pluginManagerInstance->renderNameFormat('Firstname Lastname', $fo
 <?php endif; ?>
 <?php endif; ?>
 <?php if ($pluginManagerInstance->isFomoWidget()): ?>
+<?php if ('hide' !== $pluginManagerInstance->getWidgetOption('fomo-icon')): ?>
 <span class="ti-checkbox ti-checkbox-row">
 <input type="checkbox" name="fomo-open" value="1"<?php if ($pluginManagerInstance->getWidgetOption('fomo-open')): ?> checked<?php endif; ?> />
 <label><?php echo __('Default open', 'trustindex-plugin'); ?></label>
 </span>
+<?php endif; ?>
 <span class="ti-checkbox ti-checkbox-row">
 <input type="checkbox" name="fomo-border" value="1"<?php if ($pluginManagerInstance->getWidgetOption('fomo-border')): ?> checked<?php endif; ?> />
 <label><?php echo __('Show border', 'trustindex-plugin'); ?></label>
 </span>
+<?php if ('hide' !== $pluginManagerInstance->getWidgetOption('fomo-icon') && 'platform-images' !== $pluginManagerInstance->getWidgetOption('fomo-icon')): ?>
+<span class="ti-checkbox ti-checkbox-row">
+<input type="checkbox" name="fomo-icon-background" value="1"<?php if ($pluginManagerInstance->getWidgetOption('fomo-icon-background')): ?> checked<?php endif; ?> />
+<label><?php echo __('Show icon background', 'trustindex-plugin'); ?></label>
+</span>
+<?php endif; ?>
 <span class="ti-checkbox ti-checkbox-row">
 <input type="checkbox" name="fomo-link" value="1"<?php if ($pluginManagerInstance->getWidgetOption('fomo-link')): ?> checked<?php endif; ?> />
 <label><?php echo __('Enable link', 'trustindex-plugin'); ?></label>

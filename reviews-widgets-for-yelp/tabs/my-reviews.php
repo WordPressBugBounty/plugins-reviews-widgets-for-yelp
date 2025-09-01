@@ -199,7 +199,7 @@ update_option($pluginManagerInstance->get_option_name('review-download-token'), 
 <?php endif; ?>
 <div class="ti-upgrade-notice">
 <strong><?php echo __('UPGRADE to PRO Features', 'trustindex-plugin'); ?></strong>
-<p><?php echo sprintf(__('Automatic review update, creating unlimited review widgets, downloading and displaying all reviews, %d review platforms available!', 'trustindex-plugin'), 135); ?></p>
+<p><?php echo sprintf(__('Automatic review update, creating unlimited review widgets, downloading and displaying all reviews, %d review platforms available!', 'trustindex-plugin'), 137); ?></p>
 <?php echo $pluginManagerInstance->getProFeatureButton('wp-yelp-pro'); ?>
 </div>
 

@@ -15,6 +15,13 @@ CREATE TABLE ". $tiReviewsTableName ." (
  `reply` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
  PRIMARY KEY  (`id`)
 )
+",
+'views' => "
+CREATE TABLE ". $tiViewsTableName ." (
+ `date` DATE NOT NULL,
+ `viewed` BIGINT(20) NOT NULL,
+ PRIMARY KEY  (`date`)
+)
 "
 ];
 ?>

@@ -56,6 +56,14 @@ delete_option($this->get_option_name('review-content'));
 $this->updateVersion('widget-html', $htmlCdnVersion);
 }
 }
+if (!$this->is_table_exists('views')) {
+$tiReviewsTableName = $this->get_tablename('reviews');
+$tiViewsTableName = $this->get_tablename('views');
+include $this->get_plugin_dir() . 'include' . DIRECTORY_SEPARATOR . 'schema.php';
+try {
+dbDelta(trim($ti_db_schema['views']));
+} catch (Exception $e) { }
+}
 $this->updateVersion('update-version-check', $this->getVersion());
 }
 ?>

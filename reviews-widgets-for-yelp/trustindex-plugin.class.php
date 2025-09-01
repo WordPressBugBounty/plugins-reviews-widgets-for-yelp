@@ -421,6 +421,9 @@ return [
 'fomo-title',
 'fomo-text',
 'fomo-url',
+'fomo-icon-background',
+'fomo-day',
+'fomo-hide-count',
 'cdn-version-control',
 'version-control',
 'preview',
@@ -523,6 +526,9 @@ case 'fomo-color':
 $params = self::$widget_templates['templates'][$styleId]['params'];
 $default = isset($params['fomo-color']) ? $params['fomo-color'] : '#FF552B';
 break;
+case 'fomo-icon-background':
+$default = 0;
+break;
 case 'fomo-title':
 $default = "";
 $content = $this->getWidgetOption('review-content');
@@ -542,6 +548,13 @@ break;
 case 'fomo-url':
 
 $default = $this->getPageUrl();
+break;
+case 'fomo-day':
+$params = self::$widget_templates['templates'][$styleId]['params'];
+$default = 7;
+break;
+case 'fomo-hide-count':
+$default = 20;
 break;
 }
 }
@@ -824,7 +837,7 @@ $className = 'TrustindexPlugin_' . $forcePlatform;
 if (!class_exists($className)) {
 return $this->frontEndErrorForAdmins(ucfirst($forcePlatform) . ' plugin is not active or not found!');
 }
-$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-13.0", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
+$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-13.1", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
 $chosedPlatform->setNotificationParam('not-using-no-widget', 'active', false);
 if (!$chosedPlatform->is_noreg_linked()) {
 return $this->frontEndErrorForAdmins(sprintf(__('You have to connect your business (%s)!', 'trustindex-plugin'), $forcePlatform));
@@ -993,13 +1006,24 @@ public static $widget_templates = array (
  'floating' => '17,21,52,53,112,114',
  'popup' => '23,30,32,112,114',
  'top-rated-badge' => '97,98,99,100,101,102,103,104',
- 'fomo' => '116,117,118,119,120,121,122,123,124,125,126,127',
+ 'fomo' => '116,117,118,119,120,121,122,123,124,125,126,127,128,129',
  ),
  'templates' => 
  array (
- 45 => 
+ 48 => 
  array (
- 'name' => 'Slider I. - Big picture',
+ 'name' => 'Grid I. - Big picture',
+ 'type' => 'grid',
+ 'is-active' => false,
+ 'is-popular' => false,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ ),
+ ),
+ 47 => 
+ array (
+ 'name' => 'Slider III. - Big picture',
  'type' => 'slider',
  'is-active' => false,
  'is-popular' => false,
@@ -1019,33 +1043,22 @@ public static $widget_templates = array (
  array (
  ),
  ),
+ 45 => 
+ array (
+ 'name' => 'Slider I. - Big picture',
+ 'type' => 'slider',
+ 'is-active' => false,
+ 'is-popular' => false,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ ),
+ ),
  4 => 
  array (
  'name' => 'Slider I.',
  'type' => 'slider',
  'is-active' => true,
- 'is-popular' => false,
- 'is-top-rated-badge' => false,
- 'params' => 
- array (
- ),
- ),
- 48 => 
- array (
- 'name' => 'Grid I. - Big picture',
- 'type' => 'grid',
- 'is-active' => false,
- 'is-popular' => false,
- 'is-top-rated-badge' => false,
- 'params' => 
- array (
- ),
- ),
- 47 => 
- array (
- 'name' => 'Slider III. - Big picture',
- 'type' => 'slider',
- 'is-active' => false,
  'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
@@ -1133,22 +1146,22 @@ public static $widget_templates = array (
  array (
  ),
  ),
- 34 => 
+ 19 => 
  array (
  'name' => 'Slider IV.',
  'type' => 'slider',
- 'is-active' => true,
+ 'is-active' => false,
  'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
  ),
  ),
- 19 => 
+ 34 => 
  array (
  'name' => 'Slider IV.',
  'type' => 'slider',
- 'is-active' => false,
+ 'is-active' => true,
  'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
@@ -1166,22 +1179,22 @@ public static $widget_templates = array (
  array (
  ),
  ),
- 15 => 
+ 44 => 
  array (
  'name' => 'Slider VI.',
  'type' => 'slider',
- 'is-active' => true,
+ 'is-active' => false,
  'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
  ),
  ),
- 44 => 
+ 15 => 
  array (
  'name' => 'Slider VI.',
  'type' => 'slider',
- 'is-active' => false,
+ 'is-active' => true,
  'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
@@ -1232,23 +1245,23 @@ public static $widget_templates = array (
  array (
  ),
  ),
- 38 => 
- array (
- 'name' => 'Grid II.',
- 'type' => 'grid',
- 'is-active' => false,
- 'is-popular' => false,
- 'is-top-rated-badge' => false,
- 'params' => 
- array (
- ),
- ),
  79 => 
  array (
  'name' => 'Mansonry grid - with header',
  'type' => 'grid',
  'is-active' => false,
  'is-popular' => true,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ ),
+ ),
+ 38 => 
+ array (
+ 'name' => 'Grid II.',
+ 'type' => 'grid',
+ 'is-active' => false,
+ 'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1721,22 +1734,22 @@ public static $widget_templates = array (
  array (
  ),
  ),
- 110 => 
+ 62 => 
  array (
- 'name' => 'Button X.',
+ 'name' => 'Button XI.',
  'type' => 'button',
- 'is-active' => true,
+ 'is-active' => false,
  'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
  ),
  ),
- 62 => 
+ 110 => 
  array (
- 'name' => 'Button XI.',
+ 'name' => 'Button X.',
  'type' => 'button',
- 'is-active' => false,
+ 'is-active' => true,
  'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
@@ -1991,8 +2004,9 @@ public static $widget_templates = array (
  2 => 'discount-3',
  3 => 'discount-4',
  4 => 'discount-5',
- 5 => 'shipping-box',
- 6 => 'shipping-truck',
+ 5 => 'fire',
+ 6 => 'shipping-box',
+ 7 => 'shipping-truck',
  ),
  'fomo-title-text' => '<u>20%</u> Discount Code: <u>NWA789</u>',
  'fomo-subtitle-text' => '3 days left!',
@@ -2017,8 +2031,9 @@ public static $widget_templates = array (
  2 => 'discount-3',
  3 => 'discount-4',
  4 => 'discount-5',
- 5 => 'shipping-box',
- 6 => 'shipping-truck',
+ 5 => 'fire',
+ 6 => 'shipping-box',
+ 7 => 'shipping-truck',
  ),
  'fomo-title-text' => '<u>20%</u> Discount only for 3 days!',
  'fomo-subtitle-text' => 'Code: <u>NWA89</u>',
@@ -2043,8 +2058,9 @@ public static $widget_templates = array (
  2 => 'discount-3',
  3 => 'discount-4',
  4 => 'discount-5',
- 5 => 'shipping-box',
- 6 => 'shipping-truck',
+ 5 => 'fire',
+ 6 => 'shipping-box',
+ 7 => 'shipping-truck',
  ),
  'fomo-title-text' => '<u>20%</u> Discount from first order!',
  'fomo-subtitle-text' => 'Limited-time welcome gift - don\'t miss out',
@@ -2069,8 +2085,9 @@ public static $widget_templates = array (
  2 => 'discount-3',
  3 => 'discount-4',
  4 => 'discount-5',
- 5 => 'shipping-box',
- 6 => 'shipping-truck',
+ 5 => 'fire',
+ 6 => 'shipping-box',
+ 7 => 'shipping-truck',
  ),
  'fomo-title-text' => '<u>€325</u> Discount until %discount-day%.',
  'fomo-subtitle-text' => 'Join our 25.000+ happy customers',
@@ -2095,8 +2112,9 @@ public static $widget_templates = array (
  2 => 'discount-3',
  3 => 'discount-4',
  4 => 'discount-5',
- 5 => 'shipping-box',
- 6 => 'shipping-truck',
+ 5 => 'fire',
+ 6 => 'shipping-box',
+ 7 => 'shipping-truck',
  ),
  'fomo-title-text' => '<u>FREE</u> Shipping until %discount-day%.',
  'fomo-subtitle-text' => 'Limited time offer - act fast!',
@@ -2121,13 +2139,62 @@ public static $widget_templates = array (
  2 => 'discount-3',
  3 => 'discount-4',
  4 => 'discount-5',
- 5 => 'shipping-box',
- 6 => 'shipping-truck',
+ 5 => 'fire',
+ 6 => 'shipping-box',
+ 7 => 'shipping-truck',
  ),
  'fomo-title-text' => '<u>FREE</u> Shipping Worldwide over $100',
  'fomo-subtitle-text' => 'Try it. Love it. Or get your money back',
  'fomo-verified-block' => false,
  'fomo-custom-text' => true,
+ ),
+ ),
+ 128 => 
+ array (
+ 'name' => 'Fomo Counter Widget I.',
+ 'type' => 'fomo',
+ 'is-active' => true,
+ 'is-popular' => false,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ 'fomo-icon' => 'fire',
+ 'fomo-icon-choices' => 
+ array (
+ 0 => 'fire',
+ 1 => 'trophy',
+ ),
+ 'fomo-title-text' => '%registrations% registration IN-LAST-TIMEUNIT',
+ 'fomo-days' => 
+ array (
+ 0 => 1,
+ 1 => 7,
+ 2 => 30,
+ ),
+ ),
+ ),
+ 129 => 
+ array (
+ 'name' => 'Fomo Counter Widget II.',
+ 'type' => 'fomo',
+ 'is-active' => true,
+ 'is-popular' => false,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ 'fomo-icon' => 'fire',
+ 'fomo-icon-choices' => 
+ array (
+ 0 => 'fire',
+ 1 => 'trophy',
+ ),
+ 'fomo-title-text' => '%visitors% visitors IN-LAST-TIMEUNIT',
+ 'fomo-days' => 
+ array (
+ 0 => 1,
+ 1 => 7,
+ 2 => 30,
+ ),
  ),
  ),
  ),
@@ -2453,6 +2520,268 @@ public static $widget_nameformats = array (
  'regex' => '/^(.)[^\\s]*\\s*(.)?.*$/',
  'ucfirst' => false,
  'toupper' => true,
+ ),
+);
+private static $widget_last_timeunit_texts = array (
+ 'en' => 
+ array (
+ 0 => 'in the last %d hours',
+ 1 => 'in the last %d days',
+ ),
+ 'af' => 
+ array (
+ 0 => 'in die laaste %d uur',
+ 1 => 'in die laaste %d dae',
+ ),
+ 'ar' => 
+ array (
+ 0 => 'في آخر %d ساعة',
+ 1 => 'في آخر %d يوم',
+ ),
+ 'az' => 
+ array (
+ 0 => 'son %d saatda',
+ 1 => 'son %d gündə',
+ ),
+ 'bg' => 
+ array (
+ 0 => 'през последните %d часа',
+ 1 => 'през последните %d дни',
+ ),
+ 'bn' => 
+ array (
+ 0 => 'গত %d ঘন্টায়',
+ 1 => 'গত %d দিনে',
+ ),
+ 'bs' => 
+ array (
+ 0 => 'u posljednjih %d sati',
+ 1 => 'u posljednjih %d dana',
+ ),
+ 'ca' => 
+ array (
+ 0 => 'en les últimes %d hores',
+ 1 => 'en els darrers %d dies',
+ ),
+ 'cs' => 
+ array (
+ 0 => 'v posledních %d hodinách',
+ 1 => 'v posledních %d dnech',
+ ),
+ 'cy' => 
+ array (
+ 0 => 'yn y %d awr ddiwethaf',
+ 1 => 'yn y %d diwrnod diwethaf',
+ ),
+ 'da' => 
+ array (
+ 0 => 'i de sidste %d timer',
+ 1 => 'i de sidste %d dage',
+ ),
+ 'de' => 
+ array (
+ 0 => 'in den letzten %d Stunden',
+ 1 => 'in den letzten %d Tagen',
+ ),
+ 'el' => 
+ array (
+ 0 => 'τις τελευταίες %d ώρες',
+ 1 => 'τις τελευταίες %d ημέρες',
+ ),
+ 'es' => 
+ array (
+ 0 => 'en las últimas %d horas',
+ 1 => 'en los últimos %d días',
+ ),
+ 'et' => 
+ array (
+ 0 => 'viimase %d tunni jooksul',
+ 1 => 'viimase %d päeva jooksul',
+ ),
+ 'fa' => 
+ array (
+ 0 => 'در %d ساعت گذشته',
+ 1 => 'در %d روز گذشته',
+ ),
+ 'fi' => 
+ array (
+ 0 => 'viimeisen %d tunnin aikana',
+ 1 => 'viimeisten %d päivän aikana',
+ ),
+ 'fr' => 
+ array (
+ 0 => 'au cours des dernières %d heures',
+ 1 => 'au cours des %d derniers jours',
+ ),
+ 'gd' => 
+ array (
+ 0 => 'anns na %d uairean mu dheireadh',
+ 1 => 'anns na %d làithean mu dheireadh',
+ ),
+ 'gl' => 
+ array (
+ 0 => 'nas últimas %d horas',
+ 1 => 'nos últimos %d días',
+ ),
+ 'he' => 
+ array (
+ 0 => 'ב-%d שעות האחרונות',
+ 1 => 'ב-%d הימים האחרונים',
+ ),
+ 'hi' => 
+ array (
+ 0 => 'पिछले %d घंटों में',
+ 1 => 'पिछले %d दिनों में',
+ ),
+ 'hr' => 
+ array (
+ 0 => 'u posljednjih %d sati',
+ 1 => 'u posljednjih %d dana',
+ ),
+ 'hu' => 
+ array (
+ 0 => 'az elmúlt %d órában',
+ 1 => 'az elmúlt %d napban',
+ ),
+ 'hy' => 
+ array (
+ 0 => 'վերջին %d ժամվա ընթացքում',
+ 1 => 'վերջին %d օրվա ընթացքում',
+ ),
+ 'id' => 
+ array (
+ 0 => 'dalam %d jam terakhir',
+ 1 => 'dalam %d hari terakhir',
+ ),
+ 'is' => 
+ array (
+ 0 => 'á síðustu %d klukkustundum',
+ 1 => 'síðustu %d daga',
+ ),
+ 'it' => 
+ array (
+ 0 => 'nelle ultime %d ore',
+ 1 => 'negli ultimi %d giorni',
+ ),
+ 'ja' => 
+ array (
+ 0 => '過去 %d 時間',
+ 1 => '過去%d日間',
+ ),
+ 'ka' => 
+ array (
+ 0 => 'ბოლო %d საათში',
+ 1 => 'ბოლო %d დღის განმავლობაში',
+ ),
+ 'kk' => 
+ array (
+ 0 => 'соңғы %d сағатта',
+ 1 => 'соңғы %d күнде',
+ ),
+ 'ko' => 
+ array (
+ 0 => '지난 %d시간 동안',
+ 1 => '지난 %d일 동안',
+ ),
+ 'lt' => 
+ array (
+ 0 => 'per pastarąsias %d valandas',
+ 1 => 'per pastarąsias %d dienų',
+ ),
+ 'lv' => 
+ array (
+ 0 => 'pēdējo %d stundu laikā',
+ 1 => 'pēdējo %d dienu laikā',
+ ),
+ 'mk' => 
+ array (
+ 0 => 'во последните %d часа',
+ 1 => 'во последните %d дена',
+ ),
+ 'ms' => 
+ array (
+ 0 => 'dalam %d jam yang lalu',
+ 1 => 'dalam %d hari yang lalu',
+ ),
+ 'nl' => 
+ array (
+ 0 => 'in de laatste %d uur',
+ 1 => 'in de laatste %d dagen',
+ ),
+ 'no' => 
+ array (
+ 0 => 'i løpet av de siste %d timene',
+ 1 => 'i løpet av de siste %d dagene',
+ ),
+ 'pl' => 
+ array (
+ 0 => 'w ciągu ostatnich %d godzin',
+ 1 => 'w ciągu ostatnich %d dni',
+ ),
+ 'pt' => 
+ array (
+ 0 => 'nas últimas %d horas',
+ 1 => 'nos últimos %d dias',
+ ),
+ 'ro' => 
+ array (
+ 0 => 'în ultimele %d ore',
+ 1 => 'în ultimele %d zile',
+ ),
+ 'ru' => 
+ array (
+ 0 => 'за последние %d часов',
+ 1 => 'за последние %d дней',
+ ),
+ 'sk' => 
+ array (
+ 0 => 'za posledných %d hodín',
+ 1 => 'za posledných %d dní',
+ ),
+ 'sl' => 
+ array (
+ 0 => 'v zadnjih %d urah',
+ 1 => 'v zadnjih %d dneh',
+ ),
+ 'sq' => 
+ array (
+ 0 => 'në %d orët e fundit',
+ 1 => 'në %d ditët e fundit',
+ ),
+ 'sr' => 
+ array (
+ 0 => 'у последњих %d сати',
+ 1 => 'у последњих %d дана',
+ ),
+ 'sv' => 
+ array (
+ 0 => 'under de senaste %d timmarna',
+ 1 => 'under de senaste %d dagarna',
+ ),
+ 'th' => 
+ array (
+ 0 => 'ในช่วง %d ชั่วโมงที่ผ่านมา',
+ 1 => 'ในช่วง %d วันที่ผ่านมา',
+ ),
+ 'tr' => 
+ array (
+ 0 => 'son %d saatte',
+ 1 => 'son %d günde',
+ ),
+ 'uk' => 
+ array (
+ 0 => 'за останні %d годин',
+ 1 => 'за останні %d днів',
+ ),
+ 'vi' => 
+ array (
+ 0 => 'trong %d giờ qua',
+ 1 => 'trong %d ngày qua',
+ ),
+ 'zh' => 
+ array (
+ 0 => '在过去 %d 小时内',
+ 1 => '在过去 %d 天里',
  ),
 );
 private static $widget_rating_texts = array (
@@ -5139,7 +5468,7 @@ private static $page_urls = array (
  'hotels' => 'https://hotels.com/%page_id%',
  'opentable' => 'https://www.opentable.com/%page_id%',
  'foursquare' => 'https://foursquare.com/v/%25page_id%25',
- 'capterra' => 'https://www.capterra.%page_id%/reviews',
+ 'capterra' => 'https://www.capterra.%page_id%',
  'szallashu' => 'https://szallas.hu/%page_id%?#rating',
  'thumbtack' => 'https://www.thumbtack.com/%page_id%',
  'expedia' => 'https://www.expedia.com/%page_id%',
@@ -5229,6 +5558,7 @@ $text = sprintf(__('Our exclusive "Top Rated" badge is awarded to service provid
 return $this->frontEndErrorForAdmins($text);
 }
 if ($reviews = $this->getReviewsForWidgetHtml()) {
+$this->increaseViews();
 $templateId = 'trustindex-'.$this->getShortName().'-widget-html';
 $attributes['data-src'] .= 'wp-widget';
 $attributes['data-template-id'] = $templateId;
@@ -5272,7 +5602,7 @@ $reviews = $this->getReviewsForWidgetHtml(true, $isForceDemoReviews, (bool)$prev
 if (!$reviews) {
 return self::get_alertbox('error', __('You do not have reviews with the current filters. <br />Change your filters if you would like to display reviews on your page!', 'trustindex-plugin'));
 }
-$html = $this->getWidgetHtml($reviews, (bool)$previewData);
+$html = $this->getWidgetHtml($reviews, (bool)$previewData, true);
 if (!$previewData) {
 if (is_file($this->getCssFile()) && !$this->isElementorEditing()) {
 wp_enqueue_style('trustindex-widget-editor', $this->getCssUrl(), [], filemtime($this->getCssFile()));
@@ -5320,7 +5650,7 @@ wp_enqueue_script('trustindex-loader-js', 'https://cdn.trustindex.io/loader.js',
 }
 }
 private $templateCache = null;
-private function getWidgetHtml($reviews, $isPreview = false)
+private function getWidgetHtml($reviews, $isPreview = false, $isAdmin = false)
 {
 $styleId = (int)$this->getWidgetOption('style-id');
 $setId = $this->getWidgetOption('scss-set');
@@ -5343,7 +5673,7 @@ if (!$isPreview) {
 update_option($this->get_option_name('review-content'), $content, false);
 }
 }
-$content = $this->parseWidgetHtml($reviews, $content, $isPreview);
+$content = $this->parseWidgetHtml($reviews, $content, $isPreview, $isAdmin);
 $content = preg_replace('/data-set[_-]id=[\'"][^\'"]*[\'"]/m', 'data-set-id="'. $setId .'"', $content);
 $classAppends = ['ti-' . substr($this->getShortName(), 0, 4)];
 if (!$this->getWidgetOption('show-reviewers-photo', false, $isPreview)) {
@@ -5365,6 +5695,12 @@ $classAppends []= 'ti-hide-fomo-border';
 }
 if (!$this->getWidgetOption('fomo-arrow', false, $isPreview)) {
 $classAppends []= 'ti-hide-fomo-arrow';
+}
+if ('hide' === $this->getWidgetOption('fomo-icon', false, $isPreview)) {
+$classAppends []= 'ti-icon-hide';
+}
+if ($this->getWidgetOption('fomo-icon-background', false, $isPreview)) {
+$classAppends []= 'ti-icon-background';
 }
 } else {
 if (!$this->getWidgetOption('no-rating-text', false, $isPreview)) {
@@ -5450,7 +5786,7 @@ $reviews = $this->getRandomReviews(10);
 }
 return $reviews;
 }
-private function parseWidgetHtml($reviews, $content, $isPreview = false)
+private function parseWidgetHtml($reviews, $content, $isPreview = false, $isAdmin = false)
 {
 $pageDetails = $this->getPageDetails();
 $styleId = (int)$this->getWidgetOption('style-id');
@@ -5642,7 +5978,9 @@ $content = str_replace('class="ti-widget-container"', 'class="ti-widget-containe
 $iconType = $this->getWidgetOption('fomo-icon', false, $isPreview);
 $iconHtml = '<div class="ti-fomo-icon" data-type="'.$iconType.'"></div>';
 $platformIconHtml = '<img class="ti-platform-icon" src="https://cdn.trustindex.io/assets/platform/'.ucfirst($this->getShortName()).'/icon.svg" alt="'.ucfirst($this->getShortName()).'" width="20" height="20" loading="lazy">';
-if ('profile-images' === $iconType) {
+if ('hide' === $iconType) {
+$iconHtml = '';
+} else if ('profile-images' === $iconType) {
 $iconHtml = '<div class="ti-profile-images">'.$profileImageListForButton.'</div>';
 } else if ('platform' === $iconType) {
 $iconHtml = $platformIconHtml;
@@ -5667,6 +6005,26 @@ $content = preg_replace(
 '<div class="ti-subtitle-text">'.html_entity_decode($text).'</div>',
 $content
 );
+}
+}
+if (isset($widgetTemplate['params']['fomo-days'])) {
+$days = (int)$this->getWidgetOption('fomo-day', false, $isPreview);
+if (strpos($content, '%registrations%') !== false) {
+$count = $this->getRegistrationCount($days);
+$content = str_replace('%registrations%', $count, $content);
+} else if (strpos($content, '%visitors%') !== false) {
+$count = $this->getViewsByDays($days);
+$content = str_replace('%visitors%', $count, $content);
+}
+if (isset($count) && !$isPreview && !$isAdmin && $count < $this->getWidgetOption('fomo-hide-count', false, $isPreview)) {
+$content = "";
+} else {
+$timeunitText = self::$widget_last_timeunit_texts[$language][1];
+if ($days === 1) {
+$timeunitText = self::$widget_last_timeunit_texts[$language][0];
+$days = 24;
+}
+$content = str_replace('IN-LAST-TIMEUNIT', sprintf($timeunitText, $days), $content);
 }
 }
 }
@@ -5767,6 +6125,10 @@ if (in_array($this->getWidgetOption('lang'), array (
 return true;
 }
 return false;
+}
+public function getRegistrationCount($days = 1) {
+global $wpdb;
+return (int) $wpdb->get_var('SELECT COUNT(ID) FROM `'.$wpdb->users.'` WHERE DATEDIFF(NOW(), user_registered) <= '.$days);
 }
 public function get_footer_filter_text($lang = 'en')
 {
@@ -6329,6 +6691,46 @@ and there is a possibility that $wpdb->prefix is something like "JxdFg_"
 (2024-08-23: "jxdfg_trustindex_google_reviews" table existed but this query returned false)
 */
 return ($wpdb->get_var("SHOW TABLES LIKE '$tableName'") == $tableName) || ($wpdb->get_var("SHOW TABLES LIKE '". strtolower($tableName) ."'") == strtolower($tableName));
+}
+
+
+public function emptyViews()
+{
+if (!$this->is_table_exists('views')) {
+return false;
+}
+global $wpdb;
+$tableName = $this->get_tablename('views');
+$wpdb->query('TRUNCATE `'. $tableName .'`');
+return true;
+}
+public function increaseViews()
+{
+if (!$this->is_table_exists('views')) {
+return false;
+}
+global $wpdb;
+$tableName = $this->get_tablename('views');
+$today = date('Y-m-d');
+$viewsToday = (int) $wpdb->get_var('SELECT viewed FROM `'.$tableName.'` WHERE date = "'.$today.'"');
+if (!$viewsToday) {
+$wpdb->insert($tableName, [
+'date' => $today,
+'viewed' => 1,
+]);
+} else {
+$wpdb->update($tableName, ['viewed' => $viewsToday + 1], ['date' => $today]);
+}
+return true;
+}
+public function getViewsByDays($days = 7)
+{
+if (!$this->is_table_exists('views')) {
+return 0;
+}
+global $wpdb;
+$tableName = $this->get_tablename('views');
+return (int) $wpdb->get_var('SELECT SUM(viewed) FROM `'.$tableName.'` WHERE DATEDIFF(NOW(), date) <= '.$days);
 }
 }
 ?>
