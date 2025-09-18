@@ -9,7 +9,7 @@ Author: Trustindex.io <support@trustindex.io>
 Author URI: https://www.trustindex.io/
 Contributors: trustindex
 License: GPLv2 or later
-Version: 13.1
+Version: 13.2
 Requires at least: 6.2
 Requires PHP: 7.0
 Text Domain: reviews-widgets-for-yelp
@@ -22,7 +22,7 @@ Copyright 2019 Trustindex Kft (email: support@trustindex.io)
 defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
 require_once plugin_dir_path(__FILE__) . 'include' . DIRECTORY_SEPARATOR . 'cache-plugin-filters.php';
 require_once plugin_dir_path(__FILE__) . 'trustindex-plugin.class.php';
-$trustindex_pm_yelp = new TrustindexPlugin_yelp("yelp", __FILE__, "13.1", "Widgets for Yelp Reviews", "Yelp");
+$trustindex_pm_yelp = new TrustindexPlugin_yelp("yelp", __FILE__, "13.2", "Widgets for Yelp Reviews", "Yelp");
 $pluginManager = 'TrustindexPlugin_yelp';
 $pluginManagerInstance = $trustindex_pm_yelp;
 add_action('admin_init', function() { ob_start(); });
@@ -30,13 +30,30 @@ register_activation_hook(__FILE__, [ $pluginManagerInstance, 'activate' ]);
 register_deactivation_hook(__FILE__, [ $pluginManagerInstance, 'deactivate' ]);
 add_action('plugins_loaded', [ $pluginManagerInstance, 'load' ]);
 add_action('wp_head', function() use($pluginManagerInstance) {
-echo '<script class="ti-site-data" type="application/ld+json">{"@context":"http://schema.org","data":'.json_encode([
+echo '<meta name="ti-site-data" content="'.esc_attr(base64_encode(json_encode([
 'r' =>
 '1:'.$pluginManagerInstance->getRegistrationCount(1) .
 '!7:'.$pluginManagerInstance->getRegistrationCount(7) .
 '!30:'.$pluginManagerInstance->getRegistrationCount(30),
-]).'}</script>';
+'o' => admin_url('admin-ajax.php').'?'.http_build_query([
+'action' => 'ti_online_users_'.$pluginManagerInstance->getShortName(),
+'p' => esc_html($_SERVER['REQUEST_URI']),
+]),
+]))).'" />';
 });
+$onlineUsersFn = function() use($pluginManagerInstance) {
+$page = sanitize_text_field($_REQUEST['p']);
+$key = 'ti_uid_' . md5($_SERVER['REMOTE_ADDR'] . $_SERVER['HTTP_USER_AGENT']);
+$userId = get_transient($key);
+if (!$userId) {
+$userId = uniqid('', true);
+set_transient($key, $userId, 3600);
+}
+echo $pluginManagerInstance->getOnlineUsers($userId, $page);
+wp_die();
+};
+add_action('wp_ajax_nopriv_ti_online_users_'.$pluginManagerInstance->getShortName(), $onlineUsersFn);
+add_action('wp_ajax_ti_online_users_'.$pluginManagerInstance->getShortName(), $onlineUsersFn);
 add_action('wp_insert_site', function($site) use($pluginManagerInstance) {
 switch_to_blog($site->blog_id);
 $tiReviewsTableName = $pluginManagerInstance->get_tablename('reviews');

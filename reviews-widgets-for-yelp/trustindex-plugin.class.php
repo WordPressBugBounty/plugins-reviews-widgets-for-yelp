@@ -309,6 +309,9 @@ $settingsPageUrl
 }
 public function add_plugin_action_links($links, $file)
 {
+if (!is_array($links)) {
+$links = [];
+}
 if (basename($file) === basename($this->plugin_file_path)) {
 $platformLink = '<a style="background-color: #1a976a; color: white; font-weight: bold; padding: 3px 8px; border-radius: 4px; position: relative; top: 1px" ';
 if (get_option($this->get_option_name('widget-setted-up'), 0)) {
@@ -539,10 +542,15 @@ $default = $matches[1];
 break;
 case 'fomo-text':
 $default = "";
+$params = self::$widget_templates['templates'][$styleId]['params'];
+if (isset($params['fomo-subtitle-text-choices'])) {
+$default = $params['fomo-subtitle-text-choices'][0];
+} else {
 $content = $this->getWidgetOption('review-content');
 preg_match('/<div class="ti-subtitle-text">(.+)<\/div>/U', $content, $matches);
 if (isset($matches[1]) && !$returnDefault) {
 $default = $matches[1];
+}
 }
 break;
 case 'fomo-url':
@@ -554,7 +562,9 @@ $params = self::$widget_templates['templates'][$styleId]['params'];
 $default = 7;
 break;
 case 'fomo-hide-count':
-$default = 20;
+$params = self::$widget_templates['templates'][$styleId]['params'];
+$isOnlineVisitors = isset($params['fomo-title-text']) && strpos($params['fomo-title-text'], '%online-visitors%') !== false;
+$default = $isOnlineVisitors ? 5 : 20;
 break;
 }
 }
@@ -562,6 +572,9 @@ if ($returnDefault) {
 return $default;
 }
 $this->widgetOptions[$name] = get_option($this->get_option_name($name), $default);
+if ('fomo-text' === $name || 'fomo-title' === $name) {
+$this->widgetOptions[$name] = html_entity_decode($this->widgetOptions[$name]);
+}
 return $this->widgetOptions[$name];
 }
 
@@ -837,7 +850,7 @@ $className = 'TrustindexPlugin_' . $forcePlatform;
 if (!class_exists($className)) {
 return $this->frontEndErrorForAdmins(ucfirst($forcePlatform) . ' plugin is not active or not found!');
 }
-$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-13.1", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
+$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-13.2", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
 $chosedPlatform->setNotificationParam('not-using-no-widget', 'active', false);
 if (!$chosedPlatform->is_noreg_linked()) {
 return $this->frontEndErrorForAdmins(sprintf(__('You have to connect your business (%s)!', 'trustindex-plugin'), $forcePlatform));
@@ -1006,10 +1019,21 @@ public static $widget_templates = array (
  'floating' => '17,21,52,53,112,114',
  'popup' => '23,30,32,112,114',
  'top-rated-badge' => '97,98,99,100,101,102,103,104',
- 'fomo' => '116,117,118,119,120,121,122,123,124,125,126,127,128,129',
+ 'fomo' => '116,117,118,119,120,121,122,123,124,125,126,127,128,129,130',
  ),
  'templates' => 
  array (
+ 4 => 
+ array (
+ 'name' => 'Slider I.',
+ 'type' => 'slider',
+ 'is-active' => true,
+ 'is-popular' => false,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ ),
+ ),
  48 => 
  array (
  'name' => 'Grid I. - Big picture',
@@ -1054,17 +1078,6 @@ public static $widget_templates = array (
  array (
  ),
  ),
- 4 => 
- array (
- 'name' => 'Slider I.',
- 'type' => 'slider',
- 'is-active' => true,
- 'is-popular' => false,
- 'is-top-rated-badge' => false,
- 'params' => 
- array (
- ),
- ),
  14 => 
  array (
  'name' => 'Slider I. - with header',
@@ -1074,19 +1087,6 @@ public static $widget_templates = array (
  'is-top-rated-badge' => false,
  'params' => 
  array (
- ),
- ),
- 108 => 
- array (
- 'name' => 'Slider I. - with Top Rated header and photos',
- 'type' => 'slider',
- 'is-active' => false,
- 'is-popular' => true,
- 'is-top-rated-badge' => true,
- 'params' => 
- array (
- 'top-rated-badge-border' => false,
- 'default-hide-date' => true,
  ),
  ),
  105 => 
@@ -1102,9 +1102,22 @@ public static $widget_templates = array (
  'default-hide-date' => true,
  ),
  ),
- 39 => 
+ 108 => 
  array (
- 'name' => 'Slider II. - centered',
+ 'name' => 'Slider I. - with Top Rated header and photos',
+ 'type' => 'slider',
+ 'is-active' => false,
+ 'is-popular' => true,
+ 'is-top-rated-badge' => true,
+ 'params' => 
+ array (
+ 'top-rated-badge-border' => false,
+ 'default-hide-date' => true,
+ ),
+ ),
+ 95 => 
+ array (
+ 'name' => 'Slider I. - with AI summary',
  'type' => 'slider',
  'is-active' => false,
  'is-popular' => false,
@@ -1113,9 +1126,9 @@ public static $widget_templates = array (
  array (
  ),
  ),
- 95 => 
+ 39 => 
  array (
- 'name' => 'Slider I. - with AI summary',
+ 'name' => 'Slider II. - centered',
  'type' => 'slider',
  'is-active' => false,
  'is-popular' => false,
@@ -1179,22 +1192,22 @@ public static $widget_templates = array (
  array (
  ),
  ),
- 44 => 
+ 15 => 
  array (
  'name' => 'Slider VI.',
  'type' => 'slider',
- 'is-active' => false,
+ 'is-active' => true,
  'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
  ),
  ),
- 15 => 
+ 44 => 
  array (
  'name' => 'Slider VI.',
  'type' => 'slider',
- 'is-active' => true,
+ 'is-active' => false,
  'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
@@ -1245,23 +1258,23 @@ public static $widget_templates = array (
  array (
  ),
  ),
- 79 => 
- array (
- 'name' => 'Mansonry grid - with header',
- 'type' => 'grid',
- 'is-active' => false,
- 'is-popular' => true,
- 'is-top-rated-badge' => false,
- 'params' => 
- array (
- ),
- ),
  38 => 
  array (
  'name' => 'Grid II.',
  'type' => 'grid',
  'is-active' => false,
  'is-popular' => false,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ ),
+ ),
+ 79 => 
+ array (
+ 'name' => 'Mansonry grid - with header',
+ 'type' => 'grid',
+ 'is-active' => false,
+ 'is-popular' => true,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1536,22 +1549,22 @@ public static $widget_templates = array (
  array (
  ),
  ),
- 57 => 
+ 23 => 
  array (
- 'name' => 'HTML badge V.',
+ 'name' => 'Company badge I. - with popup',
  'type' => 'badge',
- 'is-active' => false,
+ 'is-active' => true,
  'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
  array (
  ),
  ),
- 23 => 
+ 57 => 
  array (
- 'name' => 'Company badge I. - with popup',
+ 'name' => 'HTML badge V.',
  'type' => 'badge',
- 'is-active' => true,
+ 'is-active' => false,
  'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
@@ -1690,17 +1703,6 @@ public static $widget_templates = array (
  array (
  ),
  ),
- 59 => 
- array (
- 'name' => 'Button VIII.',
- 'type' => 'button',
- 'is-active' => false,
- 'is-popular' => false,
- 'is-top-rated-badge' => false,
- 'params' => 
- array (
- ),
- ),
  106 => 
  array (
  'name' => 'Button VIII.',
@@ -1712,9 +1714,9 @@ public static $widget_templates = array (
  array (
  ),
  ),
- 61 => 
+ 59 => 
  array (
- 'name' => 'Button X.',
+ 'name' => 'Button VIII.',
  'type' => 'button',
  'is-active' => false,
  'is-popular' => false,
@@ -1734,9 +1736,9 @@ public static $widget_templates = array (
  array (
  ),
  ),
- 62 => 
+ 61 => 
  array (
- 'name' => 'Button XI.',
+ 'name' => 'Button X.',
  'type' => 'button',
  'is-active' => false,
  'is-popular' => false,
@@ -1750,6 +1752,17 @@ public static $widget_templates = array (
  'name' => 'Button X.',
  'type' => 'button',
  'is-active' => true,
+ 'is-popular' => false,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ ),
+ ),
+ 62 => 
+ array (
+ 'name' => 'Button XI.',
+ 'type' => 'button',
+ 'is-active' => false,
  'is-popular' => false,
  'is-top-rated-badge' => false,
  'params' => 
@@ -2164,7 +2177,7 @@ public static $widget_templates = array (
  0 => 'fire',
  1 => 'trophy',
  ),
- 'fomo-title-text' => '%registrations% registration IN-LAST-TIMEUNIT',
+ 'fomo-title-text' => '%registrations% registrations IN-LAST-TIMEUNIT',
  'fomo-days' => 
  array (
  0 => 1,
@@ -2194,6 +2207,292 @@ public static $widget_templates = array (
  0 => 1,
  1 => 7,
  2 => 30,
+ ),
+ ),
+ ),
+ 130 => 
+ array (
+ 'name' => 'Fomo Counter Widget III.',
+ 'type' => 'fomo',
+ 'is-active' => true,
+ 'is-popular' => false,
+ 'is-top-rated-badge' => false,
+ 'params' => 
+ array (
+ 'fomo-icon' => 'fire',
+ 'fomo-icon-choices' => 
+ array (
+ 0 => 'fire',
+ 1 => 'trophy',
+ ),
+ 'fomo-title-text' => '%online-visitors% visitors are checking this page now',
+ 'fomo-subtitle-text-choices' => 
+ array (
+ 0 => 'Don\'t miss out!',
+ 1 => 'Order now!',
+ ),
+ 'trans' => 
+ array (
+ 'en' => 
+ array (
+ 'Don\'t miss out!' => 'Don\'t miss out!',
+ 'Order now!' => 'Order now!',
+ ),
+ 'af' => 
+ array (
+ 'Don\'t miss out!' => 'Moenie dit misloop nie!',
+ 'Order now!' => 'Bestel nou!',
+ ),
+ 'ar' => 
+ array (
+ 'Don\'t miss out!' => 'لا تفوتها!',
+ 'Order now!' => 'اطلب الآن!',
+ ),
+ 'az' => 
+ array (
+ 'Don\'t miss out!' => 'Qaçırmayın!',
+ 'Order now!' => 'İndi sifariş edin!',
+ ),
+ 'bg' => 
+ array (
+ 'Don\'t miss out!' => 'Не пропускайте!',
+ 'Order now!' => 'Поръчай сега!',
+ ),
+ 'bn' => 
+ array (
+ 'Don\'t miss out!' => 'মিস করবেন না!',
+ 'Order now!' => 'এখনই অর্ডার করুন!',
+ ),
+ 'bs' => 
+ array (
+ 'Don\'t miss out!' => 'Ne propustite!',
+ 'Order now!' => 'Naručite odmah!',
+ ),
+ 'ca' => 
+ array (
+ 'Don\'t miss out!' => 'No t\'ho perdis!',
+ 'Order now!' => 'Demana ara!',
+ ),
+ 'cs' => 
+ array (
+ 'Don\'t miss out!' => 'Nenechte si to ujít!',
+ 'Order now!' => 'Objednejte nyní!',
+ ),
+ 'cy' => 
+ array (
+ 'Don\'t miss out!' => 'Peidiwch â cholli allan!',
+ 'Order now!' => 'Archebwch nawr!',
+ ),
+ 'da' => 
+ array (
+ 'Don\'t miss out!' => 'Gå ikke glip af det!',
+ 'Order now!' => 'Bestil nu!',
+ ),
+ 'de' => 
+ array (
+ 'Don\'t miss out!' => 'Verpassen Sie es nicht!',
+ 'Order now!' => 'Jetzt bestellen!',
+ ),
+ 'el' => 
+ array (
+ 'Don\'t miss out!' => 'Μην το χάσετε!',
+ 'Order now!' => 'Παραγγείλτε τώρα!',
+ ),
+ 'es' => 
+ array (
+ 'Don\'t miss out!' => '¡No te lo pierdas!',
+ 'Order now!' => '¡Ordene ahora!',
+ ),
+ 'et' => 
+ array (
+ 'Don\'t miss out!' => 'Ära maga maha!',
+ 'Order now!' => 'Telli kohe!',
+ ),
+ 'fa' => 
+ array (
+ 'Don\'t miss out!' => 'از دست ندید!',
+ 'Order now!' => 'همین حالا سفارش دهید!',
+ ),
+ 'fi' => 
+ array (
+ 'Don\'t miss out!' => 'Älä missaa tätä!',
+ 'Order now!' => 'Tilaa nyt!',
+ ),
+ 'fr' => 
+ array (
+ 'Don\'t miss out!' => 'Ne manquez pas ça!',
+ 'Order now!' => 'Commandez maintenant!',
+ ),
+ 'gd' => 
+ array (
+ 'Don\'t miss out!' => 'Na caill a-mach air!',
+ 'Order now!' => 'Òrdaich a-nis!',
+ ),
+ 'gl' => 
+ array (
+ 'Don\'t miss out!' => 'Non o perdas!',
+ 'Order now!' => 'Encarga agora!',
+ ),
+ 'he' => 
+ array (
+ 'Don\'t miss out!' => 'אל תפספסו!',
+ 'Order now!' => 'הזמינו עכשיו!',
+ ),
+ 'hi' => 
+ array (
+ 'Don\'t miss out!' => 'चूकें नहीं!',
+ 'Order now!' => 'अब ऑर्डर दें!',
+ ),
+ 'hr' => 
+ array (
+ 'Don\'t miss out!' => 'Ne propustite!',
+ 'Order now!' => 'Naručite odmah!',
+ ),
+ 'hu' => 
+ array (
+ 'Don\'t miss out!' => 'Ne hagyd ki!',
+ 'Order now!' => 'Rendelj most!',
+ ),
+ 'hy' => 
+ array (
+ 'Don\'t miss out!' => 'Մի բաց թողեք հնարավորությունը։',
+ 'Order now!' => 'Պատվիրեք հիմա!',
+ ),
+ 'id' => 
+ array (
+ 'Don\'t miss out!' => 'Jangan sampai ketinggalan!',
+ 'Order now!' => 'Pesan sekarang!',
+ ),
+ 'is' => 
+ array (
+ 'Don\'t miss out!' => 'Ekki missa af þessu!',
+ 'Order now!' => 'Pantaðu núna!',
+ ),
+ 'it' => 
+ array (
+ 'Don\'t miss out!' => 'Non perdetevelo!',
+ 'Order now!' => 'Ordina ora!',
+ ),
+ 'ja' => 
+ array (
+ 'Don\'t miss out!' => 'お見逃しなく！',
+ 'Order now!' => '今すぐ注文してください！',
+ ),
+ 'ka' => 
+ array (
+ 'Don\'t miss out!' => 'არ გამოტოვოთ!',
+ 'Order now!' => 'შეუკვეთეთ ახლავე!',
+ ),
+ 'kk' => 
+ array (
+ 'Don\'t miss out!' => 'Жіберіп алмаңыз!',
+ 'Order now!' => 'Қазір тапсырыс беріңіз!',
+ ),
+ 'ko' => 
+ array (
+ 'Don\'t miss out!' => '놓치지 마세요!',
+ 'Order now!' => '지금 주문하세요!',
+ ),
+ 'lt' => 
+ array (
+ 'Don\'t miss out!' => 'Nepraleiskite progos!',
+ 'Order now!' => 'Užsisakykite dabar!',
+ ),
+ 'lv' => 
+ array (
+ 'Don\'t miss out!' => 'Nepalaidiet garām!',
+ 'Order now!' => 'Pasūtiet tūlīt!',
+ ),
+ 'mk' => 
+ array (
+ 'Don\'t miss out!' => 'Не пропуштајте!',
+ 'Order now!' => 'Нарачај сега!',
+ ),
+ 'ms' => 
+ array (
+ 'Don\'t miss out!' => 'Jangan lepaskan peluang!',
+ 'Order now!' => 'Pesan sekarang!',
+ ),
+ 'nl' => 
+ array (
+ 'Don\'t miss out!' => 'Mis het niet!',
+ 'Order now!' => 'Bestel nu!',
+ ),
+ 'no' => 
+ array (
+ 'Don\'t miss out!' => 'Ikke gå glipp av dette!',
+ 'Order now!' => 'Bestill nå!',
+ ),
+ 'pl' => 
+ array (
+ 'Don\'t miss out!' => 'Nie przegap!',
+ 'Order now!' => 'Zamów teraz!',
+ ),
+ 'pt' => 
+ array (
+ 'Don\'t miss out!' => 'Não perca!',
+ 'Order now!' => 'Peça agora!',
+ ),
+ 'ro' => 
+ array (
+ 'Don\'t miss out!' => 'Nu ratați!',
+ 'Order now!' => 'Comandă acum!',
+ ),
+ 'ru' => 
+ array (
+ 'Don\'t miss out!' => 'Не пропустите!',
+ 'Order now!' => 'Закажите сейчас!',
+ ),
+ 'sk' => 
+ array (
+ 'Don\'t miss out!' => 'Nenechajte si to ujsť!',
+ 'Order now!' => 'Objednajte si teraz!',
+ ),
+ 'sl' => 
+ array (
+ 'Don\'t miss out!' => 'Ne zamudite!',
+ 'Order now!' => 'Naroči zdaj!',
+ ),
+ 'sq' => 
+ array (
+ 'Don\'t miss out!' => 'Mos e humbisni!',
+ 'Order now!' => 'Porosit tani!',
+ ),
+ 'sr' => 
+ array (
+ 'Don\'t miss out!' => 'Не пропустите!',
+ 'Order now!' => 'Наручите одмах!',
+ ),
+ 'sv' => 
+ array (
+ 'Don\'t miss out!' => 'Missa inte!',
+ 'Order now!' => 'Beställ nu!',
+ ),
+ 'th' => 
+ array (
+ 'Don\'t miss out!' => 'อย่าพลาด!',
+ 'Order now!' => 'สั่งซื้อเลย!',
+ ),
+ 'tr' => 
+ array (
+ 'Don\'t miss out!' => 'Kaçırmayın!',
+ 'Order now!' => 'Hemen sipariş verin!',
+ ),
+ 'uk' => 
+ array (
+ 'Don\'t miss out!' => 'Не пропустіть!',
+ 'Order now!' => 'Замовте зараз!',
+ ),
+ 'vi' => 
+ array (
+ 'Don\'t miss out!' => 'Đừng bỏ lỡ!',
+ 'Order now!' => 'Đặt hàng ngay!',
+ ),
+ 'zh' => 
+ array (
+ 'Don\'t miss out!' => '不要错过！',
+ 'Order now!' => '立即订购！',
+ ),
  ),
  ),
  ),
@@ -4203,18 +4502,18 @@ private static $widget_month_names = array (
  ),
  'da' => 
  array (
- 0 => 'Januar',
- 1 => 'Februar',
- 2 => 'Marts',
- 3 => 'April',
- 4 => 'Maj',
- 5 => 'Juni',
- 6 => 'Juli',
- 7 => 'August',
- 8 => 'September',
- 9 => 'Oktober',
- 10 => 'November',
- 11 => 'December',
+ 0 => 'januar',
+ 1 => 'februar',
+ 2 => 'marts',
+ 3 => 'april',
+ 4 => 'maj',
+ 5 => 'juni',
+ 6 => 'juli',
+ 7 => 'august',
+ 8 => 'september',
+ 9 => 'oktober',
+ 10 => 'november',
+ 11 => 'december',
  ),
  'de' => 
  array (
@@ -4236,7 +4535,7 @@ private static $widget_month_names = array (
  0 => 'Iανουάριος',
  1 => 'Φεβρουάριος',
  2 => 'Μάρτιος',
- 3 => 'Aρίλιος',
+ 3 => 'Απρίλιος',
  4 => 'Μάιος',
  5 => 'Iούνιος',
  6 => 'Iούλιος',
@@ -5724,7 +6023,8 @@ $styleText .= 'left: auto;right: '.$this->getWidgetOption('fomo-margin', false, 
 } else {
 $styleText .= 'left: '.$this->getWidgetOption('fomo-margin', false, $isPreview).'px;';
 }
-$content = str_replace('" data-layout-id=', '" style="'.$styleText.'" data-layout-id=', $content);
+$hideCount = $this->getWidgetOption('fomo-hide-count', false, $isPreview);
+$content = str_replace('" data-layout-id=', '" style="'.$styleText.'" data-hide-count='.$hideCount.' data-layout-id=', $content);
 }
 return $content;
 }
@@ -5991,20 +6291,31 @@ if (isset($widgetTemplate['params']['fomo-platform-block']) && $widgetTemplate['
 $platformBlockText = $platformIconHtml;
 }
 $content = str_replace('<!-- PLATFORM-ICON -->', $platformBlockText, $content);
-if ($this->isFomoCustomWidget()) {
+if ($this->isFomoCustomWidget() || $this->getFomoSubtitleTextChoices()) {
 if ($text = $this->getWidgetOption('fomo-title', false, $isPreview)) {
 $content = preg_replace(
 '/<div class="ti-title-text">(.+)<\/div>/U',
-'<div class="ti-title-text">'.html_entity_decode($text).'</div>',
+'<div class="ti-title-text">'.$text.'</div>',
 $content
 );
 }
 if ($text = $this->getWidgetOption('fomo-text', false, $isPreview)) {
+if ('hide' === $text) {
+$content = preg_replace('/<div class="ti-subtitle-text">(.+)<\/div>/U','', $content);
+} else {
+if (
+isset($widgetTemplate['params']['trans'])
+&& isset($widgetTemplate['params']['trans'][$language])
+&& isset($widgetTemplate['params']['trans'][$language][$text])
+) {
+$text = $widgetTemplate['params']['trans'][$language][$text];
+}
 $content = preg_replace(
 '/<div class="ti-subtitle-text">(.+)<\/div>/U',
-'<div class="ti-subtitle-text">'.html_entity_decode($text).'</div>',
+'<div class="ti-subtitle-text">'.$text.'</div>',
 $content
 );
+}
 }
 }
 if (isset($widgetTemplate['params']['fomo-days'])) {
@@ -6115,6 +6426,34 @@ public function isFomoCustomWidget()
 $styleId = (int)$this->getWidgetOption('style-id');
 return isset(self::$widget_templates['templates'][$styleId]['params']['fomo-custom-text']) && self::$widget_templates['templates'][$styleId]['params']['fomo-custom-text'];
 }
+public function isFomoHideCountAvailable()
+{
+$content = $this->getWidgetOption('review-content');
+return strpos($content, '%registrations%') !== false || strpos($content, '%online-visitors%') !== false || strpos($content, '%visitors%') !== false;
+}
+public function getFomoSubtitleTextChoices()
+{
+$styleId = (int)$this->getWidgetOption('style-id');
+$params = self::$widget_templates['templates'][$styleId]['params'];
+if (!isset($params['fomo-subtitle-text-choices'])) {
+return [];
+}
+$choices = $params['fomo-subtitle-text-choices'];
+$result = [];
+$language = strtolower(substr(get_locale(), 0, 2));
+if (!isset(self::$widget_languages[$language])) {
+$language = 'en';
+}
+foreach ($choices as $choice) {
+$name = $choice;
+$value = $choice;
+if (isset($params['trans']) && isset($params['trans'][$language]) && isset($params['trans'][$language][$choice])) {
+$value = $params['trans'][$language][$choice];
+}
+$result[$name] = $value;
+}
+return $result;
+}
 public function isRtlLanguage()
 {
 if (in_array($this->getWidgetOption('lang'), array (
@@ -6129,6 +6468,21 @@ return false;
 public function getRegistrationCount($days = 1) {
 global $wpdb;
 return (int) $wpdb->get_var('SELECT COUNT(ID) FROM `'.$wpdb->users.'` WHERE DATEDIFF(NOW(), user_registered) <= '.$days);
+}
+public function getOnlineUsers($uid, $page = "") {
+if (!$page) {
+$page = '_index';
+}
+$time = time();
+$users = get_option('ti-online-users-'.$page, []);
+$users[$uid] = $time;
+foreach ($users as $i => $t) {
+if ($t < $time - 60) {
+unset($users[$i]);
+}
+}
+update_option('ti-online-users-'.$page, $users, false);
+return count($users);
 }
 public function get_footer_filter_text($lang = 'en')
 {

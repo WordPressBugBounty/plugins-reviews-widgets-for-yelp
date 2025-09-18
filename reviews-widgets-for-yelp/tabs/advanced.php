@@ -40,7 +40,7 @@ exit;
 }
 $yesIcon = '<span class="dashicons dashicons-yes-alt"></span>';
 $noIcon = '<span class="dashicons dashicons-dismiss"></span>';
-$pluginUpdated = ($pluginManagerInstance->get_plugin_current_version() <= "13.1");
+$pluginUpdated = ($pluginManagerInstance->get_plugin_current_version() <= "13.2");
 $cssInline = get_option($pluginManagerInstance->get_option_name('load-css-inline'), 0);
 $css = get_option($pluginManagerInstance->get_option_name('css-content'));
 $tiSuccess = "";

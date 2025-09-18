@@ -5,7 +5,7 @@ defined('ABSPATH') or die('No script kiddies please!');
 <div class="ti-box">
 <div class="ti-box-header"><?php echo __('Skyrocket Your Sales with Customer Reviews', 'trustindex-plugin'); ?></div>
 <p class="ti-bold">
-<?php echo sprintf(__('%s+ WordPress websites use Trustindex to embed reviews fast and easily.', 'trustindex-plugin'), '600.000'); ?><br />
+<?php echo sprintf(__('%s+ WordPress websites use Trustindex to embed reviews fast and easily.', 'trustindex-plugin'), '700.000'); ?><br />
 <?php echo __('Increase SEO, trust and sales using customer reviews.', 'trustindex-plugin'); ?>
 </p>
 <div class="ti-section-title"><?php echo __('Top Features', 'trustindex-plugin'); ?></div>

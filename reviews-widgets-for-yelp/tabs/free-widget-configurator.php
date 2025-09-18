@@ -401,12 +401,14 @@ exit;
 }
 else if ($ti_command === 'save-fomo-title') {
 check_admin_referer('ti-save-fomo-title');
-update_option($pluginManagerInstance->get_option_name('fomo-title'), sanitize_text_field(htmlentities($_POST['fomo-title'])), false);
+$text = stripslashes($_POST['fomo-title']);
+update_option($pluginManagerInstance->get_option_name('fomo-title'), sanitize_text_field(htmlentities($text)), false);
 exit;
 }
 else if ($ti_command === 'save-fomo-text') {
 check_admin_referer('ti-save-fomo-text');
-update_option($pluginManagerInstance->get_option_name('fomo-text'), sanitize_text_field(htmlentities($_POST['fomo-text'])), false);
+$text = stripslashes($_POST['fomo-text']);
+update_option($pluginManagerInstance->get_option_name('fomo-text'), sanitize_text_field(htmlentities($text)), false);
 exit;
 }
 else if ($ti_command === 'save-fomo-url') {
@@ -1075,6 +1077,21 @@ echo esc_html($pluginManagerInstance->renderNameFormat('Firstname Lastname', $fo
 </form>
 </div>
 <?php endif; ?>
+<?php if ($choices = $pluginManagerInstance->getFomoSubtitleTextChoices()): ?>
+<div class="ti-form-group">
+<label><?php echo __('Subtitle', 'trustindex-plugin'); ?></label>
+<form method="post" action="">
+<input type="hidden" name="command" value="save-fomo-text" />
+<?php wp_nonce_field('ti-save-fomo-text'); ?>
+<select class="ti-form-control" name="fomo-text">
+<option value="hide" <?php echo $pluginManagerInstance->getWidgetOption('fomo-text') === '' ? 'selected' : ''; ?>><?php echo __('Hide', 'trustindex-plugin'); ?></option>
+<?php foreach ($choices as $choice => $choiceText): ?>
+<option value="<?php echo esc_attr($choice); ?>" <?php echo $pluginManagerInstance->getWidgetOption('fomo-text') == $choice ? 'selected' : ''; ?>><?php echo esc_html($choiceText); ?></option>
+<?php endforeach; ?>
+</select>
+</form>
+</div>
+<?php endif; ?>
 <div class="ti-form-row">
 <div class="ti-form-group">
 <label><?php echo __('Icon', 'trustindex-plugin'); ?></label>
@@ -1121,8 +1138,8 @@ echo esc_html($pluginManagerInstance->renderNameFormat('Firstname Lastname', $fo
 </form>
 </div>
 </div>
-<?php if (isset($pluginManager::$widget_templates['templates'][$styleId]['params']['fomo-days'])): ?>
 <div class="ti-form-row">
+<?php if (isset($pluginManager::$widget_templates['templates'][$styleId]['params']['fomo-days'])): ?>
 <div class="ti-form-group">
 <label><?php echo __('Number of days', 'trustindex-plugin'); ?></label>
 <form method="post" action="">
@@ -1141,6 +1158,8 @@ $name = sprintf(__('%d hours', 'trustindex-plugin'), 24);
 </select>
 </form>
 </div>
+<?php endif; ?>
+<?php if ($pluginManagerInstance->isFomoHideCountAvailable()): ?>
 <div class="ti-form-group">
 <label><?php echo __('Hide until count reaches', 'trustindex-plugin'); ?></label>
 <form method="post" action="">
@@ -1149,8 +1168,8 @@ $name = sprintf(__('%d hours', 'trustindex-plugin'), 24);
 <input type="number" class="ti-form-control ti-save-input-on-change" min=0 step=1 value="<?php echo esc_attr($pluginManagerInstance->getWidgetOption('fomo-hide-count')); ?>" name="fomo-hide-count" />
 </form>
 </div>
-</div>
 <?php endif; ?>
+</div>
 <?php endif; ?>
 </div>
 <div class="ti-right-block">
