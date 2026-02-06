@@ -2,6 +2,7 @@
 defined('ABSPATH') or die('No script kiddies please!');
 $pluginManager = 'TrustindexPlugin_yelp';
 $pluginManagerInstance = $trustindex_pm_yelp;
+$_page = $pluginManagerInstance->get_plugin_slug().'/settings.php';
 $pluginNameForEmails = 'Yelp';
 $newBadgeTabs = [];
 if (get_option($pluginManagerInstance->get_option_name('widget-setted-up'), 0) && !get_option($pluginManagerInstance->get_option_name('reply-generated'), 0)) {
@@ -20,7 +21,8 @@ $assetCheckJs = [
 $assetCheckCssId = 'trustindex_settings_style_yelp';
 $assetCheckCssFile = 'static/css/admin-page-settings.css';
 if (isset($_GET['wc_notification'])) {
-$mode = sanitize_text_field($_GET['wc_notification']);
+check_admin_referer('ti-wc-notification');
+$mode = sanitize_text_field(wp_unslash($_GET['wc_notification']));
 $dbValue = 'hide';
 if ($mode === 'later') {
 $dbValue = $time = time() + (30 * 86400);

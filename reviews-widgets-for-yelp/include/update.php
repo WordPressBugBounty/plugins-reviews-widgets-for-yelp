@@ -4,24 +4,31 @@ require_once(ABSPATH . 'wp-admin' . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY
 global $wpdb;
 if (version_compare($this->getVersion(), $this->getVersion('update-version-check'))) {
 $tableName = $this->get_tablename('reviews');
-$columns = array_column($wpdb->get_results('SHOW COLUMNS FROM `'. $tableName .'`', ARRAY_A), 'Field');
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+$results = $wpdb->get_results($wpdb->prepare('SHOW COLUMNS FROM %i', $tableName), ARRAY_A);
+$columns = array_column($results, 'Field');
 
 if (!in_array('highlight', $columns)) {
-$wpdb->query('ALTER TABLE `'. $tableName .'` ADD highlight VARCHAR(11) NULL AFTER rating');
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+$wpdb->query($wpdb->prepare('ALTER TABLE %i ADD highlight VARCHAR(11) NULL AFTER rating', $tableName));
 }
 
 if (!in_array('reply', $columns)) {
-$wpdb->query('ALTER TABLE `'. $tableName .'` ADD reply TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL AFTER date');
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+$wpdb->query($wpdb->prepare('ALTER TABLE %i ADD reply TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL AFTER date', $tableName));
 }
 if (in_array('replied', $columns)) {
-$wpdb->query('ALTER TABLE `'. $tableName .'` DROP replied');
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+$wpdb->query($wpdb->prepare('ALTER TABLE %i DROP replied', $tableName));
 }
 if (!in_array('reviewId', $columns)) {
-$wpdb->query('ALTER TABLE `'. $tableName .'` ADD reviewId TEXT NULL AFTER date');
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+$wpdb->query($wpdb->prepare('ALTER TABLE %i ADD reviewId TEXT NULL AFTER date', $tableName));
 }
 
 if (!in_array('hidden', $columns)) {
-$wpdb->query('ALTER TABLE `'. $tableName .'` ADD hidden TINYINT(1) NOT NULL DEFAULT 0 AFTER id');
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+$wpdb->query($wpdb->prepare('ALTER TABLE %i ADD hidden TINYINT(1) NOT NULL DEFAULT 0 AFTER id', $tableName));
 }
 $oldRateUs = get_option('trustindex-'. $this->getShortName() .'-rate-us');
 if ($oldRateUs) {
@@ -37,11 +44,19 @@ $oldNotificationEmail = get_option('trustindex-'. $this->getShortName() .'-revie
 if ($oldNotificationEmail) {
 $this->setNotificationParam('review-download-finished', 'email', $oldNotificationEmail);
 }
-$usedOptions = [];
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+$results = $wpdb->get_results($wpdb->prepare('SELECT option_name FROM %i WHERE option_name LIKE %s', $wpdb->options, 'trustindex-'.$this->getShortName().'-%'), ARRAY_A);
+$optionNamesInDb = array_column($results, 'option_name');
+$usedOptionNames = [];
 foreach ($this->get_option_names() as $optName) {
-$usedOptions []= $this->get_option_name($optName);
+$usedOptionNames []= $this->get_option_name($optName);
 }
-$wpdb->query('DELETE FROM `'. $wpdb->options .'` WHERE option_name LIKE "trustindex-'. $this->getShortName() .'-%" AND option_name NOT IN ("'. implode('", "', $usedOptions) .'")');
+foreach ($optionNamesInDb as $optName) {
+if (!in_array($optName, $usedOptionNames)) {
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+$wpdb->delete($wpdb->options, ['option_name' => $optName]);
+}
+}
 if (get_option($this->get_option_name('css-content'))) {
 $cssCdnVersion = $this->getCdnVersion('widget-css');
 if ($cssCdnVersion && version_compare($cssCdnVersion, $this->getVersion('widget-css'))) {

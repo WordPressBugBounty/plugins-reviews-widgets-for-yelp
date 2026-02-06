@@ -3,10 +3,7 @@ defined('ABSPATH') or die('No script kiddies please!');
 $dir = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . $pluginManagerInstance->get_plugin_slug() .'.php';
 $pluginData = get_plugin_data($dir);
 
-$reviews = [];
-if ($pluginManagerInstance->is_noreg_linked()) {
-$reviews = $wpdb->get_results('SELECT * FROM `'. $pluginManagerInstance->get_tablename('reviews') .'` ORDER BY date DESC');
-}
+$reviews = $pluginManagerInstance->getReviews();
 ?>
 <?php
 $memoryLimit = 'N/A';

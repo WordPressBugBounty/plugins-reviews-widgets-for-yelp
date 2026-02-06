@@ -6,11 +6,11 @@ defined('ABSPATH') or die('No script kiddies please!');
 <div class="ti-box ti-preview-boxes">
 <div class="ti-box-inner">
 <div class="ti-box-header ti-box-header-normal">
-<?php echo __('Example Widget', 'trustindex-plugin'); ?>:
-<strong><?php echo esc_html(__($pluginManager::$widget_templates['templates'][4]['name'], 'trustindex-plugin')); ?></strong>
- (<?php echo esc_html(__($pluginManager::$widget_styles['light-background']['name'], 'trustindex-plugin')); ?>)
+<?php echo esc_html(__('Example Widget', 'reviews-widgets-for-yelp')); ?>:
+<strong><?php echo esc_html($pluginManager::$widget_templates['templates'][4]['name']); ?></strong>
+ (<?php echo esc_html($pluginManager::$widget_styles['light-background']['name']); ?>)
 </div>
-<div class="preview"><?php echo $pluginManagerInstance->renderWidgetFrontend('26b7024363dd240024159d7e2'); ?></div>
+<div class="preview"><?php echo wp_kses($pluginManagerInstance->renderWidgetFrontend('26b7024363dd240024159d7e2'), $pluginManager::$allowedAttributesForWidget); ?></div>
 </div>
 </div>
 </div>
@@ -65,11 +65,11 @@ $className = 'ti-half-width';
 <div class="ti-box ti-preview-boxes" data-layout-id="<?php echo esc_attr($layout); ?>" data-set-id="<?php echo esc_attr($style); ?>">
 <div class="ti-box-inner">
 <div class="ti-box-header ti-box-header-normal">
-<?php echo __('Example Widget', 'trustindex-plugin'); ?>:
-<strong><?php echo esc_html(__($template['name'], 'trustindex-plugin')); ?></strong>
- (<?php echo esc_html(__($pluginManager::$widget_styles[ $style ]['name'], 'trustindex-plugin')); ?>)
+<?php echo esc_html(__('Example Widget', 'reviews-widgets-for-yelp')); ?>:
+<strong><?php echo esc_html($template['name']); ?></strong>
+ (<?php echo esc_html($pluginManager::$widget_styles[ $style ]['name']); ?>)
 </div>
-<div class="preview"><?php echo $pluginManagerInstance->renderWidgetAdmin(true, true, ['style-id' => $layout, 'set-id' => $style]); ?></div>
+<div class="preview"><?php echo wp_kses($pluginManagerInstance->renderWidgetAdmin(true, true, ['style-id' => esc_attr($layout), 'set-id' => esc_attr($style)]), $pluginManager::$allowedAttributesForWidget); ?></div>
 </div>
 </div>
 </div>

@@ -17,7 +17,7 @@ public function get_name() {
 return $this->platformName;
 }
 public function get_title() {
-return $this->platformName .' '. __('Reviews', 'trustindex-plugin') . ' - Trustindex';
+return $this->platformName .' '. __('Reviews', 'reviews-widgets-for-yelp') . ' - Trustindex';
 }
 public function get_icon() {
 return 'eicon-star';
@@ -27,7 +27,7 @@ return ['trustindex', 'general'];
 }
 protected function register_controls(): void
 {
-$this->start_controls_section('content_section', [ 'label' => __('Widget type', 'trustindex-plugin') ]);
+$this->start_controls_section('content_section', [ 'label' => __('Widget type', 'reviews-widgets-for-yelp') ]);
 $this->add_control('type', [
 'type' => \Elementor\Controls_Manager::CHOOSE,
 'label' => '',
@@ -37,7 +37,7 @@ $this->add_control('type', [
 'free' => [
 'title' => '',
 'icon' => '',
-'label' => ucfirst(__('free', 'trustindex-plugin')) . ' widget',
+'label' => ucfirst(__('free', 'reviews-widgets-for-yelp')) . ' widget',
 ],
 'pro' => [
 'title' => '',
@@ -52,16 +52,18 @@ if (defined('\Elementor\Controls_Manager::NOTICE')) {
 $this->add_control('custom_panel_notice', [
 'type' => \Elementor\Controls_Manager::NOTICE,
 'notice_type' => 'success',
-'heading' => __('UPGRADE to PRO Features', 'trustindex-plugin'),
-'content' => sprintf(__('Automatic review update, creating unlimited review widgets, downloading and displaying all reviews, %d review platforms available!', 'trustindex-plugin'), 137)
-. '<br /><br /><a href="https://www.trustindex.io/?a=sys&c=wp-google-elementor" target="_blank">'.__('Create a Free Account for More Features', 'trustindex-plugin').'</a>',
+'heading' => __('UPGRADE to PRO Features', 'reviews-widgets-for-yelp'),
+/* translators: %d: number */
+'content' => sprintf(__('Automatic review update, creating unlimited review widgets, downloading and displaying all reviews, %d review platforms available!', 'reviews-widgets-for-yelp'), 137)
+. '<br /><br /><a href="https://www.trustindex.io/?a=sys&c=wp-google-elementor" target="_blank">'.__('Create a Free Account for More Features', 'reviews-widgets-for-yelp').'</a>',
 'condition' => [ 'type' => 'free' ],
 ]);
 }
 $this->add_control('embed_code', [
 'type' => \Elementor\Controls_Manager::TEXTAREA,
 'label' => 'Widget shortcode',
-'placeholder' => sprintf(__('Paste the widget shortcode from the Advanced Widget Editor on the %s.', 'trustindex-plugin'), 'admin.trusintdex.io'),
+/* translators: %s: admin.trustindex.io */
+'placeholder' => sprintf(__('Paste the widget shortcode from the Advanced Widget Editor on the %s.', 'reviews-widgets-for-yelp'), 'admin.trusintdex.io'),
 'label_block' => true,
 'condition' => [ 'type' => 'pro' ],
 ]);

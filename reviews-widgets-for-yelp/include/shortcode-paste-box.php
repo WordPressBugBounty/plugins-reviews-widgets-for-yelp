@@ -9,11 +9,11 @@ $trustindexShortCodeId = "ti-shortcode-id-".uniqid();
 <label>Shortcode</label>
 <code class="ti-shortcode" id="<?php echo esc_attr($trustindexShortCodeId); ?>">[<?php echo esc_html($trustindexShortCodeText); ?>]</code>
 <a href="#<?php echo esc_attr($trustindexShortCodeId); ?>" class="ti-btn ti-tooltip ti-toggle-tooltip btn-copy2clipboard">
-<?php echo esc_html(__('Copy to clipboard', 'trustindex-plugin')); ?>
+<?php echo esc_html(__('Copy to clipboard', 'reviews-widgets-for-yelp')); ?>
 <span class="ti-tooltip-message">
 <span style="color: #00ff00; margin-right: 2px">✓</span>
-<?php echo esc_html(__('Copied', 'trustindex-plugin')); ?>
+<?php echo esc_html(__('Copied', 'reviews-widgets-for-yelp')); ?>
 </span>
 </a>
 </div>
-<div class="ti-info-text"><?php echo esc_html(__('Copy and paste this shortcode into post, page or widget.', 'trustindex-plugin')); ?></div>
+<div class="ti-info-text"><?php echo esc_html(__('Copy and paste this shortcode into post, page or widget.', 'reviews-widgets-for-yelp')); ?></div>

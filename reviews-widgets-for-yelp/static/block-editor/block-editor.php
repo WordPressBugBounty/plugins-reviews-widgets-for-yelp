@@ -24,7 +24,8 @@ plugins_url('block-editor.js', __FILE__),
 'wp-element',
 'wp-i18n'
 ],
-filemtime(plugin_dir_path(__FILE__) . 'block-editor.js')
+filemtime(plugin_dir_path(__FILE__) . 'block-editor.js'),
+['in_footer' => false]
 );
 }
 function register_block()

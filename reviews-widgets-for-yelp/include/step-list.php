@@ -27,7 +27,7 @@ $classList []= 'ti-current';
 <?php endforeach; ?>
 <div class="ti-step-buttons <?php if (isset($stepRightButton)): ?>ti-has-multiple<?php endif; ?>">
 <?php if ($stepCurrent > 1): ?>
-<a href="<?php echo esc_attr(str_replace('%step%', $stepCurrent - 1, $stepUrl)); ?>" class="ti-btn ti-btn-default"><?php echo esc_html(__('Back', 'trustindex-plugin')); ?></a>
+<a href="<?php echo esc_attr(str_replace('%step%', $stepCurrent - 1, $stepUrl)); ?>" class="ti-btn ti-btn-default"><?php echo esc_html(__('Back', 'reviews-widgets-for-yelp')); ?></a>
 <?php endif; ?>
 <?php if (isset($stepRightButton)): ?>
 <a href="<?php echo esc_attr(str_replace('%step%', $stepCurrent - 1, $stepUrl)); ?>" class="ti-btn <?php echo esc_attr($stepRightButton['class']); ?>"><?php echo esc_attr($stepRightButton['text']); ?></a>
