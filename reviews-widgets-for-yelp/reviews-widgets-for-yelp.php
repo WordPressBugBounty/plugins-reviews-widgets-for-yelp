@@ -9,7 +9,7 @@ Author: Trustindex.io <support@trustindex.io>
 Author URI: https://www.trustindex.io/
 Contributors: trustindex
 License: GPLv2 or later
-Version: 13.2.7
+Version: 13.2.8
 Requires at least: 6.2
 Requires PHP: 7.0
 Text Domain: reviews-widgets-for-yelp
@@ -22,7 +22,7 @@ Copyright 2019 Trustindex Kft (email: support@trustindex.io)
 defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
 require_once plugin_dir_path(__FILE__) . 'include' . DIRECTORY_SEPARATOR . 'cache-plugin-filters.php';
 require_once plugin_dir_path(__FILE__) . 'trustindex-plugin.class.php';
-$trustindex_pm_yelp = new TrustindexPlugin_yelp("yelp", __FILE__, "13.2.7", "Widgets for Yelp Reviews", "Yelp");
+$trustindex_pm_yelp = new TrustindexPlugin_yelp("yelp", __FILE__, "13.2.8", "Widgets for Yelp Reviews", "Yelp");
 $pluginManager = 'TrustindexPlugin_yelp';
 $pluginManagerInstance = $trustindex_pm_yelp;
 add_action('admin_init', function() { ob_start(); });
@@ -36,13 +36,14 @@ echo '<meta name="ti-site-data" content="'.esc_attr(base64_encode(json_encode([
 '1:'.$pluginManagerInstance->getRegistrationCount(1) .
 '!7:'.$pluginManagerInstance->getRegistrationCount(7) .
 '!30:'.$pluginManagerInstance->getRegistrationCount(30),
-'o' => wp_nonce_url(admin_url('admin-ajax.php').'?'.http_build_query([
-'action' => 'ti_online_users_'.$pluginManagerInstance->getShortName(),
+'o' => wp_nonce_url(get_site_url() .'?'.http_build_query([
+'ti-online-users-'.$pluginManagerInstance->getShortName() => 1,
 'p' => esc_html($url),
 ]), 'ti-online-users-'.$pluginManagerInstance->getShortName()),
 ]))).'" />';
 });
-$onlineUsersFn = function() use($pluginManagerInstance) {
+add_action('init', function() use($pluginManagerInstance) {
+if (isset($_GET['ti-online-users-'.$pluginManagerInstance->getShortName()])) {
 check_admin_referer('ti-online-users-'.$pluginManagerInstance->getShortName());
 $page = isset($_REQUEST['p']) ? sanitize_text_field(wp_unslash($_REQUEST['p'])) : '';
 $md5Value = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
@@ -54,10 +55,9 @@ $userId = uniqid('', true);
 set_transient($key, $userId, 3600);
 }
 echo esc_html($pluginManagerInstance->getOnlineUsers($userId, $page));
-wp_die();
-};
-add_action('wp_ajax_nopriv_ti_online_users_'.$pluginManagerInstance->getShortName(), $onlineUsersFn);
-add_action('wp_ajax_ti_online_users_'.$pluginManagerInstance->getShortName(), $onlineUsersFn);
+exit;
+}
+});
 add_action('wp_insert_site', function($site) use($pluginManagerInstance) {
 switch_to_blog($site->blog_id);
 $tiReviewsTableName = $pluginManagerInstance->get_tablename('reviews');

@@ -292,7 +292,7 @@ $this->loadI18N();
 include $this->get_plugin_dir() . 'include' . DIRECTORY_SEPARATOR . 'update.php';
 if (get_option($this->get_option_name('activation-redirect'))) {
 delete_option($this->get_option_name('activation-redirect'));
-wp_redirect(admin_url('admin.php?page=' . $this->get_plugin_slug() . '/settings.php'));
+wp_safe_redirect(admin_url('admin.php?page=' . $this->get_plugin_slug() . '/settings.php'));
 exit;
 }
 if (
@@ -924,7 +924,7 @@ $className = 'TrustindexPlugin_' . $forcePlatform;
 if (!class_exists($className)) {
 return wp_kses_post($this->frontEndErrorForAdmins(ucfirst($forcePlatform) . ' plugin is not active or not found!'));
 }
-$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-13.2.7", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
+$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-13.2.8", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
 $chosedPlatform->setNotificationParam('not-using-no-widget', 'active', false);
 if (!$chosedPlatform->is_noreg_linked()) {
 /* translators: %s: Platform name */
@@ -1361,7 +1361,7 @@ public static $widget_templates = array (
  ),
  79 => 
  array (
- 'name' => 'Mansonry grid - with header',
+ 'name' => 'Masonry grid - with header',
  'type' => 'grid',
  'is-active' => false,
  'is-popular' => true,
@@ -1372,7 +1372,7 @@ public static $widget_templates = array (
  ),
  31 => 
  array (
- 'name' => 'Mansonry grid',
+ 'name' => 'Masonry grid',
  'type' => 'grid',
  'is-active' => true,
  'is-popular' => false,
@@ -6343,7 +6343,7 @@ $matches[1] = preg_replace('/<div class="ti-profile-img">.+<\/div>/U', '', $matc
 }
 $text = $this->getReviewHtml($r);
 if ($r->reply && $this->getWidgetOption('show-review-replies', false, $isPreview)) {
-$text .= '<br /><br /><strong class="ti-reply-by-owner-title">'.self::$widget_reply_by_texts[$language].'</strong><br />'.$this->parseReviewText($r->reply);
+$text .= '<br /><br /><span class="ti-reply-by-owner-title">'.self::$widget_reply_by_texts[$language].'</span><br />'.$this->parseReviewText($r->reply);
 }
 $reviewContent .= str_replace([
 '%platform%',
@@ -6782,7 +6782,7 @@ return $text;
 $platform = ucfirst($this->getShortName());
 $altPlatform = $platform;
 if (!$platformStars) {
-$platform = 'Trustindex';
+$platform = 'Default';
 }
 $fullStarUrl = '<img class="ti-star" src="https://cdn.trustindex.io/assets/platform/'.$platform.'/star/f.svg" alt="'.$altPlatform.'" width="17" height="17" loading="lazy" />';
 if ('custom' === $platformStars) {
