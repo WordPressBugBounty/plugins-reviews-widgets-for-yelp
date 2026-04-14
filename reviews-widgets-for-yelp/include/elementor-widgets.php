@@ -5,13 +5,20 @@ use Elementor\Widget_Base;
 defined('ABSPATH') or die('No script kiddies please!');
 class TrustrindexElementorWidget_Yelp extends Widget_Base {
 private $pluginManagerInstance;
-private $shortName;
-private $platformName;
+private $shortName = 'yelp';
+private $platformName = 'Yelp';
+private $shortCodeName = 'trustindex';
 public function __construct($data = [], $args = null) {
 parent::__construct($data, $args);
+$this->pluginManagerInstance = null;
+if (is_array($args) && isset($args[0]) && is_object($args[0])) {
 $this->pluginManagerInstance = $args[0];
+}
+if ($this->pluginManagerInstance) {
 $this->shortName = $this->pluginManagerInstance->getShortName();
 $this->platformName = $this->pluginManagerInstance->get_platform_name($this->shortName);
+$this->shortCodeName = $this->pluginManagerInstance->get_shortcode_name();
+}
 }
 public function get_name() {
 return $this->platformName;
@@ -72,7 +79,7 @@ $this->end_controls_section();
 protected function render()
 {
 $settings = $this->get_settings_for_display();
-$shortcode = '['.$this->pluginManagerInstance->get_shortcode_name().' no-registration='.$this->pluginManagerInstance->getShortName().']';
+$shortcode = '['.$this->shortCodeName.' no-registration='.$this->shortName.']';
 if ('pro' === $settings['type'] && $settings['embed_code']) {
 $shortcode = $settings['embed_code'];
 }

@@ -924,7 +924,7 @@ $className = 'TrustindexPlugin_' . $forcePlatform;
 if (!class_exists($className)) {
 return wp_kses_post($this->frontEndErrorForAdmins(ucfirst($forcePlatform) . ' plugin is not active or not found!'));
 }
-$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-13.2.8", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
+$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-13.2.9", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
 $chosedPlatform->setNotificationParam('not-using-no-widget', 'active', false);
 if (!$chosedPlatform->is_noreg_linked()) {
 /* translators: %s: Platform name */
@@ -5323,7 +5323,7 @@ public static $widget_date_format_locales = array (
  'cy' => '%d %s yn ôl|heddiw|diwrnod|diwrnod|wythnos|wythnosau|mis|mis|flwyddyn|flynyddoedd',
  'da' => '%d %s siden|i dag|dag|dage|uge|uger|måned|måneder|år|år',
  'de' => 'vor %d %s|Heute|Tag|Tagen|Woche|Wochen|Monat|Monaten|Jahr|Jahren',
- 'el' => 'πριν από %d ημέρα|σήμερα|ημέρα|ημέρες|εβδομάδα|εβδομάδες|μήνα|μήνες|χρόνο|χρόνια',
+ 'el' => 'πριν από %d %s|σήμερα|ημέρα|ημέρες|εβδομάδα|εβδομάδες|μήνα|μήνες|χρόνο|χρόνια',
  'es' => 'hace %d %s|hoy|día|días|semana|semanas|mes|meses|año|años',
  'et' => '%d %s tagasi|täna|päev|päeva|nädal|nädalat|kuu|kuud|aasta|aastat',
  'fa' => '%d %s قبل|امروز|روز|روز|هفته|هفته|ماه|ماه|سال|سال',
@@ -6784,25 +6784,25 @@ $altPlatform = $platform;
 if (!$platformStars) {
 $platform = 'Default';
 }
-$fullStarUrl = '<img class="ti-star" src="https://cdn.trustindex.io/assets/platform/'.$platform.'/star/f.svg" alt="'.$altPlatform.'" width="17" height="17" loading="lazy" />';
+$fullStarUrl = '<img class="ti-star" src="https://cdn.trustindex.io/assets/platform/'.$platform.'/star/f.svg" alt="'.$altPlatform.' star %star-number%" width="17" height="17" loading="lazy" />';
 if ('custom' === $platformStars) {
 $fullStarUrl = '<span class="ti-star f"></span>';
 }
 for ($si = 1; $si <= $ratingScore; $si++) {
-$text .= $fullStarUrl;
+$text .= str_replace('%star-number%', $si, $fullStarUrl);
 }
 $fractional = $ratingScore - floor($ratingScore);
 if(0.25 <= $fractional) {
 if ($fractional < 0.75) {
-$text .= preg_replace('/f(\.svg)?"/', 'h$1"', $fullStarUrl);
+$text .= preg_replace('/f(\.svg)?"/', 'h$1"', str_replace('%star-number%', $si.'.'.$fractional, $fullStarUrl));
 }
 else {
-$text .= $fullStarUrl;
+$text .= str_replace('%star-number%', $si, $fullStarUrl);
 }
 $si++;
 }
 for (; $si <= 5; $si++) {
-$text .= preg_replace('/f(\.svg)?"/', 'e$1"', $fullStarUrl);
+$text .= preg_replace('/f(\.svg)?"/', 'e$1"', str_replace('%star-number%', $si, $fullStarUrl));
 }
 return $text;
 }
