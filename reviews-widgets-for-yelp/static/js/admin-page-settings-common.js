@@ -615,6 +615,28 @@ jQuery(document).ready(function() {
 			}
 		});
 	});
+
+	/*************************************************************************/
+	/* Sales Widget Preview */
+	document.addEventListener('click', function (event) {
+		let trigger = event.target.closest('.ti-sales-widget-row-title');
+		let targetIsTrigger = false;
+
+		document.querySelectorAll('.ti-sales-widget-preview.is-active').forEach(item => {
+			if (item.closest('.ti-sales-widget-row-title') === trigger) {
+				targetIsTrigger = true;
+			}
+
+			item.classList.remove('is-active');
+		});
+
+		if (trigger && !targetIsTrigger) {
+			event.preventDefault();
+
+			let currentPreview = trigger.closest('.ti-sales-widget-row').querySelector('.ti-sales-widget-preview');
+			currentPreview.classList.toggle('is-active');
+		}
+	});
 });
 
 

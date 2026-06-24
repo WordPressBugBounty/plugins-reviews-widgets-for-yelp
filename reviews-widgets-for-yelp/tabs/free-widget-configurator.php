@@ -546,7 +546,7 @@ $stepCurrent = $stepDone + 1;
 }
 include(plugin_dir_path(__FILE__) . '../include/step-list.php');
 ?>
-<div class="ti-container<?php if ($stepCurrent < 5): ?> ti-narrow-page<?php endif; ?>">
+<div class="ti-container<?php if ($stepCurrent < 5): ?> ti-narrow-page<?php endif; ?><?php if (5 === $stepCurrent): ?> ti-insert-code-page<?php endif; ?>">
 <?php if ($pluginManagerInstance->is_trustindex_connected()): ?>
 <div class="ti-notice ti-notice-warning">
 <p>
@@ -1163,7 +1163,7 @@ break;
 <form method="post" action="">
 <input type="hidden" name="command" value="save-fomo-title" />
 <?php wp_nonce_field('ti-save-fomo-title'); ?>
-<input type="text" class="ti-form-control ti-save-input-on-change" value="<?php echo esc_attr($pluginManagerInstance->getWidgetOption('fomo-title')); ?>" name="fomo-title" />
+<input type="text" class="ti-form-control ti-save-input-on-change" value="<?php echo esc_attr(wp_kses($pluginManagerInstance->getWidgetOption('fomo-title'), ['u' => []])); ?>" name="fomo-title" />
 <small class="ti-text-muted" style="padding-left: 5px"><?php echo esc_html(htmlentities(__('Enclose the text in <u></u> if you want to highlight it', 'reviews-widgets-for-yelp'))); ?></small>
 </form>
 </div>
@@ -1172,7 +1172,7 @@ break;
 <form method="post" action="">
 <input type="hidden" name="command" value="save-fomo-text" />
 <?php wp_nonce_field('ti-save-fomo-text'); ?>
-<input type="text" class="ti-form-control ti-save-input-on-change" value="<?php echo esc_attr($pluginManagerInstance->getWidgetOption('fomo-text')); ?>" name="fomo-text" />
+<input type="text" class="ti-form-control ti-save-input-on-change" value="<?php echo esc_attr(wp_kses($pluginManagerInstance->getWidgetOption('fomo-text'), ['u' => []])); ?>" name="fomo-text" />
 <small class="ti-text-muted" style="padding-left: 5px"><?php echo esc_html(htmlentities(__('Enclose the text in <u></u> if you want to highlight it', 'reviews-widgets-for-yelp'))); ?></small>
 </form>
 </div>
@@ -1373,12 +1373,11 @@ $name = sprintf(__('%d hours', 'reviews-widgets-for-yelp'), 24);
 <input type="checkbox" name="show-logos" value="1"<?php if ($pluginManagerInstance->getWidgetOption('show-logos')): ?> checked<?php endif;?> />
 <label><?php echo esc_html(__('Show platform logos', 'reviews-widgets-for-yelp')); ?></label>
 </span>
-<?php if (!$pluginManagerInstance->is_ten_scale_rating_platform()): ?>
+
 <span class="ti-checkbox ti-checkbox-row">
 <input type="checkbox" name="show-stars" value="1"<?php if ($pluginManagerInstance->getWidgetOption('show-stars')): ?> checked<?php endif;?> />
 <label><?php echo esc_html(__('Show platform stars', 'reviews-widgets-for-yelp')); ?></label>
 </span>
-<?php endif; ?>
 <?php endif; ?>
 <?php if ($pluginManagerInstance->isFomoWidget()): ?>
 <?php if ('hide' !== $pluginManagerInstance->getWidgetOption('fomo-icon')): ?>
@@ -1448,13 +1447,143 @@ echo esc_html(sprintf(__('There are no reviews on your %s platform.', 'reviews-w
 <div class="ti-box-header"><?php echo esc_html(__('Insert this shortcode into your website', 'reviews-widgets-for-yelp')); ?></div>
 <?php include(plugin_dir_path(__FILE__) . '../include/shortcode-paste-box.php'); ?>
 </div>
-<?php if (!get_option($pluginManagerInstance->get_option_name('rate-us-feedback'), 0)): ?>
-<?php include(plugin_dir_path(__FILE__) . '../include/rate-us-feedback-box.php'); ?>
-<?php endif; ?>
+<div class="ti-box ti-sales-widget-box-container">
+<div class="ti-box-header">
+<?php echo
+/* translators: 1: widget count, 2: percent */
+esc_html(sprintf(__('%1$d Professional Review Widgets That Help Boost Sales by %2$d%%', 'reviews-widgets-for-yelp'), 5, 9));
+?>
+<small>
+<?php echo
+/* translators: %d: widget count */
+esc_html(sprintf(__('For best results, generate all %d widgets and place them in the recommended positions.', 'reviews-widgets-for-yelp'), 5));
+?>
+</small>
+<?php echo wp_kses_post($pluginManagerInstance->getProFeatureButton('wp-yelp-'.(!class_exists('Woocommerce') ? 6 : 7))); ?>
+</div>
+<?php
+$tiSalesRows = [
+[
+'Button VIII.',
+__('Homepage – Hero section', 'reviews-widgets-for-yelp'),
+__('Reduces bounce rate', 'reviews-widgets-for-yelp'),
+$pluginManagerInstance->get_plugin_file_url('static/img/ti-widget-tooltip-button8.png'),
+300,
+],
+[
+'Slider I. <i>('.__('with header', 'reviews-widgets-for-yelp').')</i>',
+__('Homepage – Middle of the page', 'reviews-widgets-for-yelp'),
+__('Increases time on site, improves SEO, more sales', 'reviews-widgets-for-yelp'),
+$pluginManagerInstance->get_plugin_file_url('static/img/ti-widget-tooltip-slider1-with-header.png'),
+1200,
+],
+[
+'Top Rated Badge VIII.',
+__('Homepage – Footer', 'reviews-widgets-for-yelp'),
+__('More calls and emails', 'reviews-widgets-for-yelp'),
+$pluginManagerInstance->get_plugin_file_url('static/img/ti-widget-tooltip-top-rated-badge8.png'),
+300,
+],
+[
+'Button III.',
+__('Contact page - Under the contact form', 'reviews-widgets-for-yelp'),
+__('More enquires', 'reviews-widgets-for-yelp'),
+$pluginManagerInstance->get_plugin_file_url('static/img/ti-widget-tooltip-button3.png'),
+300,
+],
+[
+__('Review Certificate', 'reviews-widgets-for-yelp'),
+__('Every page – Left corner of the page', 'reviews-widgets-for-yelp'),
+__('Builds trust', 'reviews-widgets-for-yelp'),
+$pluginManagerInstance->get_plugin_file_url('static/img/ti-widget-tooltip-certificate.png'),
+350,
+],
+];
+if (class_exists('Woocommerce')) {
+$tiSalesRows = [
+[
+'Button VIII.',
+__('Homepage – Hero section', 'reviews-widgets-for-yelp'),
+__('Reduces bounce rate', 'reviews-widgets-for-yelp'),
+$pluginManagerInstance->get_plugin_file_url('static/img/ti-widget-tooltip-button8.png'),
+300,
+],
+[
+'Slider I. <i>('.__('with header', 'reviews-widgets-for-yelp').')</i>',
+__('Homepage – Middle of the page', 'reviews-widgets-for-yelp'),
+__('Increases time on site, improves SEO, more sales', 'reviews-widgets-for-yelp'),
+$pluginManagerInstance->get_plugin_file_url('static/img/ti-widget-tooltip-slider1-with-header.png'),
+1200,
+],
+[
+__('Review Certificate', 'reviews-widgets-for-yelp'),
+__('Every page – Left corner of the page', 'reviews-widgets-for-yelp'),
+__('Builds trust', 'reviews-widgets-for-yelp'),
+$pluginManagerInstance->get_plugin_file_url('static/img/ti-widget-tooltip-certificate.png'),
+350,
+],
+[
+'Button III.',
+__('Every product page – Near price or cart button', 'reviews-widgets-for-yelp'),
+__('Increases purchases', 'reviews-widgets-for-yelp'),
+$pluginManagerInstance->get_plugin_file_url('static/img/ti-widget-tooltip-button3.png'),
+300,
+],
+[
+'Slider I. <i>('.__('with footer', 'reviews-widgets-for-yelp').')</i>',
+__('Every product page – Below the product details', 'reviews-widgets-for-yelp'),
+__('Builds purchase confidence before checkout', 'reviews-widgets-for-yelp'),
+$pluginManagerInstance->get_plugin_file_url('static/img/ti-widget-tooltip-slider1-with-footer.png'),
+1200,
+],
+];
+}
+?>
+<div class="ti-sales-widget-box">
+<div class="ti-sales-widget-table">
+<div class="ti-sales-widget-row">
+<div><?php echo esc_html(__('Recommended widget', 'reviews-widgets-for-yelp')); ?></div>
+<div><?php echo esc_html(__('Where to place it', 'reviews-widgets-for-yelp')); ?></div>
+<div><?php echo esc_html(__('Main benefit', 'reviews-widgets-for-yelp')); ?></div>
+</div>
+<?php foreach ($tiSalesRows as $index => $item): ?>
+<div class="ti-sales-widget-row">
+<div>
+<div class="ti-sales-widget-row-title">
+<span><?php echo esc_html($index + 1).'.'; ?></span>
+<?php echo wp_kses_post($item[0]); ?>
+<span class="ti-sales-widget-preview-icon"></span>
+<div class="ti-sales-widget-preview" style="--ti-preview-width: <?php echo esc_attr($item[4]); ?>px;">
+<img src="<?php echo esc_url($item[3]); ?>" alt="" loading="lazy" />
+</div>
+</div>
+</div>
+<div><?php echo esc_html($item[1]); ?></div>
+<div><?php echo esc_html($item[2]); ?></div>
+</div>
+<?php endforeach; ?>
+</div>
+<div class="ti-sales-widget-cta">
+<div class="ti-sales-widget-cta-content">
+<strong><?php
+/* translators: %d: 9 */
+echo esc_html(sprintf(__('Recommended setup for +%d%% more sales', 'reviews-widgets-for-yelp'), 9));
+?></strong>
+<span><?php
+/* translators: %s: 35,000+ */
+echo esc_html(sprintf(__('Based on data from %s businesses.', 'reviews-widgets-for-yelp'), '35,000+'));
+?></span>
+</div>
+</div>
+</div>
+</div>
 <?php
 $tiCampaign1 = 'wp-yelp-1';
 $tiCampaign2 = 'wp-yelp-2';
 include(plugin_dir_path(__FILE__) . '../include/get-more-customers-box.php');
 ?>
+<?php if (!get_option($pluginManagerInstance->get_option_name('rate-us-feedback'), 0)): ?>
+<?php include(plugin_dir_path(__FILE__) . '../include/rate-us-feedback-box.php'); ?>
+<?php endif; ?>
 <?php endif; ?>
 </div>

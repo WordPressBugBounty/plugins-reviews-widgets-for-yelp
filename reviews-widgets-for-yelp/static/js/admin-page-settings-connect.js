@@ -52,6 +52,16 @@ jQuery(document).ready(function($) {
 		}
 	};
 
+	let checkCrossOriginError = function(button, style = "margin-top: 15px;margin-bottom: 0") {
+		fetch(window.location.href).then(function (response) {
+			if ('same-origin' === response.headers.get('Cross-Origin-Opener-Policy')) {
+				button
+					.addClass('ti-btn-disabled')
+					.after('<div class="ti-notice ti-notice-error" style="'+style+'"><p>Connect popup cannot work on this site. You have <code>Cross-Origin-Opener-Policy: same-origin</code> header.<br />Please change it to <code>same-origin-allow-popups</code> or remove it.</p></div>');
+			}
+		});
+	};
+
 	
 
 	
@@ -184,34 +194,39 @@ jQuery(document).ready(function($) {
 		});
 
 	// make async request on review download
-	$('.btn-download-reviews').on('click', function(event) {
-		event.preventDefault();
+	let tiDownloadReviewsButton = $('.btn-download-reviews:not(.ti-btn-disabled)');
+	if (tiDownloadReviewsButton.length) {
+		tiDownloadReviewsButton.on('click', function(event) {
+			event.preventDefault();
 
-		let btn = jQuery(this);
+			let btn = jQuery(this);
 
-		TrustindexConnect.asyncRequest(function(token, request_id, manual_download, place) {
-			if (place) {
-				$.ajax({
-					type: 'POST',
-					data: {
-						_wpnonce: btn.data('nonce'),
-						download_data: JSON.stringify(place)
-					}
-				}).always(() => location.reload());
-			}
-			else {
-				$.ajax({
-					type: 'POST',
-					data: {
-						_wpnonce: btn.data('nonce'),
-						review_download_request: token,
-						review_download_request_id: request_id,
-						manual_download: manual_download
-					}
-				}).always(() => location.reload());
-			}
-		}, btn);
-	});
+			TrustindexConnect.asyncRequest(function(token, request_id, manual_download, place) {
+				if (place) {
+					$.ajax({
+						type: 'POST',
+						data: {
+							_wpnonce: btn.data('nonce'),
+							download_data: JSON.stringify(place)
+						}
+					}).always(() => location.reload());
+				}
+				else {
+					$.ajax({
+						type: 'POST',
+						data: {
+							_wpnonce: btn.data('nonce'),
+							review_download_request: token,
+							review_download_request_id: request_id,
+							manual_download: manual_download
+						}
+					}).always(() => location.reload());
+				}
+			}, btn);
+		});
+
+		checkCrossOriginError(tiDownloadReviewsButton, "margin-top: 0; margin-bottom: 20px");
+	}
 
 	// manual download
 	$('#ti-review-manual-download').on('click', function(event) {
