@@ -872,8 +872,7 @@ $types = [
 'icon' => 'dashicons-info'
 ]
 ];
-return '<div style="margin:20px 0px; padding:10px; '. $types[ $type ]['css'] .' border-radius: 5px">'
-. '<span class="dashicons '. $types[ $type ]['icon'] .'"></span> <strong>'. strtoupper($type) .'</strong>'
+return '<div style="margin:20px 0px; padding:15px; '. $types[ $type ]['css'] .' border-radius: 5px">'
 . ($newline_content ? '<br />' : "")
 . $content
 . '</div>';
@@ -924,7 +923,7 @@ $className = 'TrustindexPlugin_' . $forcePlatform;
 if (!class_exists($className)) {
 return wp_kses_post($this->frontEndErrorForAdmins(ucfirst($forcePlatform) . ' plugin is not active or not found!'));
 }
-$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-13.3.1", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
+$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-13.3.2", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
 $chosedPlatform->setNotificationParam('not-using-no-widget', 'active', false);
 if (!$chosedPlatform->is_noreg_linked()) {
 /* translators: %s: Platform name */
@@ -951,12 +950,15 @@ else {
 return wp_kses_post($this->frontEndErrorForAdmins(__('Your shortcode is deficient: Trustindex Widget ID is empty! Example: ', 'reviews-widgets-for-yelp') . '<br /><code>['.$this->get_shortcode_name().' data-widget-id="478dcc2136263f2b3a3726ff"]</code>'));
 }
 }
-public function frontEndErrorForAdmins($text)
+public function frontEndErrorForAdmins($text, $title = '', $type = 'error')
 {
 if (!current_user_can('manage_options')) {
 return " ";
 }
-return self::get_alertbox('error', ' @ <strong>'. __('Trustindex plugin', 'reviews-widgets-for-yelp') .'</strong> <i style="opacity: 0.65">('. __('This message is not be visible to visitors in public mode.', 'reviews-widgets-for-yelp') .')</i><br /><br />'. $text, false);
+if ('' === $title) {
+$title = __('Trustindex plugin', 'reviews-widgets-for-yelp');
+}
+return self::get_alertbox($type, '<strong>'.$title.'</strong><br />'.$text.'<br /><i style="opacity: 0.65">('. sprintf(__('This message is not be visible to visitors in public mode.') .')</i>', 'reviews-widgets-for-yelp'), false);
 }
 
 
@@ -1173,7 +1175,7 @@ public static $widget_templates = array (
  'name' => 'Slider I. - with header',
  'type' => 'slider',
  'is-active' => true,
- 'is-popular' => false,
+ 'is-popular' => true,
  'is-top-rated-badge' => false,
  'params' => 
  array (
@@ -1197,7 +1199,7 @@ public static $widget_templates = array (
  'name' => 'Slider I. - with Top Rated header and photos',
  'type' => 'slider',
  'is-active' => false,
- 'is-popular' => true,
+ 'is-popular' => false,
  'is-top-rated-badge' => true,
  'params' => 
  array (
@@ -3258,7 +3260,7 @@ private static $widget_rating_texts = array (
  1 => 'onder gemiddeld',
  2 => 'gemiddeld',
  3 => 'goed',
- 4 => 'uitstekend',
+ 4 => 'uitstekende',
  ),
  'ar' => 
  array (
@@ -3538,7 +3540,7 @@ private static $widget_rating_texts = array (
  1 => 'Onder het gemiddelde',
  2 => 'Gemiddeld',
  3 => 'Goed',
- 4 => 'Uitstekend',
+ 4 => 'Uitstekende',
  ),
  'no' => 
  array (
@@ -5996,7 +5998,7 @@ private function getProfileImageUrl($imageUrl, $layoutId, $sizeMultiply = 1) {
 return $imageUrl;
 }
 
-public function renderWidgetFrontend($tiPublicId = null)
+public function renderWidgetFrontend($tiPublicId = null, $isManualEmbed = false)
 {
 $this->enqueueLoaderScript();
 if ($tiPublicId) {
@@ -6037,6 +6039,12 @@ if ($this->is_review_download_in_progress()) {
 $text = __('Your reviews are being downloaded.', 'reviews-widgets-for-yelp') . ' ' . __('This process should only take a few minutes.', 'reviews-widgets-for-yelp');
 }
 return $this->frontEndErrorForAdmins($text);
+}
+if ($this->is_trustindex_connected()) {
+$title = __('You are still using the free widget below.', 'reviews-widgets-for-yelp');
+$text = __('Switch to the Pro version by replacing the shortcode.', 'reviews-widgets-for-yelp')
+.'<br /><a href="'.esc_url('https://admin.trustindex.io/widget').'" target="_blank" rel="noopener noreferrer">'.__('Find the shortcode in the widget list.', 'reviews-widgets-for-yelp').'</a>';
+$preContent = $this->frontEndErrorForAdmins($text, $title, 'warning').$preContent;
 }
 }
 $attributesHtml = implode(' ', array_map(function($attribute, $value) {

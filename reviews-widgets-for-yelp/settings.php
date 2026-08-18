@@ -35,5 +35,6 @@ exit;
 echo '<script type="text/javascript">self.close();</script>';
 exit;
 }
+include(plugin_dir_path(__FILE__) . 'include/plugin-source-iframe-save.php');
 include(plugin_dir_path(__FILE__) . 'include' . DIRECTORY_SEPARATOR . 'admin.php');
 ?>

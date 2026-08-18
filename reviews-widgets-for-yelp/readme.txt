@@ -2,8 +2,8 @@
 Contributors: trustindex
 Donate link: https://www.trustindex.io/prices/
 Tags: yelp reviews, reviews, yelp, ratings, widget
-Tested up to: 7.0
-Stable tag: 13.3.1
+Tested up to: 7.1
+Stable tag: 13.3.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Plugin Name: Widgets for Yelp Reviews
@@ -12,7 +12,7 @@ Plugin URI: https://wordpress.org/plugins/reviews-widgets-for-yelp/
 Author: Trustindex.io <support@trustindex.io>
 Author URI: https://www.trustindex.io/
 Text Domain: reviews-widgets-for-yelp
-Version: 13.3.1
+Version: 13.3.2
 
 Embed Yelp reviews fast and easily into your WordPress site. Increase SEO, trust and sales using Yelp reviews.
 
@@ -67,7 +67,7 @@ If you don’t have many Yelp reviews yet, one of the best strategies is to post
 
 ### Get more features with our professional review software
 
-[Create a Free Account for More Features](https://www.trustindex.io/ti-redirect.php?a=sys-wp&c=yelp.php-r1)
+[Create a Free Account for More Features](https://www.trustindex.io/?a=sys&c=wp-yelp.php-r1)
 
 * Display all reviews from Google, Facebook, Yelp, Amazon, Tripadvisor, Booking.com, AirBnb, Hotels.com, ...
 * Display reviews from different platforms in a widget
@@ -89,7 +89,7 @@ If you don’t have many Yelp reviews yet, one of the best strategies is to post
 * Priority support
 * AMP support
 
-[Create a Free Account for More Features](https://www.trustindex.io/ti-redirect.php?a=sys-wp&c=yelp.php-r2)
+[Create a Free Account for More Features](https://www.trustindex.io/?a=sys&c=wp-yelp.php-r2)
 
 == Screenshots ==
 

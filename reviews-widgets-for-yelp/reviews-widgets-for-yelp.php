@@ -9,7 +9,7 @@ Author: Trustindex.io <support@trustindex.io>
 Author URI: https://www.trustindex.io/
 Contributors: trustindex
 License: GPLv2 or later
-Version: 13.3.1
+Version: 13.3.2
 Requires at least: 6.2
 Requires PHP: 7.4
 Text Domain: reviews-widgets-for-yelp
@@ -22,7 +22,7 @@ Copyright 2019 Trustindex Kft (email: support@trustindex.io)
 defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
 require_once plugin_dir_path(__FILE__) . 'include' . DIRECTORY_SEPARATOR . 'cache-plugin-filters.php';
 require_once plugin_dir_path(__FILE__) . 'trustindex-plugin.class.php';
-$trustindex_pm_yelp = new TrustindexPlugin_yelp("yelp", __FILE__, "13.3.1", "Widgets for Yelp Reviews", "Yelp");
+$trustindex_pm_yelp = new TrustindexPlugin_yelp("yelp", __FILE__, "13.3.2", "Widgets for Yelp Reviews", "Yelp");
 $pluginManager = 'TrustindexPlugin_yelp';
 $pluginManagerInstance = $trustindex_pm_yelp;
 add_action('admin_init', function() { ob_start(); });
@@ -230,10 +230,12 @@ echo '
 ';
 }
 else {
+if ($options['button-text']) {
 echo '
-<a href="'. esc_url(wp_nonce_url(admin_url('admin.php?page='. $pluginManagerInstance->get_plugin_slug() .'/settings.php&notification='. $type .'&action=open'), 'ti-notification')) .'">
-<button class="button button-primary">'. esc_html($options['button-text']) .'</button>
+<a href="' . esc_url(wp_nonce_url(admin_url('admin.php?page=' . $pluginManagerInstance->get_plugin_slug() . '/settings.php&notification=' . $type . '&action=open'), 'ti-notification')) . '">
+<button class="button button-primary">' . esc_html($options['button-text']) . '</button>
 </a>';
+}
 if ($options['remind-later-button']) {
 echo '
 <a href="'. esc_url(wp_nonce_url(admin_url('admin.php?page='. $pluginManagerInstance->get_plugin_slug() .'/settings.php&notification='. $type .'&action=later'), 'ti-notification')) .'" class="ti-remind-later" style="margin-left: 5px">

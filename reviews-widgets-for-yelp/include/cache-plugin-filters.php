@@ -90,6 +90,17 @@ $tag = str_replace([
 }
 return $tag;
 }, 9999999);
+add_filter('script_loader_tag', function($tag) {
+if (!function_exists('borlabsCookieApi')) {
+return $tag;
+}
+$isLoaderScript = strpos($tag, 'trustindex') !== false && strpos($tag, '/loader') !== false;
+$isAlreadyIgnored = strpos($tag, 'data-borlabs-cookie-script-blocker-ignore') !== false;
+if (!$isLoaderScript || $isAlreadyIgnored) {
+return $tag;
+}
+return preg_replace('/<script(?=[\s>])/', '<script data-borlabs-cookie-script-blocker-ignore', $tag, 1);
+}, 9999999);
 $localizationFiles = get_option('litespeed.conf.optm-localize_domains');
 $isJson = false;
 if (is_string($localizationFiles)) {
