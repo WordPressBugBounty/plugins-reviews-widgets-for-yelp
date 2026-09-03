@@ -20,6 +20,12 @@ $pluginManagerInstance->handleCssFile();
 header('Location: admin.php?page='.esc_attr($_page).'&tab=advanced');
 exit;
 }
+if (isset($_GET['clear_widget_html_cache'])) {
+check_admin_referer('ti-clear-widget-html-cache');
+$pluginManagerInstance->clearWidgetHtmlCacheExpiration();
+header('Location: admin.php?page='.esc_attr($_page).'&tab=advanced');
+exit;
+}
 if (isset($_POST['save-notification-email'])) {
 check_admin_referer('ti-notification-email-save');
 $type = isset($_POST['type']) ? sanitize_text_field(wp_unslash($_POST['type'])) : null;
@@ -31,8 +37,9 @@ exit;
 }
 $yesIcon = '<span class="dashicons dashicons-yes-alt"></span>';
 $noIcon = '<span class="dashicons dashicons-dismiss"></span>';
-$pluginUpdated = ($pluginManagerInstance->get_plugin_current_version() <= "13.3.2");
+$pluginUpdated = ($pluginManagerInstance->get_plugin_current_version() <= "14.0");
 $cssInline = get_option($pluginManagerInstance->get_option_name('load-css-inline'), 0);
+$widgetHtmlCacheIds = $pluginManagerInstance->getCachedWidgetHtmlIds();
 $css = get_option($pluginManagerInstance->get_option_name('css-content'));
 $tiSuccess = "";
 if (isset($_COOKIE['ti-success'])) {
@@ -186,6 +193,20 @@ echo wp_kses_post($noIcon);
 <input type="checkbox" value="1" <?php if ($cssInline): ?>checked<?php endif;?> onchange="window.location.href = '?page=<?php echo esc_attr($_page); ?>&tab=advanced&_wpnonce=<?php echo esc_attr(wp_create_nonce('ti-toggle-css')); ?>&toggle_css_inline=' + (this.checked ? 1 : 0)">
 <label><?php echo esc_html(__('Enable CSS internal loading', 'reviews-widgets-for-yelp')); ?></label>
 </span>
+</li>
+</ul>
+</li>
+<?php endif; ?>
+<?php if ($widgetHtmlCacheIds): ?>
+<li>
+<?php echo esc_html(__('Widget cache', 'reviews-widgets-for-yelp')); ?>
+<ul>
+<li>
+<?php echo esc_html(__('The widgets are stored on your server and refreshed hourly.', 'reviews-widgets-for-yelp')); ?>
+<a href="<?php echo esc_url(wp_nonce_url('?page='.esc_attr($_page).'&tab=advanced&clear_widget_html_cache', 'ti-clear-widget-html-cache')); ?>" class="ti-btn ti-btn-loading-on-click"><?php echo esc_html(__('Clear cache', 'reviews-widgets-for-yelp')); ?></a>
+<div class="ti-notice ti-notice-warning">
+<p><?php echo esc_html(__('Clear it if you have modified your widget in the Trustindex editor and you would like to see the changes immediately.', 'reviews-widgets-for-yelp')); ?></p>
+</div>
 </li>
 </ul>
 </li>

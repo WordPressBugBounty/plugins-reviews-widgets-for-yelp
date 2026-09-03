@@ -69,7 +69,8 @@ $className = 'ti-half-width';
 <strong><?php echo esc_html($template['name']); ?></strong>
  (<?php echo esc_html($pluginManager::$widget_styles[ $style ]['name']); ?>)
 </div>
-<div class="preview"><?php echo wp_kses($pluginManagerInstance->renderWidgetAdmin(true, true, ['style-id' => esc_attr($layout), 'set-id' => esc_attr($style)]), $pluginManager::$allowedAttributesForWidget); ?></div>
+<?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- renderWidgetAdmin() escapes its own markup ?>
+<div class="preview"><?php echo $pluginManagerInstance->renderWidgetAdmin(true, true, ['style-id' => esc_attr($layout), 'set-id' => esc_attr($style)]); ?></div>
 </div>
 </div>
 </div>

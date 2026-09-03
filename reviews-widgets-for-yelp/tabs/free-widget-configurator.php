@@ -810,7 +810,8 @@ echo esc_html(sprintf(__('Our exclusive "Top Rated" badge is awarded to service 
 </p>
 </div>
 <?php endif; ?>
-<?php echo wp_kses($pluginManagerInstance->renderWidgetAdmin(true, false, ['style-id' => esc_attr($id), 'set-id' => esc_attr($set)]), $pluginManager::$allowedAttributesForWidget); ?>
+<?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- renderWidgetAdmin() escapes its own markup ?>
+<?php echo $pluginManagerInstance->renderWidgetAdmin(true, false, ['style-id' => esc_attr($id), 'set-id' => esc_attr($set)]); ?>
 </div>
 </div>
 </div>
@@ -861,7 +862,8 @@ esc_html(__('This widget style helps build trust and effectively increases sales
 <div class="clear"></div>
 </div>
 <div class="preview">
-<?php echo wp_kses($pluginManagerInstance->renderWidgetAdmin(true, false, ['style-id' => esc_attr($styleId), 'set-id' => esc_attr($id)]), $pluginManager::$allowedAttributesForWidget); ?>
+<?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- renderWidgetAdmin() escapes its own markup ?>
+<?php echo $pluginManagerInstance->renderWidgetAdmin(true, false, ['style-id' => esc_attr($styleId), 'set-id' => esc_attr($id)]); ?>
 </div>
 </div>
 </div>
@@ -889,7 +891,8 @@ esc_html(__('This widget style helps build trust and effectively increases sales
 <div class="clear"></div>
 </div>
 <div class="preview">
-<?php echo wp_kses($pluginManagerInstance->renderWidgetAdmin(true, false, ['style-id' => esc_attr($styleId), 'set-id' => esc_attr($id), 'verified-by-trustindex' => true]), $pluginManager::$allowedAttributesForWidget); ?>
+<?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- renderWidgetAdmin() escapes its own markup ?>
+<?php echo $pluginManagerInstance->renderWidgetAdmin(true, false, ['style-id' => esc_attr($styleId), 'set-id' => esc_attr($id), 'verified-by-trustindex' => true]); ?>
 </div>
 </div>
 <div class="ti-notice ti-notice-info ti-verified-badge-notice">
@@ -952,7 +955,8 @@ echo esc_html(sprintf(__('Our exclusive "Top Rated" badge is awarded to service 
 </span>
 </div>
 <div class="preview ti-widget-editor-preview">
-<?php echo wp_kses($pluginManagerInstance->renderWidgetAdmin(true), $pluginManager::$allowedAttributesForWidget); ?>
+<?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- renderWidgetAdmin() escapes its own markup ?>
+<?php echo $pluginManagerInstance->renderWidgetAdmin(true); ?>
 </div>
 </div>
 </div>
