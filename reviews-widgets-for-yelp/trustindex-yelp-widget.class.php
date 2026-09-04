@@ -43,8 +43,12 @@ if (!$wasError && $instance['ti-widget-ID']) {
 // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 echo $pluginManagerInstance->renderWidgetFrontend($instance['ti-widget-ID']);
 } else if ($pluginManagerInstance->is_noreg_linked()) {
+$html = preg_replace('/<style\b[^>]*>.*?<\/style>/is', '', $pluginManagerInstance->renderWidgetFrontend());
+echo wp_kses($html, $pluginManager::$allowedAttributesForWidget);
+if (!is_file($pluginManagerInstance->getCssFile()) || get_option($pluginManagerInstance->get_option_name('load-css-inline'), 0)) {
 // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-echo $pluginManagerInstance->renderWidgetFrontend();
+echo $pluginManagerInstance->addOptimizerOptOutAttributes('<style type="text/css">'.get_option($pluginManagerInstance->get_option_name('css-content')).'</style>');
+}
 } else {
 /* translators: %s: URL */
 echo wp_kses_post($pluginManagerInstance->frontEndErrorForAdmins(sprintf(__("Please fill out <strong>all the required fields</strong> in the <a href='%s'>widget settings</a> page", 'reviews-widgets-for-yelp'), admin_url('admin.php?page='.$pluginManagerInstance->get_plugin_slug().'/settings.php'))));
