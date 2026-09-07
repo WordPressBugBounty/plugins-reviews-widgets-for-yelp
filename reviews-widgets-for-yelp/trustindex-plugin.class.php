@@ -966,7 +966,7 @@ $className = 'TrustindexPlugin_' . $forcePlatform;
 if (!class_exists($className)) {
 return wp_kses_post($this->frontEndErrorForAdmins(ucfirst($forcePlatform) . ' plugin is not active or not found!'));
 }
-$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-14.1", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
+$chosedPlatform = new $className($forcePlatform, $filePath, "do-not-care-14.1.1", "do-not-care-Widgets for Yelp Reviews", "do-not-care-Yelp");
 $chosedPlatform->setNotificationParam('not-using-no-widget', 'active', false);
 if (!$chosedPlatform->is_noreg_linked()) {
 /* translators: %s: Platform name */
@@ -6201,7 +6201,11 @@ document.addEventListener("DOMContentLoaded", tiLoadLoader);
 tiLoadLoader();
 }
 })();';
-return wp_get_inline_script_tag(preg_replace('/\s*\R\s*/', ' ', $script));
+return wp_get_inline_script_tag($this->collapseLineBreaks($script));
+}
+private function collapseLineBreaks($text)
+{
+return preg_replace('/\s*[\r\n]\s*/', ' ', $text);
 }
 private function prepareWidgetHtmlForFrontend($html)
 {
@@ -6211,7 +6215,7 @@ return preg_replace('/\sclass="([^"]*)"/i', ' class="$1 skip-lazy"', $match[0], 
 }
 return preg_replace('/^<img\s/i', '<img class="skip-lazy" ', $match[0], 1);
 }, $html);
-$html = preg_replace('/\s*\R\s*/', ' ', $html);
+$html = $this->collapseLineBreaks($html);
 $styleBlocks = [];
 $html = preg_replace_callback('/<style\b[^>]*>.*?<\/style>/is', function ($match) use (&$styleBlocks) {
 $styleBlocks[] = $match[0];
@@ -6278,9 +6282,21 @@ if (!$isValidWidget) {
 update_option($expiresOptionName, time() + self::$widgetHtmlCacheRetryDelay, false);
 return false;
 }
-update_option($this->get_option_name('widget-html-'.$tiPublicId), wp_encode_emoji($html), false);
+update_option($this->get_option_name('widget-html-'.$tiPublicId), $this->prepareWidgetHtmlForStorage($html), false);
 update_option($expiresOptionName, time() + self::$widgetHtmlCacheLifetime, false);
 return true;
+}
+
+private function prepareWidgetHtmlForStorage($html)
+{
+global $wpdb;
+if ('utf8mb4' === $wpdb->charset && 'utf8mb4' === $wpdb->get_col_charset($wpdb->options, 'option_value')) {
+return $html;
+}
+$encodedHtml = preg_replace_callback('/[\x{10000}-\x{10FFFF}]/u', function($match) {
+return '&#x'.dechex(mb_ord($match[0], 'UTF-8')).';';
+}, $html);
+return null === $encodedHtml ? wp_encode_emoji($html) : $encodedHtml;
 }
 private function getWidgetHtmlUrl($tiPublicId)
 {

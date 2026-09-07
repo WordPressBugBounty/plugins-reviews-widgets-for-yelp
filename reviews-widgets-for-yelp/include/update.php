@@ -5,7 +5,7 @@ global $wpdb;
 if (version_compare($this->getVersion(), $this->getVersion('update-version-check'))) {
 $tableName = $this->get_tablename('reviews');
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-$results = $wpdb->get_results($wpdb->prepare('SHOW COLUMNS FROM %i', $tableName), ARRAY_A);
+$results = $wpdb->get_results($wpdb->prepare('SHOW FULL COLUMNS FROM %i', $tableName), ARRAY_A);
 $columns = array_column($results, 'Field');
 
 if (!in_array('highlight', $columns)) {
@@ -29,6 +29,12 @@ $wpdb->query($wpdb->prepare('ALTER TABLE %i ADD reviewId TEXT NULL AFTER date', 
 if (!in_array('hidden', $columns)) {
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
 $wpdb->query($wpdb->prepare('ALTER TABLE %i ADD hidden TINYINT(1) NOT NULL DEFAULT 0 AFTER id', $tableName));
+}
+
+$columnCollations = array_column($results, 'Collation', 'Field');
+if (isset($columnCollations['user']) && 0 !== strpos((string)$columnCollations['user'], 'utf8mb4')) {
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+$wpdb->query($wpdb->prepare('ALTER TABLE %i MODIFY `user` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci', $tableName));
 }
 $oldRateUs = get_option('trustindex-'. $this->getShortName() .'-rate-us');
 if ($oldRateUs) {
