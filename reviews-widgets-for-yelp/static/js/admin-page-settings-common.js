@@ -219,22 +219,13 @@ jQuery(document).ready(function() {
 		// remove added form
 		form.remove();
 
-		// popup close interval
-		let timer = setInterval(function() {
-			if (tiWindow.closed) {
+		waitForPopupResponse(tiWindow, {
+			adminUrl: 'https://admin.trustindex.io/',
+			onResponse: function(response) {
+				callback(response.reply);
+			},
+			onClose: function() {
 				callback(false);
-				clearInterval(timer);
-			}
-		}, 1000);
-
-		// wait for response from Trustindex
-		jQuery(window).one('message', function(event) {
-			// event comes from the correct window
-			if (tiWindow == event.originalEvent.source) {
-				clearInterval(timer);
-				callback(event.originalEvent.data.reply);
-
-				tiWindow.close();
 			}
 		});
 	};
@@ -270,23 +261,13 @@ jQuery(document).ready(function() {
 		// remove added form
 		form.remove();
 
-		// popup close interval
-		let timer = setInterval(function() {
-			if (tiWindow.closed) {
+		waitForPopupResponse(tiWindow, {
+			adminUrl: 'https://admin.trustindex.io/',
+			onResponse: function(response) {
+				callback(!!response.success);
+			},
+			onClose: function() {
 				callback(undefined);
-				clearInterval(timer);
-			}
-		}, 1000);
-
-		// wait for response from Trustindex
-		jQuery(window).one('message', function(event) {
-			// event comes from the correct window
-			if (tiWindow == event.originalEvent.source) {
-				clearInterval(timer);
-
-				callback(!!event.originalEvent.data.success);
-
-				tiWindow.close();
 			}
 		});
 	};
@@ -907,3 +888,43 @@ jQuery(document).on('click', '.btn-rateus-support', function(event) {
 		}
 	}).always(() => location.reload(true));
 });
+
+// - import/popup-response.js
+function waitForPopupResponse(tiWindow, options) {
+	// popup blocked by the browser, no response will come
+	if (!tiWindow) {
+		options.onClose();
+
+		return;
+	}
+
+	let adminOrigin = new URL(options.adminUrl).origin;
+	let closeCheckTimer = null;
+
+	let onMessage = function(event) {
+		let isPopupMessage = event.source === tiWindow && event.origin === adminOrigin;
+
+		if (!isPopupMessage || (options.isResponse && !options.isResponse(event.data))) {
+			return;
+		}
+
+		stopWaiting();
+		options.onResponse(event.data);
+
+		tiWindow.close();
+	};
+
+	let stopWaiting = function() {
+		clearInterval(closeCheckTimer);
+		window.removeEventListener('message', onMessage);
+	};
+
+	window.addEventListener('message', onMessage);
+
+	closeCheckTimer = setInterval(function() {
+		if (tiWindow.closed) {
+			stopWaiting();
+			options.onClose();
+		}
+	}, 1000);
+}

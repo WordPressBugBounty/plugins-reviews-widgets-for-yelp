@@ -191,10 +191,7 @@ update_option($pluginManagerInstance->get_option_name('review-download-modal'), 
 }
 update_option($pluginManagerInstance->get_option_name('page-details'), $pageDetails, false);
 $GLOBALS['wp_object_cache']->delete( $pluginManagerInstance->get_option_name('page-details'), 'options' );
-$lang = strtolower(substr(get_locale(), 0, 2));
-if (!isset($pluginManager::$widget_languages[ $lang ])) {
-$lang = 'en';
-}
+$lang = $pluginManager::getWidgetLanguage(get_locale());
 update_option($pluginManagerInstance->get_option_name('lang'), $lang, false);
 header('Location: admin.php?page='.esc_attr($_page).'&tab=free-widget-configurator');
 exit;
@@ -1031,10 +1028,7 @@ echo esc_html(sprintf(__('Style %d', 'reviews-widgets-for-yelp'), 2));
 <option value="<?php echo esc_attr($format); ?>" <?php echo $pluginManagerInstance->getWidgetOption('dateformat') == $format ? 'selected' : ''; ?>><?php
 switch ($format) {
 case 'modern':
-$lang = substr(get_locale(), 0, 2);
-if (!in_array($lang, array_keys($pluginManager::$widget_date_format_locales))) {
-$lang = 'en';
-}
+$lang = $pluginManager::getWidgetLanguage(get_locale());
 $tmp = explode('|', $pluginManager::$widget_date_format_locales[$lang]);
 echo esc_html(str_replace([ '%d', '%s' ], [ 2, $tmp[3] ], $tmp[0]));
 break;

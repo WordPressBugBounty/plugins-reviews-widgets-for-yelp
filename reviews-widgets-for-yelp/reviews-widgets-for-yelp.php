@@ -9,7 +9,7 @@ Author: Trustindex.io <support@trustindex.io>
 Author URI: https://www.trustindex.io/
 Contributors: trustindex
 License: GPLv2 or later
-Version: 14.1.1
+Version: 14.2
 Requires at least: 6.2
 Requires PHP: 7.4
 Text Domain: reviews-widgets-for-yelp
@@ -22,7 +22,7 @@ Copyright 2019 Trustindex Kft (email: support@trustindex.io)
 defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
 require_once plugin_dir_path(__FILE__) . 'include' . DIRECTORY_SEPARATOR . 'cache-plugin-filters.php';
 require_once plugin_dir_path(__FILE__) . 'trustindex-plugin.class.php';
-$trustindex_pm_yelp = new TrustindexPlugin_yelp("yelp", __FILE__, "14.1.1", "Widgets for Yelp Reviews", "Yelp");
+$trustindex_pm_yelp = new TrustindexPlugin_yelp("yelp", __FILE__, "14.2", "Widgets for Yelp Reviews", "Yelp");
 $pluginManager = 'TrustindexPlugin_yelp';
 $pluginManagerInstance = $trustindex_pm_yelp;
 add_action('admin_init', function() { ob_start(); });
@@ -96,6 +96,9 @@ wp_register_script('trustindex-loader-js', 'https://cdn.trustindex.io/loader.js'
 ]);
 });
 add_action('init', [ $pluginManagerInstance, 'init_shortcode' ]);
+add_filter('style_loader_tag', function($tag, $handle) use($pluginManagerInstance) {
+return 0 === strpos($handle, 'trustindex-widget-css-') ? $pluginManagerInstance->addOptimizerOptOutAttributes($tag) : $tag;
+}, 10, 2);
 add_filter('script_loader_tag', function($tag, $handle) {
 if ('trustindex-loader-js' === $handle) {
 $tag = str_replace('<script ', '<script data-ccm-injected="1" ', $tag);

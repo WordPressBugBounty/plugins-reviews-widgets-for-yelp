@@ -7,6 +7,16 @@ TrustindexJsLoaded.connect = true;
 // autocomplete config
 var TrustindexConnect = null;
 jQuery(document).ready(function($) {
+	let onConnectPopupClosed = function(tiWindow, button) {
+		if (tiWindow) {
+			$('#ti-connect-info').addClass('ti-d-none');
+		}
+
+		if (button) {
+			button.removeClass('ti-btn-loading');
+		}
+	};
+
 	/*************************************************************************/
 	/* NO REG MODE */
 	TrustindexConnect = {
@@ -27,28 +37,21 @@ jQuery(document).ready(function($) {
 			// open window
 			let tiWindow = window.open('https://admin.trustindex.io/source/wordpressPageRequest?' + params.toString(), 'trustindex', 'width=850,height=850,menubar=0' + popupCenter(850, 850));
 
-			// wait for process complete
-			window.addEventListener('message', function(event) {
-				if (event.origin.startsWith('https://admin.trustindex.io/'.replace(/\/$/,'')) && event.data.success) {
-					tiWindow.close();
-
-					callback($('#ti-noreg-connect-token').val(), event.data.request_id, (event.data.manual_download | 0), event.data.place || null);
-				}
-			});
-
 			// show popup info
 			$('#ti-connect-info').removeClass('ti-d-none');
-			let timer = setInterval(function() {
-				if (tiWindow.closed) {
-					$('#ti-connect-info').addClass('ti-d-none');
 
-					if (!dontRemoveLoading) {
-						button.removeClass('ti-btn-loading');
-					}
-
-					clearInterval(timer);
+			waitForPopupResponse(tiWindow, {
+				adminUrl: 'https://admin.trustindex.io/',
+				isResponse: function(data) {
+					return data.success;
+				},
+				onResponse: function(data) {
+					callback($('#ti-noreg-connect-token').val(), data.request_id, (data.manual_download | 0), data.place || null);
+				},
+				onClose: function() {
+					onConnectPopupClosed(tiWindow, btn);
 				}
-			}, 1000);
+			});
 		}
 	};
 
@@ -252,3 +255,44 @@ jQuery(document).ready(function($) {
 		});
 	});
 });
+
+
+// - import/popup-response.js
+function waitForPopupResponse(tiWindow, options) {
+	// popup blocked by the browser, no response will come
+	if (!tiWindow) {
+		options.onClose();
+
+		return;
+	}
+
+	let adminOrigin = new URL(options.adminUrl).origin;
+	let closeCheckTimer = null;
+
+	let onMessage = function(event) {
+		let isPopupMessage = event.source === tiWindow && event.origin === adminOrigin;
+
+		if (!isPopupMessage || (options.isResponse && !options.isResponse(event.data))) {
+			return;
+		}
+
+		stopWaiting();
+		options.onResponse(event.data);
+
+		tiWindow.close();
+	};
+
+	let stopWaiting = function() {
+		clearInterval(closeCheckTimer);
+		window.removeEventListener('message', onMessage);
+	};
+
+	window.addEventListener('message', onMessage);
+
+	closeCheckTimer = setInterval(function() {
+		if (tiWindow.closed) {
+			stopWaiting();
+			options.onClose();
+		}
+	}, 1000);
+}

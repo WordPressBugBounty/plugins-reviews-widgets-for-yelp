@@ -37,7 +37,7 @@ exit;
 }
 $yesIcon = '<span class="dashicons dashicons-yes-alt"></span>';
 $noIcon = '<span class="dashicons dashicons-dismiss"></span>';
-$pluginUpdated = ($pluginManagerInstance->get_plugin_current_version() <= "14.1.1");
+$pluginUpdated = ($pluginManagerInstance->get_plugin_current_version() <= "14.2");
 $cssInline = get_option($pluginManagerInstance->get_option_name('load-css-inline'), 0);
 $widgetHtmlCacheIds = $pluginManagerInstance->getCachedWidgetHtmlIds();
 $css = get_option($pluginManagerInstance->get_option_name('css-content'));
@@ -54,12 +54,13 @@ $tiCommand = null;
 if ($tiCommand === 'connect') {
 check_admin_referer('connect-reg_' . $pluginManagerInstance->get_plugin_slug());
 $sanitizedEmail = isset($_POST['email']) ? sanitize_email(wp_unslash($_POST['email'])) : "";
-$sanitizedPassword = isset($_POST['password']) ? sanitize_text_field(wp_unslash($_POST['password'])) : "";
-if ($sanitizedEmail && $sanitizedPassword) {
+// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- The password is only sent to the Trustindex API as a POST parameter, it is never rendered, stored or used in a query.
+$password = isset($_POST['password']) && is_string($_POST['password']) ? wp_unslash($_POST['password']) : "";
+if ($sanitizedEmail && '' !== $password) {
 $serverOutput = $pluginManagerInstance->connect_trustindex_api([
 'signin' => [
 'username' => $sanitizedEmail,
-'password' => html_entity_decode($sanitizedPassword),
+'password' => $password,
 ],
 'callback' => bin2hex(openssl_random_pseudo_bytes(10))
 ], 'connect');
