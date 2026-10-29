@@ -17,6 +17,14 @@ jQuery(document).ready(function($) {
 		}
 	};
 
+	let removeReviewPhotos = function(place) {
+		if (Array.isArray(place.reviews)) {
+			place.reviews.forEach(review => delete review.photos);
+		}
+
+		return place;
+	};
+
 	/*************************************************************************/
 	/* NO REG MODE */
 	TrustindexConnect = {
@@ -189,7 +197,7 @@ jQuery(document).ready(function($) {
 				$('#ti-noreg-manual-download').val(manual_download);
 
 				if (place) {
-					$('#ti-noreg-page-details').val(JSON.stringify(place));
+					$('#ti-noreg-page-details').val(JSON.stringify(removeReviewPhotos(place)));
 				}
 
 				TrustindexConnect.form.submit();
@@ -203,6 +211,11 @@ jQuery(document).ready(function($) {
 			event.preventDefault();
 
 			let btn = jQuery(this);
+			if (btn.hasClass('ti-btn-loading')) {
+				return;
+			}
+
+			btn.addClass('ti-btn-loading').blur();
 
 			TrustindexConnect.asyncRequest(function(token, request_id, manual_download, place) {
 				if (place) {
@@ -210,7 +223,7 @@ jQuery(document).ready(function($) {
 						type: 'POST',
 						data: {
 							_wpnonce: btn.data('nonce'),
-							download_data: JSON.stringify(place)
+							download_data: JSON.stringify(removeReviewPhotos(place))
 						}
 					}).always(() => location.reload());
 				}
